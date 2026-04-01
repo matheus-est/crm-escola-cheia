@@ -150,3 +150,18 @@ desenvolvedor precise pedir. Esta é uma responsabilidade automática do Reviewe
 - Nunca aprovar com item obrigatório do checklist falhando
 - Veredicto sempre explícito: **APROVADO** ou **REJEITADO**
 - Se a feature envolver tarefas/tabulações e não tiver testes para ciclo Renitente e unicidade de tarefa aberta → **REJEITADO** automaticamente
+
+---
+
+## Atualização automática do DEVELOPMENT_PLAN.md
+
+Após emitir veredicto **APROVADO**:
+
+1. Abrir `DEVELOPMENT_PLAN.md`
+2. Identificar quais tasks do plano foram cobertas nesta revisão
+3. Marcar `[x]` em cada uma
+4. Se todas as tasks de uma etapa estiverem `[x]`, adicionar ao título:
+   `— concluída em YYYY-MM-DD`
+5. Salvar o arquivo imediatamente, antes de encerrar a resposta
+
+Se o veredicto for **REJEITADO**, não alterar o `DEVELOPMENT_PLAN.md`.
