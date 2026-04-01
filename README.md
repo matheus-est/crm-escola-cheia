@@ -1,208 +1,187 @@
-# Laravel ACL Boilerplate
+# CRM Escola Cheia
 
-A Laravel 12 boilerplate featuring Role-Based Access Control (RBAC), Laravel Fortify, Inertia.js/Vue.js, Wayfinder, and comprehensive ACL management with LGPD compliance considerations.
+Plataforma CRM dedicada para escolas — gerencie leads, oportunidades, tarefas e matrículas em um único lugar.
 
-## System Requirements
+## 🚀 Sobre o Projeto
 
-- PHP >= 8.3
+O CRM Escola Cheia é um sistema focado no controle do funil de matrículas e rematrículas, bem como no acompanhamento comercial das escolas. O sistema utiliza uma arquitetura baseada em Laravel e Vue.js, garantindo alta performance e reatividade na experiência do usuário.
+
+**Principais Funcionalidades:**
+- **Gestão de Matrículas**: Controle completo do funil de captação e rematrículas.
+- **CRM Comercial**: Acompanhamento rigoroso de leads, oportunidades e tarefas iterativas.
+- **Visão Multi-tenant**: Painel e base de dados com suporte a isolamento por unidade escolar/tenant.
+- **Controle de Acesso (ACL)**: Sistema granular de permissões e perfis de usuário.
+- **Auditoria Completa**: Rastreabilidade de ações (usando `laravel-auditing`) para total conformidade e tracking.
+
+## 🛠️ Stack Tecnológica
+
+### Backend
+- **PHP**: ^8.4 (Laravel ^13.0)
+- **Banco de Dados**: MySQL (single-database multi-tenancy)
+- **Autenticação**: Laravel Fortify v1
+- **Inertia Server**: inertia-laravel v2
+- **Roteamento TS**: Wayfinder v0 + Ziggy v2
+- **Auditoria**: `owen-it/laravel-auditing`
+- **Testes & Estilo**: Pest v4, Laravel Pint v1
+
+### Frontend
+- **Framework**: Vue.js ^3.5 (Composition API com `<script setup lang="ts">`)
+- **App Client**: @inertiajs/vue3 v2
+- **Estilização**: Tailwind CSS v4
+- **UI Components**: reka-ui + shadcn-vue
+- **Ícones**: lucide-vue-next
+- **Lint & Formatação**: ESLint v9, Prettier v3
+
+## ⚙️ Requisitos do Sistema
+
+- PHP >= 8.4
+- Node.js >= 20.x
 - Composer >= 2.0
-- Node.js >= 18.x
-- MySQL >= 5.7 (or MariaDB equivalent)
-- Redis (optional, for caching/queuing)
+- MySQL >= 8.0 ou MariaDB
 
-## Installation
+## 📦 Como Instalar e Rodar
 
-### 1. Clone the Repository
+O ambiente local do projeto pode ser executado de 3 formas: **Docker (Laravel Sail)**, **Laravel Herd** ou **Laravel Valet**. 
 
+### Passo Comum: Clonar o repositório
+
+Independente da forma escolhida, inicialize o código e copie o `.env`:
 ```bash
-git clone https://github.com/your-username/laravel-acl-boilerplate.git
-cd laravel-acl-boilerplate
-```
-
-### 2. Install Dependencies
-
-#### PHP Dependencies
-
-```bash
-composer install
-```
-
-#### Node Dependencies
-
-```bash
-npm install
-```
-
-### 3. Environment Configuration
-
-```bash
+git clone <url-do-repositorio> crm-escola-cheia
+cd crm-escola-cheia
 cp .env.example .env
 ```
 
-Edit `.env` to configure your database connection:
+---
 
-```dotenv
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=laravel_acl
-DB_USERNAME=your_db_user
-DB_PASSWORD=your_db_password
-```
+### Opção 1: Via Docker (Laravel Sail)
 
-### 4. Generate Application Key
+Ideal para quem não deseja instalar PHP e MySQL fisicamente na máquina.
 
-```bash
-php artisan key:generate
-```
+1. **Instalar dependências PHP em um container temporário:**
+   ```bash
+   docker run --rm \
+       -u "$(id -u):$(id -g)" \
+       -v "$(pwd):/var/www/html" \
+       -w /var/www/html \
+       laravelsail/php84-composer:latest \
+       composer install --ignore-platform-reqs
+   ```
+2. **Subir os containers do projeto:**
+   ```bash
+   ./vendor/bin/sail up -d
+   ```
+3. **Gerar chave e rodar o banco:**
+   ```bash
+   ./vendor/bin/sail artisan key:generate
+   ./vendor/bin/sail artisan migrate --seed
+   ```
+4. **Instalar dependências front e rodar o Vite:**
+   ```bash
+   ./vendor/bin/sail npm install
+   ./vendor/bin/sail npm run dev
+   ```
 
-### 5. Run Migrations and Seeders
+Acesse em: `http://localhost`
 
-```bash
-php artisan migrate --seed
-```
+---
 
-This command will:
+### Opção 2: Via Laravel Herd
 
-- Create all database tables
-- Seed roles, permissions, modules, and menu groups
-- Initialize the first term version
-- Configure the access control lists (ACL)
+Ideal para desenvolvimento nativo (macOS e Windows) zero-config.
 
-> **Important**: No default users are seeded for security reasons. You **must** create the first administrator user manually via Laravel Tinker (see next step).
+1. No painel do **Herd**, certifique-se de que a pasta `crm-escola-cheia` está linkada e rodando no **PHP 8.4**.
+2. Suba o banco de dados (via Herd Pro, DBngin, etc) e edite os dados de conexão `DB_*` no arquivo `.env`.
+3. **Instalação e setup base:**
+   ```bash
+   composer install
+   php artisan key:generate
+   php artisan migrate --seed
+   ```
+4. **Vite dev server:**
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-### 6. Create the First Administrator User
+Acesse em: `http://crm-escola-cheia.test`
 
-Since the system doesn't seed any users by default (for security), you need to create the initial admin user via Laravel Tinker using the exact command below:
+---
 
+### Opção 3: Via Laravel Valet (macOS/Linux)
+
+Ideal para desenvolvedores com ambiente Nginx nativo servido pelo Valet.
+
+1. Posicione-se na pasta do projeto e force o link com PHP 8.4:
+   ```bash
+   valet link crm-escola-cheia
+   valet isolate php@8.4
+   ```
+2. Crie a base de dados em seu MySQL/MariaDB local e edite os dados `DB_*` no `.env`.
+3. **Instalação e setup base:**
+   ```bash
+   composer install
+   php artisan key:generate
+   php artisan migrate --seed
+   ```
+4. **Vite dev server:**
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+Acesse em: `http://crm-escola-cheia.test`
+
+---
+
+### 👑 Criação do Usuário Master
+
+Para segurança, não há "seed default" de usuários. O primeiro deve ser originário do Tinker.
+
+*(Se você optou pelo Docker, prefixe com `./vendor/bin/sail`)*
+
+Rode o Tinker:
 ```bash
 php artisan tinker
 ```
-
-Once in the Tinker REPL, execute:
-
+Dentro do console:
 ```php
 User::create([
     'name' => 'Master',
-    'email' => 'master@master.com',
-    'password' => bcrypt('123'),
+    'email' => 'master@escolacheia.com.br',
+    'password' => bcrypt('sua_senha_segura'),
     'role_id' => 1
 ]);
 exit
 ```
 
-> ⚠️ **Critical Security Warning**:
->
-> - **Replace `'123'` with a strong, unique password** in production environments
-> - The `role_id` value assumes role ID 1 corresponds to the 'Master' role. To confirm role mappings, run in Tinker:
->     ```php
->     \App\Models\Role::pluck('name', 'id')->toArray();
->     ```
->     or check the `roles` table directly after seeding.
-> - **Never commit this password to version control** - ensure your `.env` is in `.gitignore`
+## 🧪 Qualidade de Código e Testes
 
-### 7. Prepare Frontend Assets
+Antes de submeter código a revisão, os passos abaixo são obrigatórios:
 
+**Backend (Pest Test e Pint):**
 ```bash
-npm run dev
+php artisan test --compact
+vendor/bin/pint --dirty --format agent
 ```
 
-### 8. Start the Development Server
-
+**Frontend (ESLint e Prettier):**
 ```bash
-php artisan serve
+npm run lint
+npm run format
 ```
 
-Access the application at `http://127.0.0.1:8000` and log in with the credentials you just created.
+*(Lembre-se: usuários via Sail precisam colocar `./vendor/bin/sail` à frente dos comandos de CLI)*
 
-## Platform-Specific Instructions
+## 🏗️ Arquitetura e Convenções Técnicas
 
-Laravel's command-line interface works identically across all major operating systems. Minor notes:
+O desenvolvimento neste projeto obedece estritamente às regras de arquitetura documentadas em [`AGENTS.md`](AGENTS.md) e [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md). 
 
-- **Windows**: All commands work in Command Prompt, PowerShell, or Windows Terminal. For a Bash-like experience, consider [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install).
-- **Linux/macOS**: Commands work as shown in any terminal (Bash, Zsh, etc.). Prefix with `sudo` only if encountering permission issues (rare with proper directory ownership).
+A destacar:
+- **Fluxo de Dados Obrigatório**: `Request → FormRequest (validação) → Controller (fino) → Service (regras de negócio) → Model`.
+- **Model e Controllers**: Nunca hospedam regras de negócio.
+- **TypeScript & UI**: Utilização exclusiva de Composition API com TS, Wayfinder para navegação e padronização UI baseada no diretório `components/ui/`.
+- **Identificadores**: Utilização compulsória de UUIDs para a maioria das URLs públicas.
 
-## Testing the Application
-
-Run the full test suite:
-
-```bash
-php artisan test
-```
-
-## Production Deployment Notes
-
-When preparing for production:
-
-1. **Environment Configuration**
-
-    ```dotenv
-    APP_ENV=production
-    APP_DEBUG=false
-    ```
-
-2. **Web Server**
-    - Use Nginx or Apache instead of `php artisan serve`
-    - Configure proper virtual hosts pointing to the `public` directory
-
-3. **Queue Workers** (if using queues)
-
-    ```bash
-    php artisan queue:work --sleep=3 --tries=3
-    ```
-
-    Consider using Supervisor, systemd, or similar process managers for production
-
-4. **Caching**
-
-    ```bash
-    php artisan config:cache
-    php artisan route:cache
-    php artisan view:cache
-    ```
-
-5. **Optimize Composer Autoloader**
-    ```bash
-    composer optimize-autoloader
-    ```
-
-## Project Structure Highlights
-
-- `app/Http/Controllers/` - HTTP controllers following Controller → Service → Model pattern
-- `app/Services/` - Business logic encapsulation (e.g., `SettingService`, `UserService`)
-- `resources/js/pages/` - Inertia.js/Vue.js page components
-- `resources/js/components/` - Reusable Vue components
-- `database/seeders/` - Database seeding logic (RoleSeeder, PermissionSeeder, etc.)
-- `routes/` - Web and API route definitions (including `settings.php` for system configuration)
-
-## License
-
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-
-## Troubleshooting
-
-### Common Issues
-
-**"Access denied for user" errors**
-
-- Verify `.env` database credentials
-- Ensure MySQL/MariaDB service is running
-- Check that the database specified in `.env` exists
-
-**"Class not found" errors after installing packages**
-
-- Run `composer dump-autoload` to regenerate the composer autoloader
-
-**Missing CSS/JavaScript in browser**
-
-- Ensure you've run `npm run dev` or `npm run watch`
-- Check browser console for asset loading errors
-
-**Authentication redirect loops**
-
-- Verify `APP_URL` in `.env` matches your actual domain/port
-- Check session and cookie configuration in `config/session.php`
-
-## Support
-
-For questions or issues, please refer to the [Laravel Documentation](https://laravel.com/docs) or open an issue in the project repository.
+---
+*Para um mapeamento minucioso do CRM, vide o arquivo [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).*
