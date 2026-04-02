@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('school_user', function (Blueprint $table) {
-            $table->foreignUuid('school_id')->constrained('schools')->cascadeOnDelete();
+            $table->foreignId('school_id')->constrained('schools')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

@@ -15,6 +15,7 @@ Nunca implementa código — apenas audita e aponta.
 - [ ] `to_route()` — sem `redirect()->route()`
 - [ ] `BelongsToTenant` no model (se domínio do tenant)
 - [ ] `school_id` não vem da request em controllers de tenant
+- [ ] Migration usa `$table->id()` + `$table->uuid()->unique()` — sem uuid como PK
 - [ ] `#[ObservedBy]` no model — sem `Model::observe()` no SP
 - [ ] `owen-it/laravel-auditing` no model de domínio
 - [ ] UUID em URLs — sem ID numérico exposto

@@ -9,7 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('school_units', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
+            $table->uuid('uuid')->unique();
             $table->foreignUuid('school_id')->constrained('schools')->cascadeOnDelete();
             $table->string('nome');
             $table->string('cep', 8);

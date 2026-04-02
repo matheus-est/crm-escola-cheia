@@ -18,11 +18,8 @@ class SchoolUnit extends Model implements Auditable
 {
     use AuditableTrait, BelongsToTenant, HasFactory;
 
-    public $incrementing = false;
-
-    public $keyType = 'string';
-
     protected $fillable = [
+        'uuid',
         'school_id',
         'nome',
         'cep',

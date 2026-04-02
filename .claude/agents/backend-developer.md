@@ -18,6 +18,11 @@ Se receber solicitação informal → rejeite e oriente: ideia → `/prompt-engi
 - `RenitenteCycleService` único ponto de delays do ciclo Renitente
 - Recusas: validar `refusal_category` + `refusal_detail` no `TaskCompleteRequest`
 
+## Migrations (regra inviolável)
+- Toda migration de domínio: `$table->id()` (PK bigint) + `$table->uuid()->unique()` (preenchido via Observer)
+- UUID **nunca** é PK
+- A convenção "UUID em URLs" é de roteamento — não altera schema de banco
+
 ## Convenções PHP (todas em MEMORY.md § CONVENÇÕES)
 `declare(strict_types=1)` · `casts()` método · `=== null` · `array_key_exists()` · `attach()`/`detach()` · `LengthAwarePaginator` · `to_route()` · `ValidationException` · UUID em URLs · `#[ObservedBy]` · `config()` · `Model::query()`
 - Property promotion do PHP 8 nos construtores

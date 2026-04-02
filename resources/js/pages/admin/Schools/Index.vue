@@ -1,93 +1,154 @@
 <script setup lang="ts">
-import { Head, router, usePage } from '@inertiajs/vue3'
-import { Building2, Pencil, Plus, Trash2 } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
-import Heading from '@/components/Heading.vue'
-import TablePagination from '@/components/TablePagination.vue'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { Building2, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import Heading from '@/components/Heading.vue';
+import PerPageSelect from '@/components/PerPageSelect.vue';
+import TablePagination from '@/components/TablePagination.vue';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select'
-import AppLayout from '@/layouts/AppLayout.vue'
-import { create, destroy, edit, index } from '@/routes/admin/schools'
-import type { AppPageProps, BreadcrumbItem } from '@/types'
-import type { PaginatedSchools, School, SchoolStatus } from '@/types/crm'
+} from '@/components/ui/select';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { create, destroy, edit, index } from '@/routes/admin/schools';
+import type { AppPageProps, BreadcrumbItem } from '@/types';
+import type { PaginatedSchools, School, SchoolStatus } from '@/types/crm';
 
 const props = defineProps<{
-    schools: PaginatedSchools
-}>()
+    schools: PaginatedSchools;
+}>();
 
-const page = usePage<AppPageProps>()
+const page = usePage<AppPageProps>();
 
 const isMaster = computed(
-    () => (page.props.auth.user as { role?: { name: string } | null }).role?.name === 'Master',
-)
+    () =>
+        (page.props.auth.user as { role?: { name: string } | null }).role
+            ?.name === 'Master',
+);
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Escolas', href: index().url },
-]
+];
 
-const filterRazaoSocial = ref('')
-const filterStatus = ref<'' | SchoolStatus>('')
+// Filter interface
+interface Filters {
+    razao_social: string;
+    status: '' | SchoolStatus;
+    sort_by: 'razao_social' | 'cnpj' | 'slug' | 'status' | '';
+    sort_dir: 'asc' | 'desc';
+    per_page: number | 'all';
+}
 
-function applyFilters() {
+// Local filters ref
+const localFilters = ref<Filters>({
+    razao_social: '',
+    status: '',
+    sort_by: 'razao_social',
+    sort_dir: 'asc',
+    per_page: 10,
+});
+
+// Computed properties
+const filterCount = computed(() =>
+    [
+        localFilters.value.razao_social ? 1 : 0,
+        localFilters.value.status ? 1 : 0,
+    ].reduce((a, b) => a + b, 0),
+);
+
+const hasActiveFilter = computed(() => filterCount.value > 0);
+
+// Filter functions
+function toggleSort(column: 'razao_social' | 'cnpj' | 'slug' | 'status'): void {
+    const newDir =
+        localFilters.value.sort_by === column &&
+        localFilters.value.sort_dir === 'asc'
+            ? 'desc'
+            : 'asc';
+    localFilters.value.sort_by = column;
+    localFilters.value.sort_dir = newDir;
+    applyFilters();
+}
+
+function getSortIcon(
+    column: 'razao_social' | 'cnpj' | 'slug' | 'status',
+): 'asc' | 'desc' | 'none' {
+    if (localFilters.value.sort_by !== column) return 'none';
+    return localFilters.value.sort_dir === 'asc' ? 'asc' : 'desc';
+}
+
+function updatePerPage(value: string): void {
+    if (value === 'all') {
+        localFilters.value.per_page = 'all';
+    } else {
+        localFilters.value.per_page = parseInt(value);
+    }
+    applyFilters();
+}
+
+function applyFilters(): void {
     router.get(
         index().url,
         {
-            razao_social: filterRazaoSocial.value,
-            status: filterStatus.value,
+            razao_social: localFilters.value.razao_social,
+            status: localFilters.value.status,
+            sort_by: localFilters.value.sort_by,
+            sort_dir: localFilters.value.sort_dir,
+            per_page: localFilters.value.per_page,
         },
-        { preserveState: true, replace: true },
-    )
-}
-
-function onStatusChange(value: string) {
-    filterStatus.value = value as '' | SchoolStatus
-    applyFilters()
+        { preserveState: true, replace: true, preserveScroll: true },
+    );
 }
 
 // Delete confirmation
-const schoolToDelete = ref<School | null>(null)
-const showDeleteConfirm = ref(false)
+const schoolToDelete = ref<School | null>(null);
+const showDeleteConfirm = ref(false);
 
 function openDeleteConfirm(school: School) {
-    schoolToDelete.value = school
-    showDeleteConfirm.value = true
+    schoolToDelete.value = school;
+    showDeleteConfirm.value = true;
 }
 
 function cancelDelete() {
-    schoolToDelete.value = null
-    showDeleteConfirm.value = false
+    schoolToDelete.value = null;
+    showDeleteConfirm.value = false;
 }
 
 function confirmDelete() {
-    if (!schoolToDelete.value) return
+    if (!schoolToDelete.value) return;
 
     router.delete(destroy({ school: schoolToDelete.value.id }).url, {
         preserveScroll: true,
         onSuccess: () => {
-            schoolToDelete.value = null
-            showDeleteConfirm.value = false
+            schoolToDelete.value = null;
+            showDeleteConfirm.value = false;
         },
-    })
+    });
 }
 
 function goToEdit(school: School) {
-    router.visit(edit({ school: school.id }).url)
+    router.visit(edit({ school: school.id }).url);
 }
 
 function goToCreate() {
-    router.visit(create().url)
+    router.visit(create().url);
 }
 
 function statusLabel(status: SchoolStatus): string {
-    return status === 'active' ? 'Ativo' : 'Inativo'
+    return status === 'active' ? 'Ativo' : 'Inativo';
 }
 </script>
 
@@ -98,7 +159,10 @@ function statusLabel(status: SchoolStatus): string {
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
-                <Heading title="Escolas" description="Gerencie as escolas cadastradas no sistema." />
+                <Heading
+                    title="Escolas"
+                    description="Gerencie as escolas cadastradas no sistema."
+                />
                 <Button @click="goToCreate" class="flex items-center gap-2">
                     <Plus class="h-4 w-4" />
                     Nova Escola
@@ -106,39 +170,226 @@ function statusLabel(status: SchoolStatus): string {
             </div>
 
             <!-- Filters -->
-            <div class="flex flex-wrap items-end gap-4">
-                <div class="flex flex-col gap-1.5">
-                    <Label for="filter-razao-social" class="text-xs font-medium text-muted-foreground uppercase">
-                        Razão Social
-                    </Label>
-                    <Input
-                        id="filter-razao-social"
-                        v-model="filterRazaoSocial"
-                        placeholder="Buscar por razão social..."
-                        class="h-8 w-64"
-                        @keyup.enter="applyFilters"
-                    />
-                </div>
+            <Accordion
+                type="single"
+                collapsible
+                class="w-72"
+                defaultValue="closed"
+            >
+                <AccordionItem value="filter" class="border-none">
+                    <AccordionTrigger
+                        class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:no-underline"
+                        :class="
+                            hasActiveFilter
+                                ? 'border-primary/40 bg-primary/5 text-primary dark:bg-primary/10'
+                                : 'border-border bg-background hover:bg-muted/50'
+                        "
+                    >
+                        <Building2 class="h-4 w-4 shrink-0" />
+                        <span>Filtrar</span>
+                        <span
+                            v-if="hasActiveFilter"
+                            class="ml-auto rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground"
+                        >
+                            {{ filterCount }}
+                        </span>
+                    </AccordionTrigger>
 
-                <div class="flex flex-col gap-1.5">
-                    <Label for="filter-status" class="text-xs font-medium text-muted-foreground uppercase">
-                        Status
-                    </Label>
-                    <Select :default-value="filterStatus || 'all'" @update:model-value="onStatusChange">
-                        <SelectTrigger id="filter-status" class="h-8 w-40">
-                            <SelectValue placeholder="Todos" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Todos</SelectItem>
-                            <SelectItem value="active">Ativo</SelectItem>
-                            <SelectItem value="inactive">Inativo</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+                    <AccordionContent class="pt-2">
+                        <div class="rounded-lg border bg-card p-4 shadow-sm">
+                            <form
+                                @submit.prevent="applyFilters"
+                                class="space-y-4"
+                            >
+                                <div class="space-y-1.5">
+                                    <Label
+                                        for="filter-razao-social"
+                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        Razão Social
+                                    </Label>
+                                    <Input
+                                        id="filter-razao-social"
+                                        v-model="localFilters.razao_social"
+                                        placeholder="Buscar por razão social..."
+                                        class="h-8"
+                                    />
+                                </div>
 
-                <Button size="sm" class="h-8" @click="applyFilters">
-                    Filtrar
-                </Button>
+                                <div class="space-y-1.5">
+                                    <Label
+                                        for="filter-status"
+                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        Status
+                                    </Label>
+                                    <Select
+                                        :default-value="
+                                            localFilters.status || ''
+                                        "
+                                        @update:model-value="
+                                            (e) => {
+                                                localFilters.status = e;
+                                                applyFilters();
+                                            }
+                                        "
+                                    >
+                                        <SelectTrigger
+                                            id="filter-status"
+                                            class="h-8"
+                                        >
+                                            <SelectValue placeholder="Todos" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value=""
+                                                >Todos</SelectItem
+                                            >
+                                            <SelectItem value="active"
+                                                >Ativo</SelectItem
+                                            >
+                                            <SelectItem value="inactive"
+                                                >Inativo</SelectItem
+                                            >
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <Label
+                                        for="filter-sort-by"
+                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        Ordenar por
+                                    </Label>
+                                    <Select
+                                        :default-value="
+                                            localFilters.sort_by ||
+                                            'razao_social'
+                                        "
+                                        @update:model-value="
+                                            (e) => {
+                                                localFilters.sort_by = e;
+                                                applyFilters();
+                                            }
+                                        "
+                                    >
+                                        <SelectTrigger class="h-8">
+                                            <SelectValue
+                                                placeholder="Selecione..."
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="razao_social"
+                                                >Razão Social</SelectItem
+                                            >
+                                            <SelectItem value="cnpj"
+                                                >CNPJ</SelectItem
+                                            >
+                                            <SelectItem value="slug"
+                                                >Slug</SelectItem
+                                            >
+                                            <SelectItem value="status"
+                                                >Status</SelectItem
+                                            >
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <Label
+                                        for="filter-sort-dir"
+                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        Direção
+                                    </Label>
+                                    <Select
+                                        :default-value="localFilters.sort_dir"
+                                        @update:model-value="
+                                            (e) => {
+                                                localFilters.sort_dir = e;
+                                                applyFilters();
+                                            }
+                                        "
+                                    >
+                                        <SelectTrigger class="h-8">
+                                            <SelectValue
+                                                placeholder="Selecione..."
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="asc"
+                                                >Crescente</SelectItem
+                                            >
+                                            <SelectItem value="desc"
+                                                >Decrescente</SelectItem
+                                            >
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <Label
+                                        for="filter-per-page"
+                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        Itens por página
+                                    </Label>
+                                    <PerPageSelect
+                                        :model-value="
+                                            localFilters.value.per_page ===
+                                            'all'
+                                                ? 'all'
+                                                : String(
+                                                      localFilters.value
+                                                          .per_page,
+                                                  )
+                                        "
+                                        @update:model-value="updatePerPage"
+                                    />
+                                </div>
+
+                                <div
+                                    class="flex items-center justify-between gap-2 pt-1"
+                                >
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        class="h-8 text-muted-foreground"
+                                        as-child
+                                    >
+                                        <Link :href="index().url"
+                                            >Limpar filtros</Link
+                                        >
+                                    </Button>
+                                    <Button type="submit" size="sm" class="h-8">
+                                        Aplicar
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+
+            <!-- Table header actions -->
+            <div class="flex items-center justify-between">
+                <template v-if="isMaster">
+                    <Link
+                        :href="create().url"
+                        class="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                    >
+                        <Plus class="h-4 w-4" />
+                        Nova Escola
+                    </Link>
+                </template>
+                <PerPageSelect
+                    :model-value="
+                        localFilters.value.per_page === 'all'
+                            ? 'all'
+                            : String(localFilters.value.per_page)
+                    "
+                    @update:model-value="updatePerPage"
+                />
             </div>
 
             <!-- Table -->
@@ -146,19 +397,113 @@ function statusLabel(status: SchoolStatus): string {
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b">
-                            <th class="px-3 pb-3 text-left font-medium text-muted-foreground">
-                                Razão Social
+                            <th
+                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                            >
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                                    @click="toggleSort('razao_social')"
+                                >
+                                    Razão Social
+                                    <ChevronUp
+                                        v-if="
+                                            getSortIcon('razao_social') ===
+                                            'asc'
+                                        "
+                                        class="h-3.5 w-3.5 text-primary"
+                                    />
+                                    <ChevronDown
+                                        v-else-if="
+                                            getSortIcon('razao_social') ===
+                                            'desc'
+                                        "
+                                        class="h-3.5 w-3.5 text-primary"
+                                    />
+                                    <ChevronsUpDown
+                                        v-else
+                                        class="h-3.5 w-3.5 opacity-30"
+                                    />
+                                </button>
                             </th>
-                            <th class="px-3 pb-3 text-left font-medium text-muted-foreground">
-                                CNPJ
+                            <th
+                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                            >
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                                    @click="toggleSort('cnpj')"
+                                >
+                                    CNPJ
+                                    <ChevronUp
+                                        v-if="getSortIcon('cnpj') === 'asc'"
+                                        class="h-3.5 w-3.5 text-primary"
+                                    />
+                                    <ChevronDown
+                                        v-else-if="
+                                            getSortIcon('cnpj') === 'desc'
+                                        "
+                                        class="h-3.5 w-3.5 text-primary"
+                                    />
+                                    <ChevronsUpDown
+                                        v-else
+                                        class="h-3.5 w-3.5 opacity-30"
+                                    />
+                                </button>
                             </th>
-                            <th class="px-3 pb-3 text-left font-medium text-muted-foreground">
-                                Slug
+                            <th
+                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                            >
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                                    @click="toggleSort('slug')"
+                                >
+                                    Slug
+                                    <ChevronUp
+                                        v-if="getSortIcon('slug') === 'asc'"
+                                        class="h-3.5 w-3.5 text-primary"
+                                    />
+                                    <ChevronDown
+                                        v-else-if="
+                                            getSortIcon('slug') === 'desc'
+                                        "
+                                        class="h-3.5 w-3.5 text-primary"
+                                    />
+                                    <ChevronsUpDown
+                                        v-else
+                                        class="h-3.5 w-3.5 opacity-30"
+                                    />
+                                </button>
                             </th>
-                            <th class="px-3 pb-3 text-left font-medium text-muted-foreground">
-                                Status
+                            <th
+                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                            >
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                                    @click="toggleSort('status')"
+                                >
+                                    Status
+                                    <ChevronUp
+                                        v-if="getSortIcon('status') === 'asc'"
+                                        class="h-3.5 w-3.5 text-primary"
+                                    />
+                                    <ChevronDown
+                                        v-else-if="
+                                            getSortIcon('status') === 'desc'
+                                        "
+                                        class="h-3.5 w-3.5 text-primary"
+                                    />
+                                    <ChevronsUpDown
+                                        v-else
+                                        class="h-3.5 w-3.5 opacity-30"
+                                    />
+                                </button>
                             </th>
-                            <th class="px-3 pb-3 text-right font-medium text-muted-foreground">
+                            <th
+                                class="px-3 pb-3 text-right font-medium text-muted-foreground"
+                            >
                                 Ações
                             </th>
                         </tr>
@@ -172,7 +517,9 @@ function statusLabel(status: SchoolStatus): string {
                             <td class="px-3 py-3 font-medium text-foreground">
                                 {{ school.razao_social }}
                             </td>
-                            <td class="px-3 py-3 text-muted-foreground font-mono text-xs">
+                            <td
+                                class="px-3 py-3 font-mono text-xs text-muted-foreground"
+                            >
                                 {{ school.cnpj }}
                             </td>
                             <td class="px-3 py-3 text-muted-foreground">
@@ -191,7 +538,9 @@ function statusLabel(status: SchoolStatus): string {
                                 </span>
                             </td>
                             <td class="px-3 py-3 text-right">
-                                <div class="flex items-center justify-end gap-2">
+                                <div
+                                    class="flex items-center justify-end gap-2"
+                                >
                                     <button
                                         class="rounded p-1 hover:bg-muted"
                                         title="Editar"
@@ -221,7 +570,9 @@ function statusLabel(status: SchoolStatus): string {
                     <div class="mb-4 rounded-full bg-muted/50 p-4">
                         <Building2 class="h-8 w-8 text-muted-foreground/50" />
                     </div>
-                    <p class="text-sm font-medium text-foreground">Nenhuma escola encontrada</p>
+                    <p class="text-sm font-medium text-foreground">
+                        Nenhuma escola encontrada
+                    </p>
                     <p class="mt-1 text-xs text-muted-foreground">
                         Comece cadastrando uma nova escola.
                     </p>
@@ -241,14 +592,21 @@ function statusLabel(status: SchoolStatus): string {
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
         >
             <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
-                <h2 class="text-lg font-semibold text-foreground">Confirmar Exclusão</h2>
+                <h2 class="text-lg font-semibold text-foreground">
+                    Confirmar Exclusão
+                </h2>
                 <p class="mt-2 text-sm text-muted-foreground">
                     Tem certeza que deseja excluir a escola
-                    <strong>{{ schoolToDelete.razao_social }}</strong>? Esta ação não pode ser desfeita.
+                    <strong>{{ schoolToDelete.razao_social }}</strong
+                    >? Esta ação não pode ser desfeita.
                 </p>
                 <div class="mt-6 flex items-center justify-end gap-3">
-                    <Button variant="outline" @click="cancelDelete">Cancelar</Button>
-                    <Button variant="destructive" @click="confirmDelete">Excluir</Button>
+                    <Button variant="outline" @click="cancelDelete"
+                        >Cancelar</Button
+                    >
+                    <Button variant="destructive" @click="confirmDelete"
+                        >Excluir</Button
+                    >
                 </div>
             </div>
         </div>

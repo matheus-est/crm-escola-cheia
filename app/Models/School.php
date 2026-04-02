@@ -19,11 +19,8 @@ class School extends Model implements Auditable
 {
     use AuditableTrait, HasFactory;
 
-    public $incrementing = false;
-
-    public $keyType = 'string';
-
     protected $fillable = [
+        'uuid',
         'cnpj',
         'razao_social',
         'slug',
