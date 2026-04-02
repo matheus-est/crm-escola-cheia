@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Observers;
+
+use App\Models\School;
+use Illuminate\Support\Str;
+
+class SchoolObserver
+{
+    public function creating(School $school): void
+    {
+        if ($school->id === null) {
+            $school->id = (string) Str::uuid();
+        }
+
+        $base = Str::slug($school->razao_social);
+        $slug = $base;
+        $suffix = 1;
+
+        while (School::query()->where('slug', $slug)->exists()) {
+            $suffix++;
+            $slug = $base.'-'.$suffix;
+        }
+
+        $school->slug = $slug;
+    }
+}
