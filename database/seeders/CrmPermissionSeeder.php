@@ -13,16 +13,47 @@ use Illuminate\Support\Facades\DB;
 
 class CrmPermissionSeeder extends Seeder
 {
-    /**
-     * CRM modules to create, keyed by slug.
-     *
-     * @var array<string, string>
-     */
     private array $modules = [
-        'schools' => 'Escolas',
-        'leads' => 'Leads',
-        'oportunidades' => 'Oportunidades',
-        'tarefas' => 'Tarefas',
+        [
+            'slug' => 'schools',
+            'name' => 'Escolas',
+            'icon' => 'Building2',
+            'url' => '/admin/schools',
+            'description' => 'Gestão de escolas do CRM',
+            'order' => 10,
+            'show_in_menu' => true,
+            'is_active' => true,
+        ],
+        [
+            'slug' => 'leads',
+            'name' => 'Leads',
+            'icon' => 'Users',
+            'url' => '/leads',
+            'description' => 'Gestão de captação',
+            'order' => 11,
+            'show_in_menu' => true,
+            'is_active' => true,
+        ],
+        [
+            'slug' => 'oportunidades',
+            'name' => 'Oportunidades',
+            'icon' => 'Target',
+            'url' => '/opportunities',
+            'description' => 'Gestão de matrículas e funil',
+            'order' => 12,
+            'show_in_menu' => true,
+            'is_active' => true,
+        ],
+        [
+            'slug' => 'tarefas',
+            'name' => 'Tarefas',
+            'icon' => 'CheckSquare',
+            'url' => '/tasks',
+            'description' => 'Gestão de tarefas e retornos',
+            'order' => 13,
+            'show_in_menu' => true,
+            'is_active' => true,
+        ],
     ];
 
     /**
@@ -48,10 +79,13 @@ class CrmPermissionSeeder extends Seeder
      */
     private function createModulesAndPermissions(): void
     {
-        foreach ($this->modules as $slug => $name) {
+        foreach ($this->modules as $mod) {
+            $slug = $mod['slug'];
+            $name = $mod['name'];
+
             $module = Module::updateOrCreate(
                 ['slug' => $slug],
-                ['name' => $name]
+                $mod
             );
 
             foreach ($this->actions[$slug] as $order => $action) {
@@ -86,7 +120,8 @@ class CrmPermissionSeeder extends Seeder
     {
         $allCrmPermissions = Permission::query()
             ->where(function ($query): void {
-                foreach (array_keys($this->modules) as $slug) {
+                foreach ($this->modules as $mod) {
+                    $slug = $mod['slug'];
                     $query->orWhere('name', 'like', "{$slug}_%");
                 }
             })

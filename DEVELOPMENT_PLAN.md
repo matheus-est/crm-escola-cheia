@@ -76,7 +76,7 @@
 
 ---
 
-## ETAPA 1 — Entidade School (Tenant) 🔴 BLOQUEANTE
+## ETAPA 1 — Entidade School (Tenant) 🔴 BLOQUEANTE — concluída em 2026-04-02
 
 > Todas as entidades de domínio dependem de `schools` existir.
 
@@ -100,21 +100,21 @@
 - [ ] 🧪 Teste: Operação não consegue excluir School · Admin edita · Master exclui
 - [ ] 📋 Reviewer
 
-### 1.3 Gestão de usuários de tenant dentro do CRUD de School
-- [ ] ⚙️ `app/Http/Requests/School/SchoolUserAttachRequest.php` — valida `user_id` e `role_id` (apenas roles gestor/comercial permitidas)
-- [ ] ⚙️ `app/Http/Controllers/Admin/SchoolUserController.php` — `store()` e `destroy()` (attach/detach via `SchoolService`)
-- [ ] ⚙️ Rotas em `routes/admin.php`: `POST /admin/schools/{uuid}/users` e `DELETE /admin/schools/{uuid}/users/{user_uuid}`
-- [ ] 🧪 Teste: não é possível vincular role `master`/`admin`/`operacao` a um tenant via este endpoint
-- [ ] 🧪 Teste: attach cria registro em `school_user` · detach remove · attach duplicado lança ValidationException
-- [ ] 📋 Reviewer
+### 1.3 Gestão de usuários de tenant dentro do CRUD de School — concluída em 2026-04-02
+- [x] ⚙️ `app/Http/Requests/School/SchoolUserAttachRequest.php` — valida `user_id` e `role_id` (apenas roles gestor/comercial permitidas)
+- [x] ⚙️ `app/Http/Controllers/Admin/SchoolUserController.php` — `store()` e `destroy()` (attach/detach via `SchoolService`)
+- [x] ⚙️ Rotas em `routes/admin.php`: `POST /admin/schools/{uuid}/users` e `DELETE /admin/schools/{uuid}/users/{user_uuid}`
+- [x] 🧪 Teste: não é possível vincular role `master`/`admin`/`operacao` a um tenant via este endpoint
+- [x] 🧪 Teste: attach cria registro em `school_user` · detach remove · attach duplicado lança ValidationException
+- [x] 📋 Reviewer — APROVADO em 2026-04-02
 
-### 1.4 Frontend — CRUD de Schools com gestão de usuários
-- [ ] 🖥️ `resources/js/types/crm.ts` — interfaces `School`, `SchoolUnit`, `SchoolUser`
-- [ ] 🖥️ `pages/admin/Schools/Index.vue` — listagem com filtros
-- [ ] 🖥️ `pages/admin/Schools/Create.vue` — com CNPJ lookup + CEP lookup
-- [ ] 🖥️ `pages/admin/Schools/Edit.vue` — slug readonly com banner de alerta ao editar; seção "Usuários da escola" com lista de vinculados e formulário para adicionar (seleciona usuário + role gestor/comercial)
-- [ ] 🖥️ Composable `useCepLookup.ts` — debounce 400ms, auto-preenchimento
-- [ ] 📋 Reviewer
+### 1.4 Frontend — CRUD de Schools com gestão de usuários — concluída em 2026-04-02
+- [x] 🖥️ `resources/js/types/crm.ts` — interfaces `School`, `SchoolUnit`, `SchoolUser`
+- [x] 🖥️ `pages/admin/Schools/Index.vue` — listagem com filtros
+- [x] 🖥️ `pages/admin/Schools/Create.vue` — com CNPJ lookup + CEP lookup
+- [x] 🖥️ `pages/admin/Schools/Edit.vue` — slug readonly com banner de alerta ao editar; seção "Usuários da escola" com lista de vinculados e formulário para adicionar (seleciona usuário + role gestor/comercial)
+- [x] 🖥️ Composable `useCepLookup.ts` — debounce 400ms, auto-preenchimento
+- [x] 📋 Reviewer — APROVADO em 2026-04-02
 
 ---
 

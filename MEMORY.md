@@ -7,7 +7,7 @@
 ## ESTADO ATUAL
 
 **Última sessão:** 2026-04-02
-**Próxima tarefa:** Etapa 1.2 — SchoolService · ViaCepService · SchoolController · Rotas admin
+**Próxima tarefa:** Etapa 2.x — Entidades de suporte (Segment/Grade · SchoolYear · LeadSource)
 
 ### Concluído
 - [x] 0.1 — Ambiente (MySQL, Reverb, laravel-auditing)
@@ -16,12 +16,11 @@
 - [x] 0.4 — CheckRole middleware · routes/admin.php · routes/tenant.php
 - [x] 0.5 — SegmentSeeder (6) · OutcomeSeeder (41 outcomes + actions)
 - [x] 1.1 — Migrations schools/school_units/school_user · SchoolStatus enum · School e SchoolUnit models · SchoolObserver e SchoolUnitObserver · Testes Pest (3 passando)
+- [x] 1.2 — SchoolService · ViaCepService · SchoolPolicy · SchoolStoreRequest · SchoolUpdateRequest · SchoolController · Rotas admin · Testes (62 passando)
+- [x] 1.3 — SchoolUserAttachRequest · SchoolUserController · Rotas admin (store/destroy) · Testes Pest (71 passando)
+- [x] 1.4 — Frontend Schools (Index · Create · Edit com seção usuários)
 
 ### Pendente (ordem de execução)
-- [ ] **1.2** — SchoolService · ViaCepService · SchoolController · Rotas admin
-- [ ] **1.2** — SchoolService · ViaCepService · SchoolController · Rotas admin
-- [ ] **1.3** — SchoolUserController · attachUser/detachUser · Rotas
-- [ ] **1.4** — Frontend Schools (Index · Create · Edit com seção usuários)
 - [ ] **2.x** — Entidades de suporte (Segment/Grade · SchoolYear · LeadSource)
 - [ ] **3.x** — Alunos e Responsáveis
 - [ ] **4.x** — Oportunidades 🔴
@@ -185,6 +184,12 @@ Public/     sem auth
 | 2026-04-01 | TenantScopeTest.php | Até Etapa 1.x: School não existe → `currentSchool()` null → SetActiveTenant → 403 |
 | 2026-04-02 | School.php | School não usa BelongsToTenant — é o tenant raiz; primary key é UUID (não campo separado uuid) |
 | 2026-04-02 | SchoolObserver.php | Slug gerado no creating com loop while para sufixo incremental; usar === null para checar id |
+| 2026-04-02 | Controller.php | Base Controller sem AuthorizesRequests — usar Gate::authorize() diretamente em vez de $this->authorize() |
+| 2026-04-02 | SchoolPolicy.php | Autodiscovery do Laravel 13 funciona para App\Policies\{Model}Policy — sem necessidade de registro manual |
+| 2026-04-02 | AclServiceProvider.php | Gate::before() retorna null (não false) quando sem permissão — policies são avaliadas normalmente na sequência |
+| 2026-04-02 | SchoolUserControllerTest.php | ValidationException retorna 302 (redirect) em requests normais — usar withHeader('Accept', 'application/json') para obter 422 nos testes |
+| 2026-04-02 | SchoolUserController.php | User não tem getRouteKeyName() — destroy recebe string $userUuid e resolve manualmente via User::query()->where('uuid', ...) |
+| 2026-04-02 | SchoolPolicy.php | update() restrito a Master e Admin — Operacao não pode gerenciar vínculos de usuário-escola |
 
 ---
 

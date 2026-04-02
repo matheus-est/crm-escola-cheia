@@ -17,12 +17,13 @@ export type UseCurrentUrlReturn = {
     ) => T | F;
 };
 
-const page = usePage();
-const currentUrlReactive = computed(
-    () => new URL(page.url, window?.location.origin).pathname,
-);
-
 export function useCurrentUrl(): UseCurrentUrlReturn {
+    // ✅ Moved inside the function so it's called within setup() context
+    const page = usePage();
+    const currentUrlReactive = computed(
+        () => new URL(page.url, window?.location.origin).pathname,
+    );
+
     function isCurrentUrl(
         urlToCheck: NonNullable<InertiaLinkProps['href']>,
         currentUrl?: string,
@@ -30,8 +31,12 @@ export function useCurrentUrl(): UseCurrentUrlReturn {
         const urlToCompare = currentUrl ?? currentUrlReactive.value;
         const urlString = toUrl(urlToCheck);
 
+        // ✅ Guard against toUrl() returning undefined/null
+        if (!urlString) {
+            return false;
+        }
+
         if (!urlString.startsWith('http')) {
-            // Verifica se é igual OU se a URL atual começa com o caminho do menu
             return (
                 urlString === urlToCompare ||
                 urlToCompare.startsWith(urlString + '/')
