@@ -6,8 +6,8 @@
 
 ## ESTADO ATUAL
 
-**Última sessão:** 2026-04-01
-**Próxima tarefa:** Etapa 1.1 — Migration e Model de School
+**Última sessão:** 2026-04-02
+**Próxima tarefa:** Etapa 1.2 — SchoolService · ViaCepService · SchoolController · Rotas admin
 
 ### Concluído
 - [x] 0.1 — Ambiente (MySQL, Reverb, laravel-auditing)
@@ -15,9 +15,10 @@
 - [x] 0.3 — RoleSeeder (5 roles) · CrmPermissionSeeder · User::isCrossTenant() · currentSchool()
 - [x] 0.4 — CheckRole middleware · routes/admin.php · routes/tenant.php
 - [x] 0.5 — SegmentSeeder (6) · OutcomeSeeder (41 outcomes + actions)
+- [x] 1.1 — Migrations schools/school_units/school_user · SchoolStatus enum · School e SchoolUnit models · SchoolObserver e SchoolUnitObserver · Testes Pest (3 passando)
 
 ### Pendente (ordem de execução)
-- [ ] **1.1** — Migration schools + school_units · School model · SchoolObserver
+- [ ] **1.2** — SchoolService · ViaCepService · SchoolController · Rotas admin
 - [ ] **1.2** — SchoolService · ViaCepService · SchoolController · Rotas admin
 - [ ] **1.3** — SchoolUserController · attachUser/detachUser · Rotas
 - [ ] **1.4** — Frontend Schools (Index · Create · Edit com seção usuários)
@@ -182,6 +183,8 @@ Public/     sem auth
 | 2026-04-01 | OutcomeSeeder.php | `->delete()` + `->create()` nas actions — nunca `sync()` |
 | 2026-04-01 | SegmentSeeder.php | Usar `firstOrCreate()` — nunca `updateOrCreate()` com UUID no segundo argumento |
 | 2026-04-01 | TenantScopeTest.php | Até Etapa 1.x: School não existe → `currentSchool()` null → SetActiveTenant → 403 |
+| 2026-04-02 | School.php | School não usa BelongsToTenant — é o tenant raiz; primary key é UUID (não campo separado uuid) |
+| 2026-04-02 | SchoolObserver.php | Slug gerado no creating com loop while para sufixo incremental; usar === null para checar id |
 
 ---
 
