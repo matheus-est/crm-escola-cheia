@@ -44,6 +44,19 @@ PHP: `declare(strict_types=1)` · método `casts()` nunca propriedade `$casts` �
 
 Vue/TS: `<script setup lang="ts">` · TypeScript strict sem `any` · Wayfinder para toda navegação · `useForm` do Inertia nunca `fetch`/`axios`
 
+## PADRÃO DE UI — LISTAGENS E FORMULÁRIOS
+
+Referência obrigatória: `resources/js/pages/acl/Users/` (Index · Create · Edit).
+Todo novo módulo deve seguir exatamente essa estrutura. **Desvio exige declaração prévia do desenvolvedor antes da implementação.**
+
+| Contexto | Regra |
+|---|---|
+| Accordion de filtros | `<Accordion class="w-72">` + `<AccordionContent class="pt-2">` — nunca `absolute`, `relative` ou `overflow-visible` |
+| router.reload | `preserveUrl: true` — nunca `preserveScroll` |
+| Form de criação | `<Form method="post" :action="store().url">` — nunca `v-bind="store.form()"` (`.form()` não existe em objetos Wayfinder) |
+| Form de edição | `<Form method="put" :action="update({ uuid: props.model.uuid }).url">` + `:default-value` nos inputs — nunca `useForm({...})` desconectado |
+| Parâmetros de rota | Sempre `uuid` — nunca `id` numérico exposto na URL |
+
 ## DECISÕES DE ARQUITETURA
 - `Controllers/Admin/` cross-tenant · `Controllers/Tenant/` tenant-scoped · `Controllers/Public/` sem auth
 - `Auth::logout()` **antes** de `forceDelete()` no destroy do perfil
