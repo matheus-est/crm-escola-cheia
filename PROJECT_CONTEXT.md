@@ -40,7 +40,7 @@ Endpoint rejeita qualquer role fora de `gestor`/`comercial` com `ValidationExcep
 - `RenitenteCycleService` — único ponto de cálculo de delays (count 0→+1h; 1-5→+3h; 6→exception+reset)
 
 ## CONVENÇÕES INVIOLÁVEIS
-PHP: `declare(strict_types=1)` · método `casts()` nunca propriedade `$casts` · `=== null` nunca `is_null()` · `array_key_exists()` nunca `isset()` em arrays · `attach()`/`detach()` nunca `sync()` · `LengthAwarePaginator` nunca `->get()` · `to_route()` nunca `redirect()->route()` · `ValidationException` nunca `back()->withErrors()` · UUID em URLs nunca ID numérico · `owen-it/laravel-auditing` em todo model de domínio · `#[ObservedBy]` no model nunca `Model::observe()` no SP · `config()` nunca `env()` fora de config
+PHP: `declare(strict_types=1)` · método `casts()` nunca propriedade `$casts` · `=== null` nunca `is_null()` · `array_key_exists()` nunca `isset()` em arrays · `attach()`/`detach()` nunca `sync()` · `LengthAwarePaginator` nunca `->get()` · `to_route()` nunca `redirect()->route()` · `ValidationException` nunca `back()->withErrors()` · UUID em URLs nunca ID numérico · `owen-it/laravel-auditing` em todo model de domínio · `#[ObservedBy]` no model nunca `Model::observe()` no SP · `config()` nunca `env()` fora de config · migrations usam `->string()` nunca `->enum()` — cast para PHP backed enum no model
 
 Vue/TS: `<script setup lang="ts">` · TypeScript strict sem `any` · Wayfinder para toda navegação · `useForm` do Inertia nunca `fetch`/`axios`
 

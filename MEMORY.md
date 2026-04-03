@@ -7,8 +7,8 @@
 
 ## ESTADO ATUAL
 
-**Última sessão:** 2026-04-02
-**Próxima tarefa:** Etapa 2.x — Entidades de suporte (Segment/Grade · SchoolYear · LeadSource)
+**Última sessão:** 2026-04-03
+**Próxima tarefa:** Etapa 3.x frontend — páginas Index/Create/Edit de Alunos e Responsáveis
 
 ### Concluído
 
@@ -25,8 +25,12 @@
 
 ### Pendente (ordem de execução)
 
-- [ ] **2.x** — Entidades de suporte (Segment/Grade · SchoolYear · LeadSource)
-- [ ] **3.x** — Alunos e Responsáveis
+- [x] **2.1** — Segment (auditoria + relações schools/grades) · Grade (BelongsToTenant + auditoria) · migrations school_segment + grades · observers SegmentObserver + GradeObserver
+- [x] **2.2** — SchoolYear: migration (string status) · enum SchoolYearStatus · observer · model · service · requests · controller · rotas · SchoolYearPolicy · testes HTTP (86 passando) — APROVADO em 2026-04-03
+- [x] **2.3** — LeadSource: migration · LeadSourceScope · model · observer · service · requests · policy · controller · rotas · testes (98 passando) — APROVADO em 2026-04-03
+- [x] **2.4** — Frontend Configurações Tenant: SchoolYears.vue · LeadSources.vue · Grades.vue (placeholder) — concluído em 2026-04-03
+- [x] **3.1** — Alunos e Responsáveis (backend): migrations · models · observers · services · requests · policies · controllers · rotas · testes (118 passando) — APROVADO em 2026-04-03
+- [x] **3.2** — Frontend CPF Lookup: `useCpfLookup` composable + `CpfField.vue` componente — concluído em 2026-04-03
 - [ ] **4.x** — Oportunidades 🔴
 - [ ] **5.x** — Tarefas e Tabulações 🔴
 - [ ] **6–11** — Notificações · Eventos · Formulário · Calendário · Relatórios · LGPD
@@ -215,6 +219,17 @@ Public/     sem auth
 | 2026-04-02 | phpunit.xml / config cache   | `config:cache` em produção faz testes ignorarem `phpunit.xml` (SESSION_DRIVER=array) e usarem SESSION_DRIVER=database, causando CSRF 419 — limpar com `php artisan config:clear` antes de testar |
 | 2026-04-02 | Schools/Index.vue            | Accordion dentro de `flex justify-between` precisa de `overflow-visible` + `AccordionContent` com `absolute z-10` para não bloquear cliques na página; `defaultValue="closed"` obrigatório para reka-ui fechar corretamente |
 | 2026-04-02 | SchoolController.php         | `index()` deve passar `isMaster` como prop Inertia — sem ele o botão "Excluir" e "Nova Escola" nunca aparecem no frontend |
+| 2026-04-03 | Segment.php                  | Segment é global (sem BelongsToTenant) — é entidade de configuração compartilhada; Grade usa BelongsToTenant pois pertence ao tenant |
+| 2026-04-03 | SchoolYearService.php        | `list()` usa `where('school_id', $school->id)` explícito — TenantScope já filtra mas o `$school` passado garante isolamento correto sem depender do contexto ativo |
+| 2026-04-03 | Migrations                   | Migrations nunca usam `->enum()` — usar `->string(length)` com cast PHP backed enum no model; colunas enum já em prod precisam de migration `->change()` para string |
+| 2026-04-03 | AppServiceProvider.php       | `Route::bind('school_uuid', ...)` registrado via `registerRouteBindings()` — resolve School pelo uuid da URL; `some-uuid` inexistente retorna 404 (firstOrFail) |
+| 2026-04-03 | TenantRoutingTest.php        | Testes com `/t/some-uuid/dashboard` retornam 404 (não 302/403) após Route::bind — UUID inexistente não chega ao middleware, é barrado pelo binding |
+| 2026-04-03 | SchoolYearControllerTest.php | Testes de GET em rotas Inertia usam `withoutVite()` para evitar ViteException; testes de erros de validação usam `withHeader('Accept', 'application/json')` para 422 |
+| 2026-04-03 | LeadSource.php | LeadSource não usa BelongsToTenant — usa LeadSourceScope próprio que retorna `school_id = tenant OR is_system = true`; registros de sistema têm school_id null e são visíveis em todos os tenants |
+| 2026-04-03 | tenant-settings/*.vue | Páginas tenant recebem `school` como prop Inertia (controller passa `'school' => $school`); usar `props.school.uuid` para montar URLs Wayfinder — nunca depender de `setUrlDefaults` |
+| 2026-04-03 | StudentService.php | Unicidade de CPF por tenant validada no `create()` via `ValidationException` — `lookup()` usa `withoutTenantScope()` para busca cross-scope segura |
+| 2026-04-03 | routes/tenant.php | Rota `lookup/{cpf}` deve vir ANTES de `{student}` no grupo — evita conflito de route model binding |
+| 2026-04-03 | useCpfLookup.ts | `fetch` é o único caso autorizado fora de `useForm` — endpoints GET de lookup retornam JSON puro, não Inertia; interfaces Student/Guardian adicionadas a `crm.ts` |
 
 ---
 

@@ -122,34 +122,41 @@
 
 > LeadSource, Segment/Grade, SchoolYear são necessários antes de Oportunidades.
 
-### 2.1 Segments e Grades
-- [ ] ⚙️ `app/Models/Segment.php` — global, sem BelongsToTenant
-- [ ] ⚙️ Migration `create_school_segment_table` (pivot)
-- [ ] ⚙️ Migration `create_grades_table` (id, school_id nullable, segment_id, nome, order)
-- [ ] ⚙️ `app/Models/Grade.php` — com BelongsToTenant · com auditing
-- [ ] 📋 Reviewer
+### 2.1 Segments e Grades — concluída em 2026-04-03
+- [x] ⚙️ `app/Models/Segment.php` — global, sem BelongsToTenant
+- [x] ⚙️ Migration `create_school_segment_table` (pivot)
+- [x] ⚙️ Migration `create_grades_table` (id, school_id nullable, segment_id, nome, order)
+- [x] ⚙️ `app/Models/Grade.php` — com BelongsToTenant · com auditing
+- [x] 📋 Reviewer — APROVADO em 2026-04-03
 
-### 2.2 SchoolYear
-- [ ] ⚙️ Migration `create_school_years_table` (id, school_id, nome, inicio, fim, status)
-- [ ] ⚙️ `app/Models/SchoolYear.php` — com BelongsToTenant · com auditing
-- [ ] ⚙️ `app/Services/SchoolYear/SchoolYearService.php`
-- [ ] ⚙️ `app/Http/Controllers/Tenant/Settings/SchoolYearController.php`
-- [ ] ⚙️ Rotas em `routes/tenant.php` para `/tenant-settings/school-years`
-- [ ] 🧪 Teste: criação de oportunidade para ano encerrado exibe aviso (não bloqueia)
-- [ ] 📋 Reviewer
+### 2.2 SchoolYear — concluída em 2026-04-03
+- [x] ⚙️ Migration `create_school_years_table` (id, school_id, nome, inicio, fim, status string(30))
+- [x] ⚙️ Migration `fix_school_years_status_to_string` — migração de correção enum→string para banco já migrado
+- [x] ⚙️ `app/Models/SchoolYear.php` — com BelongsToTenant · com auditing · #[ObservedBy]
+- [x] ⚙️ `app/Enums/SchoolYearStatus.php` — backed enum string
+- [x] ⚙️ `app/Observers/SchoolYearObserver.php` — UUID no creating
+- [x] ⚙️ `app/Services/SchoolYear/SchoolYearService.php` — LengthAwarePaginator
+- [x] ⚙️ `app/Http/Requests/SchoolYear/SchoolYearStoreRequest.php` · `SchoolYearUpdateRequest.php`
+- [x] ⚙️ `app/Policies/SchoolYearPolicy.php` — viewAny/create/update/delete
+- [x] ⚙️ `app/Http/Controllers/Tenant/Settings/SchoolYearController.php` — Gate::authorize() em todos os métodos
+- [x] ⚙️ `AppServiceProvider::registerRouteBindings()` — Route::bind('school_uuid') resolve School pelo UUID
+- [x] ⚙️ Rotas em `routes/tenant.php` para `/tenant-settings/school-years`
+- [x] 🧪 Testes HTTP: GET Master (200), GET Gestor (200), GET sem auth (302), store, update, destroy, fim < inicio (422), Comercial (403)
+- [ ] 🧪 Teste: criação de oportunidade para ano encerrado exibe aviso (não bloqueia) — adiado para Etapa 4
+- [x] 📋 Reviewer — APROVADO em 2026-04-03
 
-### 2.3 LeadSource
-- [ ] ⚙️ Migration `create_lead_sources_table` (id, school_id nullable, nome, is_system, is_active)
-- [ ] ⚙️ `app/Models/LeadSource.php` — BelongsToTenant condicional (nullable school_id)
-- [ ] ⚙️ `app/Services/LeadSource/LeadSourceService.php`
-- [ ] ⚙️ `app/Http/Controllers/Tenant/Settings/LeadSourceController.php`
-- [ ] 🧪 Teste: origem padrão (is_system=true) não pode ser editada ou excluída pelo gestor
-- [ ] 📋 Reviewer
+### 2.3 LeadSource — concluída em 2026-04-03
+- [x] ⚙️ Migration `create_lead_sources_table` (id, school_id nullable, nome, is_system, is_active)
+- [x] ⚙️ `app/Models/LeadSource.php` — BelongsToTenant condicional (nullable school_id)
+- [x] ⚙️ `app/Services/LeadSource/LeadSourceService.php`
+- [x] ⚙️ `app/Http/Controllers/Tenant/Settings/LeadSourceController.php`
+- [x] 🧪 Teste: origem padrão (is_system=true) não pode ser editada ou excluída pelo gestor
+- [x] 📋 Reviewer — APROVADO em 2026-04-03
 
 ### 2.4 Frontend — Configurações do Tenant
-- [ ] 🖥️ `pages/tenant-settings/SchoolYears.vue`
-- [ ] 🖥️ `pages/tenant-settings/LeadSources.vue`
-- [ ] 🖥️ `pages/tenant-settings/Grades.vue` — por segmento, configurável pelo gestor
+- [x] 🖥️ `pages/tenant-settings/SchoolYears.vue`
+- [x] 🖥️ `pages/tenant-settings/LeadSources.vue`
+- [x] 🖥️ `pages/tenant-settings/Grades.vue` — por segmento, configurável pelo gestor
 - [ ] 📋 Reviewer
 
 ---
@@ -157,23 +164,23 @@
 ## ETAPA 3 — Alunos e Responsáveis
 
 ### 3.1 Backend
-- [ ] ⚙️ Migration `create_students_table` (id uuid, school_id, nome, cpf nullable, data_nascimento)
-- [ ] ⚙️ Migration `create_guardians_table` (id uuid, school_id, nome, cpf, telefone, email)
-- [ ] ⚙️ Migration `create_student_guardian_table` (pivot)
-- [ ] ⚙️ `app/Models/Student.php` — BelongsToTenant · auditing · índice (school_id, cpf)
-- [ ] ⚙️ `app/Models/Guardian.php` — BelongsToTenant · auditing · índice (school_id, cpf)
-- [ ] ⚙️ `app/Services/Student/StudentService.php` — `lookup(school, cpf)`, `findOrCreate()`
-- [ ] ⚙️ `app/Services/Guardian/GuardianService.php` — `lookup(school, cpf)`, `findOrCreate()`
-- [ ] ⚙️ `app/Http/Controllers/Tenant/StudentController.php` — inclui endpoint `GET /students/lookup/{cpf}`
-- [ ] ⚙️ `app/Http/Controllers/Tenant/GuardianController.php` — inclui endpoint `GET /guardians/lookup/{cpf}`
-- [ ] ⚙️ `app/Policies/StudentPolicy.php` · `GuardianPolicy.php`
-- [ ] 🧪 Teste: CPF duplicado no mesmo tenant falha · CPF em tenant diferente passa
-- [ ] 🧪 Teste: lookup retorna dados existentes · lookup de inexistente retorna 404
+- [x] ⚙️ Migration `create_students_table` (id uuid, school_id, nome, cpf nullable, data_nascimento)
+- [x] ⚙️ Migration `create_guardians_table` (id uuid, school_id, nome, cpf, telefone, email)
+- [x] ⚙️ Migration `create_student_guardian_table` (pivot)
+- [x] ⚙️ `app/Models/Student.php` — BelongsToTenant · auditing · índice (school_id, cpf)
+- [x] ⚙️ `app/Models/Guardian.php` — BelongsToTenant · auditing · índice (school_id, cpf)
+- [x] ⚙️ `app/Services/Student/StudentService.php` — `lookup(school, cpf)`, `findOrCreate()`
+- [x] ⚙️ `app/Services/Guardian/GuardianService.php` — `lookup(school, cpf)`, `findOrCreate()`
+- [x] ⚙️ `app/Http/Controllers/Tenant/StudentController.php` — inclui endpoint `GET /students/lookup/{cpf}`
+- [x] ⚙️ `app/Http/Controllers/Tenant/GuardianController.php` — inclui endpoint `GET /guardians/lookup/{cpf}`
+- [x] ⚙️ `app/Policies/StudentPolicy.php` · `GuardianPolicy.php`
+- [x] 🧪 Teste: CPF duplicado no mesmo tenant falha · CPF em tenant diferente passa
+- [x] 🧪 Teste: lookup retorna dados existentes · lookup de inexistente retorna 404
 - [ ] 📋 Reviewer
 
 ### 3.2 Frontend — CPF Lookup
-- [ ] 🖥️ Composable `useCpfLookup.ts` — debounce 400ms, loading state, auto-preenchimento
-- [ ] 🖥️ Componente `CpfField.vue` — campo de CPF com lookup integrado
+- [x] 🖥️ Composable `useCpfLookup.ts` — debounce 400ms, loading state, auto-preenchimento
+- [x] 🖥️ Componente `CpfField.vue` — campo de CPF com lookup integrado
 - [ ] 📋 Reviewer
 
 ---

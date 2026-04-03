@@ -182,9 +182,7 @@ function statusLabel(status: SchoolStatus): string {
                             </span>
                         </AccordionTrigger>
 
-                        <AccordionContent
-                            class="pt-2"
-                        >
+                        <AccordionContent class="pt-2">
                             <div
                                 class="rounded-lg border bg-card p-4 shadow-sm"
                             >

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\MenuGroup;
@@ -12,6 +14,7 @@ class ModuleSeeder extends Seeder
     {
         $configGroup = MenuGroup::where('slug', 'configuration')->first();
         $registrationGroup = MenuGroup::where('slug', 'registration')->first();
+        $tenantSettingsGroup = MenuGroup::where('slug', 'tenant_settings')->first();
 
         $modules = [
             [
@@ -101,6 +104,39 @@ class ModuleSeeder extends Seeder
                 'show_in_menu' => true,
                 'is_active' => true,
                 'menu_group_id' => $configGroup?->id,
+            ],
+            [
+                'name' => 'Anos Letivos',
+                'slug' => 'school_years',
+                'icon' => 'CalendarDays',
+                'url' => '/tenant-settings/school-years',
+                'description' => 'Gestão de anos letivos do tenant',
+                'order' => 1,
+                'show_in_menu' => true,
+                'is_active' => true,
+                'menu_group_id' => $tenantSettingsGroup?->id,
+            ],
+            [
+                'name' => 'Origens de Lead',
+                'slug' => 'lead_sources',
+                'icon' => 'Tags',
+                'url' => '/tenant-settings/lead-sources',
+                'description' => 'Gestão de origens de lead do tenant',
+                'order' => 2,
+                'show_in_menu' => true,
+                'is_active' => true,
+                'menu_group_id' => $tenantSettingsGroup?->id,
+            ],
+            [
+                'name' => 'Turmas/Séries',
+                'slug' => 'grades',
+                'icon' => 'GraduationCap',
+                'url' => '/tenant-settings/grades',
+                'description' => 'Gestão de turmas e séries do tenant',
+                'order' => 3,
+                'show_in_menu' => true,
+                'is_active' => true,
+                'menu_group_id' => $tenantSettingsGroup?->id,
             ],
         ];
 

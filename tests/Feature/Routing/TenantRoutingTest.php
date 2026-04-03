@@ -12,20 +12,20 @@ afterEach(function (): void {
     app()->forgetInstance('tenant.school_id');
 });
 
-it('redirects unauthenticated requests to tenant.dashboard', function (): void {
+it('returns 404 for unauthenticated requests to tenant.dashboard with nonexistent school uuid', function (): void {
     $this->get('/t/some-uuid/dashboard')
-        ->assertStatus(302);
+        ->assertStatus(404);
 });
 
-it('denies access to tenant.dashboard because currentSchool returns null without School model', function (): void {
+it('returns 404 when school_uuid does not exist in database', function (): void {
     $user = User::factory()->create();
 
     $this->actingAs($user)
         ->get('/t/some-uuid/dashboard')
-        ->assertStatus(403);
+        ->assertStatus(404);
 });
 
-it('does not bind tenant.school_id when currentSchool returns null', function (): void {
+it('does not bind tenant.school_id when school_uuid does not exist in database', function (): void {
     $user = User::factory()->create();
 
     $this->actingAs($user)

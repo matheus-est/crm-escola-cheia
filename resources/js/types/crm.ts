@@ -1,5 +1,42 @@
 export type SchoolStatus = 'active' | 'inactive';
 
+export interface Student {
+    uuid: string;
+    nome: string;
+    cpf: string;
+    data_nascimento: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Guardian {
+    uuid: string;
+    nome: string;
+    cpf: string;
+    telefone: string | null;
+    email: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PaginatedStudents {
+    data: Student[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+}
+
+export interface PaginatedGuardians {
+    data: Guardian[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+}
+
 export interface SchoolUnit {
     id: string;
     school_id: string;
@@ -59,4 +96,43 @@ export interface SchoolUnitForm {
     bairro: string;
     cidade: string;
     estado: string;
+}
+
+export type SchoolYearStatus = 'ativo' | 'encerrado' | 'planejamento';
+
+export interface SchoolYear {
+    uuid: string;
+    nome: string;
+    inicio: string;
+    fim: string;
+    status: SchoolYearStatus;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PaginatedSchoolYears {
+    data: SchoolYear[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+}
+
+export interface LeadSource {
+    uuid: string;
+    nome: string;
+    is_system: boolean;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PaginatedLeadSources {
+    data: LeadSource[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
 }

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             TermVersionSeeder::class,
             SystemSettingSeeder::class,
             SegmentSeeder::class,
+            LeadSourceSeeder::class,
             OutcomeSeeder::class,
         ]);
     }

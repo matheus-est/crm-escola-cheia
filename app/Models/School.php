@@ -54,4 +54,14 @@ class School extends Model implements Auditable
             ->withPivot('is_active')
             ->withTimestamps();
     }
+
+    public function segments(): BelongsToMany
+    {
+        return $this->belongsToMany(Segment::class, 'school_segment');
+    }
+
+    public function grades(): HasMany
+    {
+        return $this->hasMany(Grade::class);
+    }
 }

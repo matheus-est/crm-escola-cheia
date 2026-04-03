@@ -54,6 +54,36 @@ class CrmPermissionSeeder extends Seeder
             'show_in_menu' => true,
             'is_active' => true,
         ],
+        [
+            'slug' => 'school_years',
+            'name' => 'Anos Letivos',
+            'icon' => 'CalendarDays',
+            'url' => '/tenant-settings/school-years',
+            'description' => 'Gestão de anos letivos do tenant',
+            'order' => 20,
+            'show_in_menu' => true,
+            'is_active' => true,
+        ],
+        [
+            'slug' => 'lead_sources',
+            'name' => 'Origens de Lead',
+            'icon' => 'Tags',
+            'url' => '/tenant-settings/lead-sources',
+            'description' => 'Gestão de origens de lead do tenant',
+            'order' => 21,
+            'show_in_menu' => true,
+            'is_active' => true,
+        ],
+        [
+            'slug' => 'grades',
+            'name' => 'Turmas/Séries',
+            'icon' => 'GraduationCap',
+            'url' => '/tenant-settings/grades',
+            'description' => 'Gestão de turmas e séries do tenant',
+            'order' => 22,
+            'show_in_menu' => true,
+            'is_active' => true,
+        ],
     ];
 
     /**
@@ -66,6 +96,9 @@ class CrmPermissionSeeder extends Seeder
         'leads' => ['view', 'list', 'add', 'edit', 'delete'],
         'oportunidades' => ['view', 'list', 'add', 'edit', 'delete'],
         'tarefas' => ['view', 'list', 'add', 'edit', 'complete'],
+        'school_years' => ['view', 'list', 'add', 'edit', 'delete'],
+        'lead_sources' => ['view', 'list', 'add', 'edit', 'delete'],
+        'grades' => ['view', 'list', 'add', 'edit', 'delete'],
     ];
 
     public function run(): void
@@ -129,6 +162,8 @@ class CrmPermissionSeeder extends Seeder
 
         $allCrmIds = $allCrmPermissions->pluck('id');
 
+        $configModuleSlugs = ['school_years', 'lead_sources', 'grades'];
+
         /** @var array<string, list<string>> $rolePermissionMap */
         $rolePermissionMap = [
             'Master' => $allCrmIds->toArray(),
@@ -136,16 +171,11 @@ class CrmPermissionSeeder extends Seeder
             'Admin' => $allCrmIds->toArray(),
 
             'Operacao' => $allCrmPermissions
-                ->reject(fn (Permission $p): bool => $p->name === 'schools_delete')
+                ->reject(fn (Permission $p): bool => str_ends_with($p->name, '_delete'))
                 ->pluck('id')
                 ->toArray(),
 
-            'Gestor' => $allCrmPermissions
-                ->filter(fn (Permission $p): bool => str_starts_with($p->name, 'leads_')
-                    || str_starts_with($p->name, 'oportunidades_')
-                    || str_starts_with($p->name, 'tarefas_'))
-                ->pluck('id')
-                ->toArray(),
+            'Gestor' => $allCrmIds->toArray(),
 
             'Comercial' => $allCrmPermissions
                 ->filter(fn (Permission $p): bool => in_array($p->name, [
@@ -161,6 +191,12 @@ class CrmPermissionSeeder extends Seeder
                     'leads_list',
                     'leads_add',
                     'leads_edit',
+                    'school_years_view',
+                    'school_years_list',
+                    'lead_sources_view',
+                    'lead_sources_list',
+                    'grades_view',
+                    'grades_list',
                 ], strict: true))
                 ->pluck('id')
                 ->toArray(),

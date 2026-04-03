@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\MenuGroup;
@@ -20,6 +22,13 @@ class MenuGroupSeeder extends Seeder
             'slug' => 'registration',
             'icon' => 'FolderInput',
             'order' => 2,
+            'is_active' => true,
+        ],
+        [
+            'name' => 'Configurações',
+            'slug' => 'tenant_settings',
+            'icon' => 'SlidersHorizontal',
+            'order' => 3,
             'is_active' => true,
         ],
     ];
