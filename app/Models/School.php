@@ -31,10 +31,14 @@ class School extends Model implements Auditable
         'unassigned_lead_alert_days',
     ];
 
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
+
     protected function casts(): array
     {
         return [
-            'id' => 'string',
             'status' => SchoolStatus::class,
         ];
     }

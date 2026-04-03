@@ -21,6 +21,7 @@
 - [x] 1.2 — SchoolService · ViaCepService · SchoolPolicy · SchoolStoreRequest · SchoolUpdateRequest · SchoolController · Rotas admin · Testes (62 passando)
 - [x] 1.3 — SchoolUserAttachRequest · SchoolUserController · Rotas admin (store/destroy) · Testes Pest (71 passando)
 - [x] 1.4 — Frontend Schools (Index · Create · Edit com seção usuários)
+- [x] 1.5 — Bugfixes Schools/Index: accordion defaultValue+overflow-visible, ConfirmDeleteModal com senha, rota confirmDelete backend
 
 ### Pendente (ordem de execução)
 
@@ -204,6 +205,16 @@ Public/     sem auth
 | 2026-04-02 | SchoolUserControllerTest.php | ValidationException retorna 302 (redirect) em requests normais — usar withHeader('Accept', 'application/json') para obter 422 nos testes |
 | 2026-04-02 | SchoolUserController.php     | User não tem getRouteKeyName() — destroy recebe string $userUuid e resolve manualmente via User::query()->where('uuid', ...)             |
 | 2026-04-02 | SchoolPolicy.php             | update() restrito a Master e Admin — Operacao não pode gerenciar vínculos de usuário-escola                                              |
+| 2026-04-02 | SchoolObserver.php           | Bug: observer setava `$school->id = UUID` em vez de `$school->uuid` — corrigido para `$school->uuid === null` check                     |
+| 2026-04-02 | School.php                   | `getRouteKeyName()` retorna `uuid` — rotas usam UUID, não ID numérico; cast `id => string` removido (era workaround do bug do observer)  |
+| 2026-04-02 | Migrations                   | Toda migration de domínio precisa de `declare(strict_types=1)` — padrão PHP inviolável                                                  |
+| 2026-04-02 | SchoolService.php            | `->get()` sem paginação era retornado quando `per_page=all` — violação de LengthAwarePaginator; corrigido para sempre paginar            |
+| 2026-04-02 | Create.vue (Schools)         | `Form({...})` criado mas nunca vinculado ao template — código morto; padrão correto é `<Form v-bind="store.form()">` sem criar variável  |
+| 2026-04-02 | Schools/Index.vue            | `router.get()` com `preserveState:true` trava Accordion reka-ui e bloqueia navegação Inertia — corrigido para `router.post(index.post().url)` sem preserveState; Accordion com `defaultValue="closed"` estático |
+| 2026-04-02 | routes/admin.php             | `Route::resource()` não gera rota `clearFilters` nem aceita POST no index — substituir por rotas explícitas com `clearFilters` e `create` antes de `{school}` |
+| 2026-04-02 | phpunit.xml / config cache   | `config:cache` em produção faz testes ignorarem `phpunit.xml` (SESSION_DRIVER=array) e usarem SESSION_DRIVER=database, causando CSRF 419 — limpar com `php artisan config:clear` antes de testar |
+| 2026-04-02 | Schools/Index.vue            | Accordion dentro de `flex justify-between` precisa de `overflow-visible` + `AccordionContent` com `absolute z-10` para não bloquear cliques na página; `defaultValue="closed"` obrigatório para reka-ui fechar corretamente |
+| 2026-04-02 | SchoolController.php         | `index()` deve passar `isMaster` como prop Inertia — sem ele o botão "Excluir" e "Nova Escola" nunca aparecem no frontend |
 
 ---
 

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useCepLookup } from '@/composables/useCepLookup';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -17,29 +20,32 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const toast = useToast();
 
-const form = Form({
-    cnpj: '',
-    razao_social: '',
-    status: 'active' as 'active' | 'inactive',
-    unit: {
-        nome: 'Matriz',
-        cep: '',
-        logradouro: '',
-        numero: '',
-        complemento: '',
-        bairro: '',
-        cidade: '',
-        estado: '',
-    },
-});
-
 const {
     isLoading: isLoadingCep,
     error: cepError,
     lookup: lookupCep,
 } = useCepLookup();
 
+// Local state for address auto-fill via CEP lookup
+const cepValue = ref('');
+const logradouroValue = ref('');
+const bairroValue = ref('');
+const cidadeValue = ref('');
+const estadoValue = ref('');
+
 let isAutoFillingCep = false;
+
+watch(cepValue, (newCep) => {
+    if (isAutoFillingCep) return;
+    lookupCep(newCep, (data) => {
+        isAutoFillingCep = true;
+        logradouroValue.value = data.logradouro;
+        bairroValue.value = data.bairro;
+        cidadeValue.value = data.cidade;
+        estadoValue.value = data.estado;
+        setTimeout(() => (isAutoFillingCep = false), 100);
+    });
+});
 
 const handleSuccess = () => {
     toast.success('Escola criada com sucesso.');
@@ -49,21 +55,6 @@ const handleSuccess = () => {
 const handleError = () => {
     toast.error('Erro ao criar escola. Verifique os campos.');
 };
-
-watch(
-    () => form.unit.cep,
-    (newCep) => {
-        if (isAutoFillingCep) return;
-        lookupCep(newCep, (data) => {
-            isAutoFillingCep = true;
-            form.unit.logradouro = data.logradouro;
-            form.unit.bairro = data.bairro;
-            form.unit.cidade = data.cidade;
-            form.unit.estado = data.estado;
-            setTimeout(() => (isAutoFillingCep = false), 100);
-        });
-    },
-);
 </script>
 
 <template>
@@ -84,7 +75,8 @@ watch(
 
             <div class="rounded-md border">
                 <Form
-                    v-bind="store.form()"
+                    method="post"
+                    :action="store().url"
                     class="space-y-6"
                     v-slot="{ errors, processing }"
                     @success="handleSuccess"
@@ -138,6 +130,7 @@ watch(
                                             id="cep"
                                             name="unit.cep"
                                             placeholder="00000-000"
+                                            v-model="cepValue"
                                         />
                                         <span
                                             v-if="isLoadingCep"
@@ -159,6 +152,7 @@ watch(
                                         id="logradouro"
                                         name="unit.logradouro"
                                         placeholder="Rua, Avenida, etc."
+                                        v-model="logradouroValue"
                                     />
                                     <InputError
                                         :message="errors['unit.logradouro']"
@@ -195,6 +189,7 @@ watch(
                                         id="bairro"
                                         name="unit.bairro"
                                         placeholder="Bairro"
+                                        v-model="bairroValue"
                                     />
                                     <InputError
                                         :message="errors['unit.bairro']"
@@ -207,6 +202,7 @@ watch(
                                         id="cidade"
                                         name="unit.cidade"
                                         placeholder="Cidade"
+                                        v-model="cidadeValue"
                                     />
                                     <InputError
                                         :message="errors['unit.cidade']"
@@ -220,6 +216,7 @@ watch(
                                         name="unit.estado"
                                         placeholder="UF"
                                         maxlength="2"
+                                        v-model="estadoValue"
                                     />
                                     <InputError
                                         :message="errors['unit.estado']"

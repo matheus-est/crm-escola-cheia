@@ -21,11 +21,43 @@ class SchoolService
             $query->where('razao_social', 'LIKE', '%'.$filters['razao_social'].'%');
         }
 
+        if (array_key_exists('cnpj', $filters) && $filters['cnpj'] !== null && $filters['cnpj'] !== '') {
+            $query->where('cnpj', 'LIKE', '%'.$filters['cnpj'].'%');
+        }
+
+        if (array_key_exists('unit', $filters) && $filters['unit'] !== null && $filters['unit'] !== '') {
+            $query->whereHas('units', function ($q) use ($filters): void {
+                $q->where('nome', 'LIKE', '%'.$filters['unit'].'%');
+            });
+        }
+
         if (array_key_exists('status', $filters) && $filters['status'] !== null && $filters['status'] !== '') {
             $query->where('status', $filters['status']);
         }
 
-        return $query->paginate(15);
+        if (array_key_exists('sort_by', $filters) && $filters['sort_by'] !== null && $filters['sort_by'] !== '') {
+            $sortBy = $filters['sort_by'];
+            $sortDir = array_key_exists('sort_dir', $filters) && $filters['sort_dir'] !== null
+                ? $filters['sort_dir']
+                : 'asc';
+
+            $allowedSortColumns = ['razao_social', 'cnpj', 'slug', 'status'];
+            if (in_array($sortBy, $allowedSortColumns, strict: true)) {
+                $query->orderBy($sortBy, $sortDir);
+            }
+        } else {
+            $query->orderBy('razao_social', 'asc');
+        }
+
+        $perPage = array_key_exists('per_page', $filters) && $filters['per_page'] !== null
+            ? (int) $filters['per_page']
+            : 15;
+
+        if ($perPage <= 0) {
+            $perPage = 15;
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function create(array $data): School

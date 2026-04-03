@@ -7,7 +7,6 @@ namespace Database\Seeders;
 use App\Models\Outcome;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class OutcomeSeeder extends Seeder
 {
@@ -15,23 +14,19 @@ class OutcomeSeeder extends Seeder
     {
         DB::transaction(function (): void {
             foreach ($this->outcomes() as $data) {
-                $outcome = Outcome::firstOrCreate(
+                $outcome = Outcome::updateOrCreate(
                     ['slug' => $data['slug']],
-                    ['uuid' => (string) Str::uuid()],
-                );
-
-                $outcome->update([
-                    'name' => $data['name'],
-                    'task_type' => $data['task_type'],
-                    'is_refusal' => $data['is_refusal'] ?? false,
-                    'opens_window' => $data['opens_window'] ?? null,
-                ]);
+                    [
+                        'name' => $data['name'],
+                        'task_type' => $data['task_type'],
+                        'is_refusal' => $data['is_refusal'] ?? false,
+                        'opens_window' => $data['opens_window'] ?? null,
+                    ]);
 
                 $outcome->actions()->delete();
 
                 foreach ($data['actions'] as $i => $action) {
                     $outcome->actions()->create([
-                        'uuid' => (string) Str::uuid(),
                         'action_type' => $action['type'],
                         'payload' => $action['payload'] ?? null,
                         'order' => $i,

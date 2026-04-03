@@ -11,8 +11,8 @@ class SchoolObserver
 {
     public function creating(School $school): void
     {
-        if ($school->id === null) {
-            $school->id = (string) Str::uuid();
+        if ($school->uuid === null) {
+            $school->uuid = (string) Str::uuid();
         }
 
         $base = Str::slug($school->razao_social);

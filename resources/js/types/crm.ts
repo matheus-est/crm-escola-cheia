@@ -26,6 +26,7 @@ export interface SchoolUser {
 
 export interface School {
     id: string;
+    uuid: string;
     cnpj: string;
     razao_social: string;
     slug: string;

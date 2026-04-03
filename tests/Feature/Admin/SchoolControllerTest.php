@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\School;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 
 uses(RefreshDatabase::class);
 
@@ -62,4 +63,46 @@ it('Master consegue excluir escola', function (): void {
         ->assertRedirect(route('admin.schools.index'));
 
     $this->assertDatabaseMissing('schools', ['id' => $school->id]);
+});
+
+it('Master consegue excluir escola via confirmDelete com senha correta', function (): void {
+    $user = schoolControllerUser('Master');
+    $user->password = Hash::make('senha123');
+    $user->save();
+
+    $school = makeSchool();
+
+    $this->actingAs($user)
+        ->withHeader('Accept', 'application/json')
+        ->post(route('admin.schools.confirmDelete', $school), ['password' => 'senha123'])
+        ->assertRedirect(route('admin.schools.index'));
+
+    $this->assertDatabaseMissing('schools', ['id' => $school->id]);
+});
+
+it('confirmDelete retorna 422 com senha incorreta', function (): void {
+    $user = schoolControllerUser('Master');
+    $user->password = Hash::make('senha123');
+    $user->save();
+
+    $school = makeSchool();
+
+    $this->actingAs($user)
+        ->withHeader('Accept', 'application/json')
+        ->post(route('admin.schools.confirmDelete', $school), ['password' => 'errada'])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['password']);
+});
+
+it('Operacao recebe 403 ao tentar confirmDelete de escola', function (): void {
+    $user = schoolControllerUser('Operacao');
+    $user->password = Hash::make('senha123');
+    $user->save();
+
+    $school = makeSchool();
+
+    $this->actingAs($user)
+        ->withHeader('Accept', 'application/json')
+        ->post(route('admin.schools.confirmDelete', $school), ['password' => 'senha123'])
+        ->assertStatus(403);
 });

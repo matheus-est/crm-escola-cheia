@@ -26,19 +26,7 @@ class UserController extends Controller
 
     public function index(Request $request): Response|RedirectResponse
     {
-        $filters = session('user_filters', [
-            'name' => '',
-            'email' => '',
-            'role_id' => '',
-            'status' => 'active',
-            'sort_by' => 'name',
-            'sort_dir' => 'asc',
-            'per_page' => 10,
-        ]);
-
-        if ($request->isMethod('POST')) {
-            $filters = $this->setFilters($request);
-        }
+        $filters = $this->setFilters($request);
 
         $currentUser = $request->user();
         $paginator = $this->userService->filter($filters, $currentUser);

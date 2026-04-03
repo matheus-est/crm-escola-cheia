@@ -125,7 +125,8 @@ function handleReactivateSuccess(userData: DeletedUserData) {
 
             <div class="rounded-md border">
                 <Form
-                    v-bind="store.form()"
+                    method="post"
+                    :action="store().url"
                     class="space-y-6"
                     v-slot="{ errors, processing }"
                     @success="handleSuccess"

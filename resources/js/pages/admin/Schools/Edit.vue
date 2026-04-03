@@ -74,7 +74,7 @@ const userForm = Form({
 });
 
 function attachUser() {
-    userForm.post(storeUser({ school: props.school.data.id }).url, {
+    userForm.post(storeUser({ school: props.school.data.uuid }).url, {
         preserveScroll: true,
         onSuccess: () => {
             userForm.reset();
@@ -85,7 +85,8 @@ function attachUser() {
 function detachUser(userId: string) {
     if (confirm('Tem certeza que deseja remover este usuário da escola?')) {
         router.delete(
-            destroyUser({ school: props.school.data.id, userUuid: userId }).url,
+            destroyUser({ school: props.school.data.uuid, userUuid: userId })
+                .url,
             {
                 preserveScroll: true,
             },
@@ -142,7 +143,7 @@ function detachUser(userId: string) {
 
                 <Form
                     method="put"
-                    :action="update({ school: props.school.data.id }).url"
+                    :action="update({ school: props.school.data.uuid }).url"
                     class="space-y-6"
                     v-slot="{ errors, processing }"
                     @success="handleSuccess"

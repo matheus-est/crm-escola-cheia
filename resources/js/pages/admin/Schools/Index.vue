@@ -1,8 +1,17 @@
 <script setup lang="ts">
-import { Head, router, usePage } from '@inertiajs/vue3';
-import { Building2, Pencil, Plus, Trash2 } from 'lucide-vue-next';
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-vue-next';
+import { Head, Link, router } from '@inertiajs/vue3';
+import {
+    Building2,
+    ChevronDown,
+    ChevronUp,
+    ChevronsUpDown,
+    Filter,
+    Pencil,
+    Plus,
+    Trash2,
+} from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import Heading from '@/components/Heading.vue';
 import PerPageSelect from '@/components/PerPageSelect.vue';
 import TablePagination from '@/components/TablePagination.vue';
@@ -23,55 +32,59 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { create, destroy, edit, index } from '@/routes/admin/schools';
-import type { AppPageProps, BreadcrumbItem } from '@/types';
+import {
+    clearFilters,
+    confirmDelete,
+    create,
+    edit,
+    index,
+} from '@/routes/admin/schools';
+import type { BreadcrumbItem } from '@/types';
 import type { PaginatedSchools, School, SchoolStatus } from '@/types/crm';
+
+interface Filters {
+    razao_social: string;
+    unit: string;
+    cnpj: string;
+    status: '' | SchoolStatus;
+    sort_by: 'razao_social' | 'cnpj' | 'slug' | 'status' | '';
+    sort_dir: 'asc' | 'desc';
+    per_page: number;
+}
 
 const props = defineProps<{
     schools: PaginatedSchools;
+    filters: Filters;
+    isMaster: boolean;
 }>();
-
-const page = usePage<AppPageProps>();
-
-const isMaster = computed(
-    () =>
-        (page.props.auth.user as { role?: { name: string } | null }).role
-            ?.name === 'Master',
-);
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Escolas', href: index().url },
 ];
 
-// Filter interface
-interface Filters {
-    razao_social: string;
-    status: '' | SchoolStatus;
-    sort_by: 'razao_social' | 'cnpj' | 'slug' | 'status' | '';
-    sort_dir: 'asc' | 'desc';
-    per_page: number | 'all';
-}
+const filters = computed(() => props.filters);
 
-// Local filters ref
 const localFilters = ref<Filters>({
-    razao_social: '',
-    status: '',
-    sort_by: 'razao_social',
-    sort_dir: 'asc',
-    per_page: 10,
+    razao_social: filters.value.razao_social || '',
+    unit: filters.value.unit || '',
+    cnpj: filters.value.cnpj || '',
+    status: (filters.value.status as SchoolStatus) || '',
+    sort_by: (filters.value.sort_by as Filters['sort_by']) || 'razao_social',
+    sort_dir: filters.value.sort_dir || 'asc',
+    per_page: Number(filters.value.per_page ?? 10),
 });
 
-// Computed properties
 const filterCount = computed(() =>
     [
-        localFilters.value.razao_social ? 1 : 0,
-        localFilters.value.status ? 1 : 0,
+        filters.value.razao_social ? 1 : 0,
+        filters.value.unit ? 1 : 0,
+        filters.value.cnpj ? 1 : 0,
+        filters.value.status ? 1 : 0,
     ].reduce((a, b) => a + b, 0),
 );
 
 const hasActiveFilter = computed(() => filterCount.value > 0);
 
-// Filter functions
 function toggleSort(column: 'razao_social' | 'cnpj' | 'slug' | 'status'): void {
     const newDir =
         localFilters.value.sort_by === column &&
@@ -91,60 +104,43 @@ function getSortIcon(
 }
 
 function updatePerPage(value: string): void {
-    if (value === 'all') {
-        localFilters.value.per_page = 'all';
-    } else {
-        localFilters.value.per_page = parseInt(value);
-    }
+    localFilters.value.per_page = parseInt(value) || 10;
     applyFilters();
 }
 
+function updateStatus(value: string): void {
+    localFilters.value.status = value as SchoolStatus | '';
+}
+
 function applyFilters(): void {
-    router.get(
-        index().url,
+    router.post(
+        index.post().url,
         {
             razao_social: localFilters.value.razao_social,
+            unit: localFilters.value.unit,
+            cnpj: localFilters.value.cnpj,
             status: localFilters.value.status,
             sort_by: localFilters.value.sort_by,
             sort_dir: localFilters.value.sort_dir,
             per_page: localFilters.value.per_page,
         },
-        { preserveState: true, replace: true, preserveScroll: true },
+        { preserveScroll: true },
     );
 }
 
-// Delete confirmation
+// — Delete —
+const showDeleteModal = ref(false);
 const schoolToDelete = ref<School | null>(null);
-const showDeleteConfirm = ref(false);
 
-function openDeleteConfirm(school: School) {
+function openDeleteModal(school: School): void {
     schoolToDelete.value = school;
-    showDeleteConfirm.value = true;
+    showDeleteModal.value = true;
 }
 
-function cancelDelete() {
+function handleDeleteSuccess(): void {
+    showDeleteModal.value = false;
     schoolToDelete.value = null;
-    showDeleteConfirm.value = false;
-}
-
-function confirmDelete() {
-    if (!schoolToDelete.value) return;
-
-    router.delete(destroy({ school: schoolToDelete.value.id }).url, {
-        preserveScroll: true,
-        onSuccess: () => {
-            schoolToDelete.value = null;
-            showDeleteConfirm.value = false;
-        },
-    });
-}
-
-function goToEdit(school: School) {
-    router.visit(edit({ school: school.id }).url);
-}
-
-function goToCreate() {
-    router.visit(create().url);
+    router.reload({ preserveScroll: true });
 }
 
 function statusLabel(status: SchoolStatus): string {
@@ -157,237 +153,167 @@ function statusLabel(status: SchoolStatus): string {
         <Head title="Escolas" />
 
         <div class="space-y-6">
-            <!-- Header -->
+            <!-- Page header -->
             <div class="flex items-center justify-between">
-                <Heading
-                    title="Escolas"
-                    description="Gerencie as escolas cadastradas no sistema."
-                />
-                <Button @click="goToCreate" class="flex items-center gap-2">
-                    <Plus class="h-4 w-4" />
-                    Nova Escola
-                </Button>
-            </div>
+                <Heading title="Escolas" />
 
-            <!-- Filters -->
-            <Accordion
-                type="single"
-                collapsible
-                class="w-72"
-                defaultValue="closed"
-            >
-                <AccordionItem value="filter" class="border-none">
-                    <AccordionTrigger
-                        class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:no-underline"
-                        :class="
-                            hasActiveFilter
-                                ? 'border-primary/40 bg-primary/5 text-primary dark:bg-primary/10'
-                                : 'border-border bg-background hover:bg-muted/50'
-                        "
-                    >
-                        <Building2 class="h-4 w-4 shrink-0" />
-                        <span>Filtrar</span>
-                        <span
-                            v-if="hasActiveFilter"
-                            class="ml-auto rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground"
+                <Accordion
+                    type="single"
+                    collapsible
+                    class="w-72"
+                    defaultValue="closed"
+                >
+                    <AccordionItem value="filter" class="border-none">
+                        <AccordionTrigger
+                            class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:no-underline"
+                            :class="
+                                hasActiveFilter
+                                    ? 'border-primary/40 bg-primary/5 text-primary dark:bg-primary/10'
+                                    : 'border-border bg-background hover:bg-muted/50'
+                            "
                         >
-                            {{ filterCount }}
-                        </span>
-                    </AccordionTrigger>
-
-                    <AccordionContent class="pt-2">
-                        <div class="rounded-lg border bg-card p-4 shadow-sm">
-                            <form
-                                @submit.prevent="applyFilters"
-                                class="space-y-4"
+                            <Filter class="h-4 w-4 shrink-0" />
+                            <span>Filtrar</span>
+                            <span
+                                v-if="hasActiveFilter"
+                                class="ml-auto rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground"
                             >
-                                <div class="space-y-1.5">
-                                    <Label
-                                        for="filter-razao-social"
-                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                    >
-                                        Razão Social
-                                    </Label>
-                                    <Input
-                                        id="filter-razao-social"
-                                        v-model="localFilters.razao_social"
-                                        placeholder="Buscar por razão social..."
-                                        class="h-8"
-                                    />
-                                </div>
+                                {{ filterCount }}
+                            </span>
+                        </AccordionTrigger>
 
-                                <div class="space-y-1.5">
-                                    <Label
-                                        for="filter-status"
-                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                        <AccordionContent
+                            class="pt-2"
+                        >
+                            <div
+                                class="rounded-lg border bg-card p-4 shadow-sm"
+                            >
+                                <form
+                                    @submit.prevent="applyFilters"
+                                    class="space-y-4"
+                                >
+                                    <div class="space-y-1.5">
+                                        <Label
+                                            for="filter-razao-social"
+                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            Razão Social
+                                        </Label>
+                                        <Input
+                                            id="filter-razao-social"
+                                            v-model="localFilters.razao_social"
+                                            placeholder="Buscar por razão social..."
+                                            class="h-8"
+                                        />
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <Label
+                                            for="filter-unit"
+                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            Unidade
+                                        </Label>
+                                        <Input
+                                            id="filter-unit"
+                                            v-model="localFilters.unit"
+                                            placeholder="Buscar por unidade..."
+                                            class="h-8"
+                                        />
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <Label
+                                            for="filter-cnpj"
+                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            CNPJ
+                                        </Label>
+                                        <Input
+                                            id="filter-cnpj"
+                                            v-model="localFilters.cnpj"
+                                            placeholder="Buscar por CNPJ..."
+                                            class="h-8"
+                                        />
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <Label
+                                            for="filter-status"
+                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            Status
+                                        </Label>
+                                        <Select
+                                            :default-value="
+                                                localFilters.status || ''
+                                            "
+                                            @update:model-value="updateStatus"
+                                        >
+                                            <SelectTrigger
+                                                id="filter-status"
+                                                class="h-8"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Todos"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all"
+                                                    >Todos</SelectItem
+                                                >
+                                                <SelectItem value="active"
+                                                    >Ativo</SelectItem
+                                                >
+                                                <SelectItem value="inactive"
+                                                    >Inativo</SelectItem
+                                                >
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div
+                                        class="flex items-center justify-between gap-2 pt-1"
                                     >
-                                        Status
-                                    </Label>
-                                    <Select
-                                        :default-value="
-                                            localFilters.status || ''
-                                        "
-                                        @update:model-value="
-                                            (e) => {
-                                                localFilters.status = e;
-                                                applyFilters();
-                                            }
-                                        "
-                                    >
-                                        <SelectTrigger
-                                            id="filter-status"
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            class="h-8 text-muted-foreground"
+                                            as-child
+                                        >
+                                            <Link :href="clearFilters().url"
+                                                >Limpar filtros</Link
+                                            >
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            size="sm"
                                             class="h-8"
                                         >
-                                            <SelectValue placeholder="Todos" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value=""
-                                                >Todos</SelectItem
-                                            >
-                                            <SelectItem value="active"
-                                                >Ativo</SelectItem
-                                            >
-                                            <SelectItem value="inactive"
-                                                >Inativo</SelectItem
-                                            >
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div class="space-y-1.5">
-                                    <Label
-                                        for="filter-sort-by"
-                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                    >
-                                        Ordenar por
-                                    </Label>
-                                    <Select
-                                        :default-value="
-                                            localFilters.sort_by ||
-                                            'razao_social'
-                                        "
-                                        @update:model-value="
-                                            (e) => {
-                                                localFilters.sort_by = e;
-                                                applyFilters();
-                                            }
-                                        "
-                                    >
-                                        <SelectTrigger class="h-8">
-                                            <SelectValue
-                                                placeholder="Selecione..."
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="razao_social"
-                                                >Razão Social</SelectItem
-                                            >
-                                            <SelectItem value="cnpj"
-                                                >CNPJ</SelectItem
-                                            >
-                                            <SelectItem value="slug"
-                                                >Slug</SelectItem
-                                            >
-                                            <SelectItem value="status"
-                                                >Status</SelectItem
-                                            >
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div class="space-y-1.5">
-                                    <Label
-                                        for="filter-sort-dir"
-                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                    >
-                                        Direção
-                                    </Label>
-                                    <Select
-                                        :default-value="localFilters.sort_dir"
-                                        @update:model-value="
-                                            (e) => {
-                                                localFilters.sort_dir = e;
-                                                applyFilters();
-                                            }
-                                        "
-                                    >
-                                        <SelectTrigger class="h-8">
-                                            <SelectValue
-                                                placeholder="Selecione..."
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="asc"
-                                                >Crescente</SelectItem
-                                            >
-                                            <SelectItem value="desc"
-                                                >Decrescente</SelectItem
-                                            >
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div class="space-y-1.5">
-                                    <Label
-                                        for="filter-per-page"
-                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                    >
-                                        Itens por página
-                                    </Label>
-                                    <PerPageSelect
-                                        :model-value="
-                                            localFilters.value.per_page ===
-                                            'all'
-                                                ? 'all'
-                                                : String(
-                                                      localFilters.value
-                                                          .per_page,
-                                                  )
-                                        "
-                                        @update:model-value="updatePerPage"
-                                    />
-                                </div>
-
-                                <div
-                                    class="flex items-center justify-between gap-2 pt-1"
-                                >
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        class="h-8 text-muted-foreground"
-                                        as-child
-                                    >
-                                        <Link :href="index().url"
-                                            >Limpar filtros</Link
-                                        >
-                                    </Button>
-                                    <Button type="submit" size="sm" class="h-8">
-                                        Aplicar
-                                    </Button>
-                                </div>
-                            </form>
-                        </div>
-                    </AccordionContent>
-                </AccordionItem>
-            </Accordion>
+                                            Aplicar
+                                        </Button>
+                                    </div>
+                                </form>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </div>
 
             <!-- Table header actions -->
             <div class="flex items-center justify-between">
-                <template v-if="isMaster">
-                    <Link
-                        :href="create().url"
-                        class="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-                    >
-                        <Plus class="h-4 w-4" />
-                        Nova Escola
-                    </Link>
-                </template>
+                <Link
+                    v-if="props.isMaster"
+                    :href="create().url"
+                    class="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                >
+                    <Plus class="h-4 w-4" />
+                    Nova Escola
+                </Link>
+                <div v-else />
+
                 <PerPageSelect
-                    :model-value="
-                        localFilters.value.per_page === 'all'
-                            ? 'all'
-                            : String(localFilters.value.per_page)
-                    "
+                    :model-value="String(localFilters.per_page)"
                     @update:model-value="updatePerPage"
                 />
             </div>
@@ -511,7 +437,7 @@ function statusLabel(status: SchoolStatus): string {
                     <tbody class="divide-y divide-border/50">
                         <tr
                             v-for="school in props.schools.data"
-                            :key="school.id"
+                            :key="school.uuid"
                             class="transition-colors hover:bg-muted/30"
                         >
                             <td class="px-3 py-3 font-medium text-foreground">
@@ -541,18 +467,20 @@ function statusLabel(status: SchoolStatus): string {
                                 <div
                                     class="flex items-center justify-end gap-2"
                                 >
-                                    <button
+                                    <Link
+                                        :href="
+                                            edit({ school: school.uuid }).url
+                                        "
                                         class="rounded p-1 hover:bg-muted"
                                         title="Editar"
-                                        @click="goToEdit(school)"
                                     >
                                         <Pencil class="h-4 w-4" />
-                                    </button>
+                                    </Link>
                                     <button
-                                        v-if="isMaster"
+                                        v-if="props.isMaster"
                                         class="rounded p-1 text-destructive hover:bg-muted"
                                         title="Excluir"
-                                        @click="openDeleteConfirm(school)"
+                                        @click="openDeleteModal(school)"
                                     >
                                         <Trash2 class="h-4 w-4" />
                                     </button>
@@ -574,41 +502,35 @@ function statusLabel(status: SchoolStatus): string {
                         Nenhuma escola encontrada
                     </p>
                     <p class="mt-1 text-xs text-muted-foreground">
-                        Comece cadastrando uma nova escola.
+                        {{
+                            hasActiveFilter
+                                ? 'Tente ajustar os filtros aplicados.'
+                                : 'Comece cadastrando uma nova escola.'
+                        }}
                     </p>
-                    <Button class="mt-4" @click="goToCreate">
-                        <Plus class="mr-2 h-4 w-4" />
+                    <Link
+                        v-if="props.isMaster && !hasActiveFilter"
+                        :href="create().url"
+                        class="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                    >
+                        <Plus class="h-4 w-4" />
                         Nova Escola
-                    </Button>
+                    </Link>
                 </div>
             </div>
 
             <TablePagination :paginator="props.schools" />
         </div>
 
-        <!-- Delete confirmation dialog -->
-        <div
-            v-if="showDeleteConfirm && schoolToDelete"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        >
-            <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
-                <h2 class="text-lg font-semibold text-foreground">
-                    Confirmar Exclusão
-                </h2>
-                <p class="mt-2 text-sm text-muted-foreground">
-                    Tem certeza que deseja excluir a escola
-                    <strong>{{ schoolToDelete.razao_social }}</strong
-                    >? Esta ação não pode ser desfeita.
-                </p>
-                <div class="mt-6 flex items-center justify-end gap-3">
-                    <Button variant="outline" @click="cancelDelete"
-                        >Cancelar</Button
-                    >
-                    <Button variant="destructive" @click="confirmDelete"
-                        >Excluir</Button
-                    >
-                </div>
-            </div>
-        </div>
+        <!-- Delete confirmation modal -->
+        <ConfirmDeleteModal
+            v-if="schoolToDelete"
+            v-model:open="showDeleteModal"
+            title="Confirmar Exclusão"
+            :message="`Tem certeza que deseja excluir a escola ${schoolToDelete.razao_social}?`"
+            :action="confirmDelete({ school: schoolToDelete.uuid }).url"
+            success-message="Escola excluída com sucesso."
+            @success="handleDeleteSuccess"
+        />
     </AppLayout>
 </template>

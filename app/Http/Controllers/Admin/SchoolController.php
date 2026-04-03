@@ -12,6 +12,8 @@ use App\Services\School\SchoolService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,9 +25,39 @@ class SchoolController extends Controller
 
     public function index(Request $request): Response
     {
-        $schools = $this->schoolService->list($request->only(['razao_social', 'status']));
+        $filters = $this->setFilters($request);
 
-        return Inertia::render('admin/Schools/Index', ['schools' => $schools]);
+        $schools = $this->schoolService->list($filters);
+
+        return Inertia::render('admin/Schools/Index', [
+            'schools' => $schools,
+            'filters' => $filters,
+            'isMaster' => $request->user()?->role?->name === 'Master',
+        ]);
+    }
+
+    public function setFilters(Request $request): array
+    {
+        $filters = [
+            'razao_social' => $request->input('razao_social', ''),
+            'unit' => $request->input('unit', ''),
+            'cnpj' => $request->input('cnpj', ''),
+            'status' => $request->input('status', ''),
+            'sort_by' => $request->input('sort_by', 'razao_social'),
+            'sort_dir' => $request->input('sort_dir', 'asc'),
+            'per_page' => $request->input('per_page', 10),
+        ];
+
+        session(['school_filters' => $filters]);
+
+        return $filters;
+    }
+
+    public function clearFilters(): RedirectResponse
+    {
+        session()->forget('school_filters');
+
+        return to_route('admin.schools.index');
     }
 
     public function create(): Response
@@ -39,7 +71,8 @@ class SchoolController extends Controller
 
         $this->schoolService->create($request->validated());
 
-        return to_route('admin.schools.index');
+        return to_route('admin.schools.index')
+            ->with('success', 'Escola criada com sucesso.');
     }
 
     public function edit(School $school): Response
@@ -55,7 +88,8 @@ class SchoolController extends Controller
 
         $this->schoolService->update($school, $request->validated());
 
-        return to_route('admin.schools.edit', $school);
+        return to_route('admin.schools.edit', $school)
+            ->with('success', 'Escola atualizada com sucesso.');
     }
 
     public function destroy(School $school): RedirectResponse
@@ -64,6 +98,23 @@ class SchoolController extends Controller
 
         $this->schoolService->destroy($school);
 
-        return to_route('admin.schools.index');
+        return to_route('admin.schools.index')
+            ->with('success', 'Escola excluída com sucesso.');
+    }
+
+    public function confirmDelete(Request $request, School $school): RedirectResponse
+    {
+        Gate::authorize('delete', $school);
+
+        if (! Hash::check($request->input('password'), $request->user()->password)) {
+            throw ValidationException::withMessages([
+                'password' => 'Senha incorreta.',
+            ]);
+        }
+
+        $this->schoolService->destroy($school);
+
+        return to_route('admin.schools.index')
+            ->with('success', 'Escola excluída com sucesso.');
     }
 }
