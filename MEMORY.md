@@ -8,7 +8,7 @@
 ## ESTADO ATUAL
 
 **Última sessão:** 2026-04-03
-**Próxima tarefa:** Etapa 3.x frontend — páginas Index/Create/Edit de Alunos e Responsáveis
+**Próxima tarefa:** Etapa 4.x — Oportunidades (service, requests, policy, controller, rotas, testes HTTP)
 
 ### Concluído
 
@@ -31,7 +31,8 @@
 - [x] **2.4** — Frontend Configurações Tenant: SchoolYears.vue · LeadSources.vue · Grades.vue (placeholder) — concluído em 2026-04-03
 - [x] **3.1** — Alunos e Responsáveis (backend): migrations · models · observers · services · requests · policies · controllers · rotas · testes (118 passando) — APROVADO em 2026-04-03
 - [x] **3.2** — Frontend CPF Lookup: `useCpfLookup` composable + `CpfField.vue` componente — concluído em 2026-04-03
-- [ ] **4.x** — Oportunidades 🔴
+- [x] **4.1** — Oportunidades (backend base): OpportunityStatus enum · migration · Opportunity model · OpportunityObserver · teste modelo (119 passando) — APROVADO em 2026-04-03
+- [ ] **4.x** — Oportunidades (restante) 🔴
 - [ ] **5.x** — Tarefas e Tabulações 🔴
 - [ ] **6–11** — Notificações · Eventos · Formulário · Calendário · Relatórios · LGPD
 
@@ -230,6 +231,7 @@ Public/     sem auth
 | 2026-04-03 | StudentService.php | Unicidade de CPF por tenant validada no `create()` via `ValidationException` — `lookup()` usa `withoutTenantScope()` para busca cross-scope segura |
 | 2026-04-03 | routes/tenant.php | Rota `lookup/{cpf}` deve vir ANTES de `{student}` no grupo — evita conflito de route model binding |
 | 2026-04-03 | useCpfLookup.ts | `fetch` é o único caso autorizado fora de `useForm` — endpoints GET de lookup retornam JSON puro, não Inertia; interfaces Student/Guardian adicionadas a `crm.ts` |
+| 2026-04-03 | OpportunityModelTest.php | Pest 4 `toThrow(\Throwable::class)` falha com mensagem "To contain: Throwable" em vez de checar instância — usar bloco try/catch manual com flag booleana como workaround |
 
 ---
 
