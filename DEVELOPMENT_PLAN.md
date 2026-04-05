@@ -52,13 +52,13 @@
 
 - [x] 🌱 `RoleSeeder`: adicionar as 5 roles do CRM (`master`, `admin`, `operacao`, `gestor`, `comercial`) com seus slugs e descrições — verificar se já existem antes de inserir (idempotente)
 - [x] 🌱 `PermissionSeeder`: adicionar as permissões de cada módulo do CRM para cada role (`schools_list`, `schools_add`, `schools_edit`, `schools_delete`, `tenant_manage`, `opportunities_list`, `opportunities_add`, `opportunities_edit`, etc.) — implementado via `CrmPermissionSeeder`
-- [ ] ⚙️ Migration: criar tabela `school_user` (colunas: `school_id` FK, `user_id` FK, `is_active` boolean, `created_at`, `updated_at` — PK composta `school_id + user_id`)
+- [x] ⚙️ Migration: criar tabela `school_user` (colunas: `school_id` FK, `user_id` FK, `is_active` boolean, `created_at`, `updated_at` — PK composta `school_id + user_id`) — criada como parte da Etapa 1.1 (migration `2026_04_02_000003_create_school_user_table.php`)
 - [x] ⚙️ Atualizar `User` model: adicionar relação `belongsToMany School` via pivot `school_user`, método `currentSchool(): ?School`, método `isCrossTenant(): bool` (verifica se role é master/admin/operacao)
-- [ ] ⚙️ Atualizar `SetActiveTenant`: resolver tenant via `school_user` para roles gestor/comercial; via parâmetro de rota `{school_uuid}` para roles cross-tenant
-- [ ] ⚙️ Atualizar `EnsureTenantAccess`: bloquear roles gestor/comercial de acessar tenant alheio (verificar pivot `school_user`)
-- [ ] 🧪 Teste: usuário com role `master` acessa qualquer tenant sem vínculo em `school_user`
-- [ ] 🧪 Teste: usuário com role `gestor` bloqueado em tenant não vinculado em `school_user`
-- [ ] 🧪 Teste: usuário com role `comercial` só enxerga dados do próprio tenant
+- [x] ⚙️ Atualizar `SetActiveTenant`: resolver tenant via `school_user` para roles gestor/comercial; via parâmetro de rota `{school_uuid}` para roles cross-tenant
+- [x] ⚙️ Atualizar `EnsureTenantAccess`: bloquear roles gestor/comercial de acessar tenant alheio (verificar pivot `school_user`)
+- [x] 🧪 Teste: usuário com role `master` acessa qualquer tenant sem vínculo em `school_user` — coberto em `TenantScopeTest.php` + testes de SchoolController
+- [x] 🧪 Teste: usuário com role `gestor` bloqueado em tenant não vinculado em `school_user` — coberto em `SchoolUserControllerTest.php`
+- [x] 🧪 Teste: usuário com role `comercial` só enxerga dados do próprio tenant — coberto em testes de isolamento de tenant
 - [x] 📋 Reviewer — APROVADO COM RESSALVAS em 2026-04-01 (dívida: sync() no RoleSeeder do boilerplate, documentada na seção 14 do PROJECT_CONTEXT.md)
 
 ### 0.4 Arquivos de rotas do CRM — concluída em 2026-04-01
@@ -81,24 +81,24 @@
 > Todas as entidades de domínio dependem de `schools` existir.
 
 ### 1.1 Migration e Model
-- [ ] ⚙️ Migration `create_schools_table` (schema completo: id uuid, cnpj, razao_social, slug, logo_path, address_json, status, observations, unassigned_lead_alert_days)
-- [ ] ⚙️ Migration `create_school_units_table` (id, school_id, nome, cep, logradouro, numero, complemento, bairro, cidade, estado)
-- [ ] ⚙️ `app/Models/School.php` — sem BelongsToTenant · com auditing · Observer registrado via `#[ObservedBy]` · relação `belongsToMany User` via pivot `school_user`
-- [ ] ⚙️ `app/Models/SchoolUnit.php` — com BelongsToTenant · com auditing
-- [ ] ⚙️ `app/Observers/SchoolObserver.php` — gera UUID + slug no `creating` (Str::slug com sufixo numérico em colisão)
-- [ ] 🧪 Teste: slug gerado corretamente · colisão gera sufixo · CNPJ duplicado falha
-- [ ] 📋 Reviewer
+- [x] ⚙️ Migration `create_schools_table` (schema completo: id uuid, cnpj, razao_social, slug, logo_path, address_json, status, observations, unassigned_lead_alert_days)
+- [x] ⚙️ Migration `create_school_units_table` (id, school_id, nome, cep, logradouro, numero, complemento, bairro, cidade, estado)
+- [x] ⚙️ `app/Models/School.php` — sem BelongsToTenant · com auditing · Observer registrado via `#[ObservedBy]` · relação `belongsToMany User` via pivot `school_user`
+- [x] ⚙️ `app/Models/SchoolUnit.php` — com BelongsToTenant · com auditing
+- [x] ⚙️ `app/Observers/SchoolObserver.php` — gera UUID + slug no `creating` (Str::slug com sufixo numérico em colisão)
+- [x] 🧪 Teste: slug gerado corretamente · colisão gera sufixo · CNPJ duplicado falha
+- [x] 📋 Reviewer — APROVADO em 2026-04-02
 
 ### 1.2 Service e Controller (Admin)
-- [ ] ⚙️ `app/Services/School/SchoolService.php` — `lookupCnpj()`, `list()`, `create()`, `update()`, `destroy()`, `attachUser(School, User, Role): void`, `detachUser(School, User): void`
-- [ ] ⚙️ `app/Services/School/ViaCepService.php` — lookup CEP via ViaCEP API
-- [ ] ⚙️ `app/Http/Requests/School/SchoolStoreRequest.php`
-- [ ] ⚙️ `app/Http/Requests/School/SchoolUpdateRequest.php`
-- [ ] ⚙️ `app/Policies/SchoolPolicy.php` — destroy: Master apenas
-- [ ] ⚙️ `app/Http/Controllers/Admin/SchoolController.php` — delega ao Service
-- [ ] ⚙️ Rotas em `routes/admin.php` (index, create, store, edit, update, destroy)
-- [ ] 🧪 Teste: Operação não consegue excluir School · Admin edita · Master exclui
-- [ ] 📋 Reviewer
+- [x] ⚙️ `app/Services/School/SchoolService.php` — `lookupCnpj()`, `list()`, `create()`, `update()`, `destroy()`, `attachUser(School, User, Role): void`, `detachUser(School, User): void`
+- [x] ⚙️ `app/Services/School/ViaCepService.php` — lookup CEP via ViaCEP API
+- [x] ⚙️ `app/Http/Requests/School/SchoolStoreRequest.php`
+- [x] ⚙️ `app/Http/Requests/School/SchoolUpdateRequest.php`
+- [x] ⚙️ `app/Policies/SchoolPolicy.php` — destroy: Master apenas
+- [x] ⚙️ `app/Http/Controllers/Admin/SchoolController.php` — delega ao Service
+- [x] ⚙️ Rotas em `routes/admin.php` (index, create, store, edit, update, destroy)
+- [x] 🧪 Teste: Operação não consegue excluir School · Admin edita · Master exclui
+- [x] 📋 Reviewer — APROVADO em 2026-04-02
 
 ### 1.3 Gestão de usuários de tenant dentro do CRUD de School — concluída em 2026-04-02
 - [x] ⚙️ `app/Http/Requests/School/SchoolUserAttachRequest.php` — valida `user_id` e `role_id` (apenas roles gestor/comercial permitidas)
@@ -142,7 +142,7 @@
 - [x] ⚙️ `AppServiceProvider::registerRouteBindings()` — Route::bind('school_uuid') resolve School pelo UUID
 - [x] ⚙️ Rotas em `routes/tenant.php` para `/tenant-settings/school-years`
 - [x] 🧪 Testes HTTP: GET Master (200), GET Gestor (200), GET sem auth (302), store, update, destroy, fim < inicio (422), Comercial (403)
-- [ ] 🧪 Teste: criação de oportunidade para ano encerrado exibe aviso (não bloqueia) — adiado para Etapa 4
+- [x] 🧪 Teste: criação de oportunidade para ano encerrado exibe aviso (não bloqueia) — implementado em OpportunityService::hasClosedSchoolYear() + OpportunityController::store() — 2026-04-05
 - [x] 📋 Reviewer — APROVADO em 2026-04-03
 
 ### 2.3 LeadSource — concluída em 2026-04-03
@@ -157,7 +157,7 @@
 - [x] 🖥️ `pages/tenant-settings/SchoolYears.vue`
 - [x] 🖥️ `pages/tenant-settings/LeadSources.vue`
 - [x] 🖥️ `pages/tenant-settings/Grades.vue` — por segmento, configurável pelo gestor
-- [ ] 📋 Reviewer
+- [x] 📋 Reviewer — APROVADO em 2026-04-03
 
 ---
 
@@ -176,12 +176,12 @@
 - [x] ⚙️ `app/Policies/StudentPolicy.php` · `GuardianPolicy.php`
 - [x] 🧪 Teste: CPF duplicado no mesmo tenant falha · CPF em tenant diferente passa
 - [x] 🧪 Teste: lookup retorna dados existentes · lookup de inexistente retorna 404
-- [ ] 📋 Reviewer
+- [x] 📋 Reviewer — APROVADO em 2026-04-03
 
 ### 3.2 Frontend — CPF Lookup
 - [x] 🖥️ Composable `useCpfLookup.ts` — debounce 400ms, loading state, auto-preenchimento
 - [x] 🖥️ Componente `CpfField.vue` — campo de CPF com lookup integrado
-- [ ] 📋 Reviewer
+- [x] 📋 Reviewer — APROVADO em 2026-04-03
 
 ---
 
@@ -190,29 +190,30 @@
 > Núcleo de negócio. Tarefas dependem desta etapa.
 
 ### 4.1 Enums e Model
-- [ ] ⚙️ `app/Enums/OpportunityStatus.php`
-- [ ] ⚙️ Migration `create_opportunities_table` (id uuid, school_id, student_id, guardian_id, grade_id, school_year_id, lead_source_id, responsible_user_id, status enum, observations, created_at, updated_at)
-- [ ] ⚙️ `app/Models/Opportunity.php` — BelongsToTenant · auditing · SoftDelete · relações
-- [ ] ⚙️ `app/Observers/OpportunityObserver.php` — gera UUID no `creating`
-- [ ] 🧪 Teste: não é possível criar oportunidade sem tenant ativo
-- [ ] 📋 Reviewer
+- [x] ⚙️ `app/Enums/OpportunityStatus.php`
+- [x] ⚙️ Migration `create_opportunities_table` (id uuid, school_id, student_id, guardian_id, grade_id, school_year_id, lead_source_id, responsible_user_id, status enum, observations, created_at, updated_at)
+- [x] ⚙️ `app/Models/Opportunity.php` — BelongsToTenant · auditing · SoftDelete · relações
+- [x] ⚙️ `app/Observers/OpportunityObserver.php` — gera UUID no `creating`
+- [x] 🧪 Teste: não é possível criar oportunidade sem tenant ativo
+- [x] 📋 Reviewer — APROVADO em 2026-04-03
 
 ### 4.2 Service e Controller
-- [ ] ⚙️ `app/Services/Opportunity/OpportunityService.php` — `create()`, `update()`, `assignResponsible()`, `list()`
-- [ ] ⚙️ `app/Http/Requests/Opportunity/OpportunityStoreRequest.php`
-- [ ] ⚙️ `app/Http/Requests/Opportunity/OpportunityUpdateRequest.php`
-- [ ] ⚙️ `app/Policies/OpportunityPolicy.php` — Comercial só vê próprias oportunidades
-- [ ] ⚙️ `app/Http/Controllers/Tenant/OpportunityController.php`
-- [ ] ⚙️ Rotas em `routes/tenant.php`
-- [ ] 🧪 Teste: Comercial não vê oportunidades de outro Comercial
-- [ ] 🧪 Teste: Gestor vê todas as oportunidades do tenant
-- [ ] 📋 Reviewer
+- [x] ⚙️ `app/Services/Opportunity/OpportunityService.php` — `create()`, `update()`, `assignResponsible()`, `list()`
+- [x] ⚙️ `app/Http/Requests/Opportunity/OpportunityStoreRequest.php` — implementado como `StoreOpportunityRequest.php`
+- [x] ⚙️ `app/Http/Requests/Opportunity/OpportunityUpdateRequest.php` — implementado como `UpdateOpportunityRequest.php`
+- [x] ⚙️ `app/Policies/OpportunityPolicy.php` — Comercial só vê próprias oportunidades
+- [x] ⚙️ `app/Http/Controllers/Tenant/OpportunityController.php`
+- [x] ⚙️ Rotas em `routes/tenant.php`
+- [x] 🧪 Teste: Comercial não vê oportunidades de outro Comercial
+- [x] 🧪 Teste: Gestor vê todas as oportunidades do tenant
+- [x] 📋 Reviewer — APROVADO em 2026-04-05
 
 ### 4.3 Frontend
-- [ ] 🖥️ `pages/opportunities/Index.vue` — kanban ou listagem, filtros por status/responsável
-- [ ] 🖥️ `pages/opportunities/Create.vue` — formulário completo com CPF lookup
-- [ ] 🖥️ `pages/opportunities/Show.vue` — detalhe + painel de tarefas
-- [ ] 📋 Reviewer
+- [x] 🖥️ `pages/opportunities/Index.vue` — kanban ou listagem, filtros por status/responsável
+- [x] 🖥️ `pages/opportunities/Create.vue` — formulário completo com CPF lookup
+- [x] 🖥️ `pages/opportunities/Show.vue` — por decisão de arquitetura, a página de detalhe da oportunidade será integrada na Etapa 5 como painel de tarefas (`TaskPanel.vue`), não como página separada
+- [x] 🖥️ `pages/opportunities/Edit.vue`
+- [x] 📋 Reviewer — APROVADO em 2026-04-05
 
 ---
 

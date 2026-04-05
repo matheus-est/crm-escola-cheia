@@ -1,7 +1,7 @@
 # TECHNICAL_PLAN.md
-> Última atualização: 2026-04-01
+> Last updated: 2026-04-01
 
-## ESTRUTURA DE PASTAS — BACKEND
+## FOLDER STRUCTURE — BACKEND
 
 ```
 app/
@@ -9,10 +9,10 @@ app/
 ├── Enums/               OpportunityStatus · TaskStatus · TaskType
 ├── Http/
 │   ├── Controllers/
-│   │   ├── Acl/         (boilerplate — não modificar)
+│   │   ├── Acl/         (boilerplate — do not modify)
 │   │   ├── Admin/       SchoolController · SchoolUserController · DashboardController
 │   │   ├── Public/      LeadCaptureController
-│   │   ├── Settings/    (boilerplate — não modificar)
+│   │   ├── Settings/    (boilerplate — do not modify)
 │   │   └── Tenant/      OpportunityController · TaskController · StudentController
 │   │                    GuardianController · EventController · RoomController
 │   │                    CalendarController · ReportController
@@ -27,14 +27,14 @@ app/
 ├── Observers/            SchoolObserver · OpportunityObserver
 ├── Policies/             SchoolPolicy · OpportunityPolicy · TaskPolicy · StudentPolicy · etc.
 └── Services/
-    ├── School/           SchoolService (inclui attachUser/detachUser) · ViaCepService
+    ├── School/           SchoolService (attachUser/detachUser) · ViaCepService
     ├── Opportunity/      OpportunityService
     ├── Task/             TaskService · OutcomeProcessorService · RenitenteCycleService
     ├── Student/ · Guardian/ · Lead/ · LeadSource/ · SchoolYear/ · Event/
     └── (boilerplate: Acl/ · Menu/ · SettingService)
 ```
 
-## ESTRUTURA DE PASTAS — FRONTEND
+## FOLDER STRUCTURE — FRONTEND
 
 ```
 resources/js/
@@ -43,7 +43,7 @@ resources/js/
 │                   Task/RefusalForm · Task/TaskCreateModal (+ boilerplate)
 ├── layouts/        PublicLayout (+ boilerplate)
 ├── pages/
-│   ├── admin/Schools/    Index · Create · Edit (inclui seção Usuários da escola)
+│   ├── admin/Schools/    Index · Create · Edit (includes Users section)
 │   ├── opportunities/    Index · Create · Show
 │   ├── tenant-settings/  Grades · LeadSources · Rooms · SchoolYears
 │   ├── events/           Index · Create · Edit
@@ -53,37 +53,36 @@ resources/js/
 └── types/          crm.ts (School · SchoolUnit · SchoolUser · Opportunity · Task · etc.)
 ```
 
-## BANCO DE DADOS — TABELAS DO CRM
+## DATABASE — CRM TABLES
 
-| Tabela | Observação |
+| Table | Notes |
 |---|---|
-| `school_user` | Pivot `school_id + user_id + is_active` — sem coluna `role` |
-| `schools` | Sem `BelongsToTenant` — é o tenant raiz |
+| `school_user` | Pivot `school_id + user_id + is_active` — no `role` column |
+| `schools` | No `BelongsToTenant` — it is the root tenant |
 | `school_units` | `BelongsToTenant` |
-| `segments` | Global, sem `BelongsToTenant` |
+| `segments` | Global, no `BelongsToTenant` |
 | `grades` | `BelongsToTenant` |
 | `school_years` | `BelongsToTenant` |
-| `lead_sources` | `school_id` nullable — sistema ou por escola |
-| `students` · `guardians` | `BelongsToTenant` · índice `(school_id, cpf)` |
+| `lead_sources` | nullable `school_id` — system or per school |
+| `students` · `guardians` | `BelongsToTenant` · index `(school_id, cpf)` |
 | `opportunities` | `BelongsToTenant` · SoftDelete |
-| `tasks` | `BelongsToTenant` · campo `renitente_count` |
-| `outcomes` · `outcome_actions` | Global, sem `BelongsToTenant` |
-| `lgpd_consents` | Sem `BelongsToTenant` · sem auditing |
+| `tasks` | `BelongsToTenant` · field `renitente_count` |
+| `outcomes` · `outcome_actions` | Global, no `BelongsToTenant` |
+| `lgpd_consents` | No `BelongsToTenant` · no auditing |
 
-Tabelas do boilerplate mantidas intactas: `users · roles · permissions · role_permissions · modules · module_actions · menu_groups · term_versions · user_term_acceptances · system_settings · audit_logins · audits · sessions · cache · jobs`
+Boilerplate tables kept intact: `users · roles · permissions · role_permissions · modules · module_actions · menu_groups · term_versions · user_term_acceptances · system_settings · audit_logins · audits · sessions · cache · jobs`
 
-## SEEDERS (ordem de execução)
+## SEEDERS (execution order)
 ```
-DatabaseSeeder → RoleSeeder (master/admin/operacao/gestor/comercial)
-              → PermissionSeeder (permissões do CRM por role)
-              → ModuleSeeder → MenuGroupSeeder → SystemSettingSeeder → TermVersionSeeder
-              → SegmentSeeder (6 segmentos) → OutcomeSeeder (tabulações + actions)
+DatabaseSeeder → RoleSeeder → PermissionSeeder → ModuleSeeder → MenuGroupSeeder
+              → SystemSettingSeeder → TermVersionSeeder
+              → SegmentSeeder (6 segments) → OutcomeSeeder (31 normal + 10 refusals = 41)
 ```
-Primeiro usuário Master criado via Tinker — não existe UserSeeder.
+First Master user created via Tinker — no UserSeeder.
 
-## ROTAS
+## ROUTES
 
-| Arquivo | Prefixo | Middleware |
+| File | Prefix | Middleware |
 |---|---|---|
 | `acl.php` | `/acl` | `auth, verified, gates` |
 | `admin.php` | `/admin` | `auth, verified, role:master,admin,operacao` |
@@ -91,12 +90,12 @@ Primeiro usuário Master criado via Tinker — não existe UserSeeder.
 | `settings.php` | `/settings` | `auth` / `auth, verified` |
 | `web.php` | — | `web` |
 
-Convenções: nomes `snake_case` com ponto · UUIDs em parâmetros · `to_route()` sempre
+Conventions: `snake_case` names with dot · UUIDs in params · `to_route()` always.
 
-### Rotas Admin — Schools
-| Verbo | URL | Nome |
+### Admin routes — Schools
+| Verb | URL | Name |
 |---|---|---|
-| GET/POST | `/admin/schools` | `schools.index` |
+| GET | `/admin/schools` | `schools.index` |
 | GET | `/admin/schools/create` | `schools.create` |
 | POST | `/admin/schools` | `schools.store` |
 | GET | `/admin/schools/{uuid}/edit` | `schools.edit` |

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\GuardianController;
+use App\Http\Controllers\Tenant\OpportunityController;
 use App\Http\Controllers\Tenant\Settings\LeadSourceController;
 use App\Http\Controllers\Tenant\Settings\SchoolYearController;
 use App\Http\Controllers\Tenant\StudentController;
@@ -60,8 +61,19 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
         Route::delete('/guardians/{guardian}', [GuardianController::class, 'destroy'])
             ->name('guardians.destroy');
 
-        // TODO Etapa 2.x — Oportunidades
-        // Route::resource('oportunidades', OportunidadeController::class);
+        // Oportunidades
+        Route::match(['get', 'post'], '/opportunities', [OpportunityController::class, 'index'])
+            ->name('opportunities.index');
+        Route::get('/opportunities/create', [OpportunityController::class, 'create'])
+            ->name('opportunities.create');
+        Route::post('/opportunities', [OpportunityController::class, 'store'])
+            ->name('opportunities.store');
+        Route::get('/opportunities/{opportunity}/edit', [OpportunityController::class, 'edit'])
+            ->name('opportunities.edit');
+        Route::put('/opportunities/{opportunity}', [OpportunityController::class, 'update'])
+            ->name('opportunities.update');
+        Route::delete('/opportunities/{opportunity}', [OpportunityController::class, 'destroy'])
+            ->name('opportunities.destroy');
 
         // TODO Etapa 2.x — Tarefas
         // Route::resource('tarefas', TarefaController::class);
