@@ -136,3 +136,45 @@ export interface PaginatedLeadSources {
     total: number;
     links: Array<{ url: string | null; label: string; active: boolean }>;
 }
+
+export type OpportunityStatus =
+    | 'cadastro_inicial'
+    | 'agendamento'
+    | 'visita'
+    | 'matricula'
+    | 'recusado';
+
+export interface Grade {
+    uuid: string;
+    nome: string;
+    segment_id: number;
+}
+
+export interface Opportunity {
+    uuid: string;
+    status: OpportunityStatus;
+    observations: string | null;
+    student?: Student | null;
+    guardian?: Guardian | null;
+    grade?: Grade | null;
+    school_year?: SchoolYear | null;
+    lead_source?: LeadSource | null;
+    responsible_user?: { uuid: string; name: string } | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PaginatedOpportunities {
+    data: Opportunity[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+}
+
+export interface TenantUser {
+    uuid: string;
+    name: string;
+    email: string;
+}
