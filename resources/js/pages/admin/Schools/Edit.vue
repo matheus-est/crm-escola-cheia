@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Form, Head, Link, router } from '@inertiajs/vue3';
+import { Form, Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     AlertCircle,
-    Trash2,
     ArrowLeft,
     Building2,
+    Trash2,
     Users,
 } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -29,13 +29,22 @@ import {
     destroy as destroyUser,
 } from '@/routes/admin/schools/users';
 import type { BreadcrumbItem } from '@/types';
-import type { School, SchoolUser } from '@/types/crm';
+import type { School } from '@/types/crm';
+
+interface Role {
+    uuid: string;
+    name: string;
+}
+
+interface AvailableUser {
+    uuid: string;
+    name: string;
+}
 
 const props = defineProps<{
-    school: { data: School };
-    schoolUsers: { data: SchoolUser[] };
-    availableRoles: Array<{ id: number; name: string }>;
-    allUsers: Array<{ id: number; name: string }>;
+    school: School;
+    availableRoles?: Role[];
+    allUsers?: AvailableUser[];
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -47,51 +56,31 @@ const toast = useToast();
 
 const activeTab = ref<'details' | 'users'>('details');
 
-const form = Form({
-    cnpj: props.school.data.cnpj || '',
-    razao_social: props.school.data.razao_social || '',
-    status: props.school.data.status || 'active',
-    slug: props.school.data.slug || '',
-});
-
-// Used in Form component's v-slot
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const formRef = form;
+const selectedStatus = ref(props.school.status);
 
 const handleSuccess = () => {
     toast.success('Escola atualizada com sucesso.');
-    router.visit(index().url);
 };
 
 const handleError = () => {
     toast.error('Erro ao atualizar escola. Verifique os campos.');
 };
 
-// User attachment
-const userForm = Form({
+const userForm = useForm({
     user_id: '',
     role_id: '',
 });
 
 function attachUser() {
-    userForm.post(storeUser({ school: props.school.data.uuid }).url, {
-        preserveScroll: true,
+    userForm.post(storeUser({ school: props.school.uuid }).url, {
         onSuccess: () => {
             userForm.reset();
         },
     });
 }
 
-function detachUser(userId: string) {
-    if (confirm('Tem certeza que deseja remover este usuário da escola?')) {
-        router.delete(
-            destroyUser({ school: props.school.data.uuid, userUuid: userId })
-                .url,
-            {
-                preserveScroll: true,
-            },
-        );
-    }
+function detachUser(userUuid: string) {
+    router.delete(destroyUser({ school: props.school.uuid, userUuid }).url);
 }
 </script>
 
@@ -112,6 +101,7 @@ function detachUser(userId: string) {
             </div>
 
             <div class="rounded-md border">
+                <!-- Tab navigation -->
                 <div class="flex border-b">
                     <button
                         type="button"
@@ -141,16 +131,17 @@ function detachUser(userId: string) {
                     </button>
                 </div>
 
+                <!-- Details tab: wrapped in Inertia Form -->
                 <Form
                     method="put"
-                    :action="update({ school: props.school.data.uuid }).url"
+                    :action="update({ school: props.school.uuid }).url"
                     class="space-y-6"
                     v-slot="{ errors, processing }"
                     @success="handleSuccess"
                     @error="handleError"
                 >
                     <div v-show="activeTab === 'details'" class="space-y-6 p-6">
-                        <!-- Alerta sobre alteração de slug -->
+                        <!-- Slug warning alert -->
                         <Alert
                             class="border-amber-500/50 bg-amber-50/50 text-amber-600 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-500"
                         >
@@ -172,6 +163,7 @@ function detachUser(userId: string) {
                                 <Input
                                     id="cnpj"
                                     name="cnpj"
+                                    :default-value="props.school.cnpj"
                                     placeholder="00.000.000/0000-00"
                                 />
                                 <InputError :message="errors.cnpj" />
@@ -182,6 +174,7 @@ function detachUser(userId: string) {
                                 <Input
                                     id="razao_social"
                                     name="razao_social"
+                                    :default-value="props.school.razao_social"
                                     placeholder="Escola Exemplo"
                                 />
                                 <InputError :message="errors.razao_social" />
@@ -192,6 +185,7 @@ function detachUser(userId: string) {
                                 <Input
                                     id="slug"
                                     name="slug"
+                                    :default-value="props.school.slug"
                                     placeholder="..."
                                     readonly
                                     class="cursor-not-allowed bg-muted"
@@ -205,19 +199,19 @@ function detachUser(userId: string) {
 
                             <div class="space-y-2">
                                 <Label for="status">Status</Label>
-                                <Select name="status">
+                                <Select name="status" v-model="selectedStatus">
                                     <SelectTrigger>
                                         <SelectValue
                                             placeholder="Selecione..."
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="active"
-                                            >Ativo</SelectItem
-                                        >
-                                        <SelectItem value="inactive"
-                                            >Inativo</SelectItem
-                                        >
+                                        <SelectItem value="active">
+                                            Ativo
+                                        </SelectItem>
+                                        <SelectItem value="inactive">
+                                            Inativo
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <InputError :message="errors.status" />
@@ -225,139 +219,9 @@ function detachUser(userId: string) {
                         </div>
                     </div>
 
-                    <div v-show="activeTab === 'users'" class="space-y-6 p-6">
-                        <!-- Adicionar usuário -->
-                        <form
-                            @submit.prevent="attachUser"
-                            class="flex flex-wrap items-end gap-4 rounded-md bg-muted/50 p-4"
-                        >
-                            <div class="min-w-[200px] flex-1 space-y-2">
-                                <Label for="user_id">Usuário</Label>
-                                <Select v-model="userForm.user_id">
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder="Selecione um usuário..."
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-for="u in props.allUsers"
-                                            :key="u.id"
-                                            :value="u.id.toString()"
-                                        >
-                                            {{ u.name }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <InputError
-                                    :message="userForm.errors.user_id"
-                                />
-                            </div>
-
-                            <div class="w-48 space-y-2">
-                                <Label for="role_id">Perfil na Escola</Label>
-                                <Select v-model="userForm.role_id">
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Perfil..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-for="r in props.availableRoles"
-                                            :key="r.id"
-                                            :value="r.id.toString()"
-                                        >
-                                            {{ r.name }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <InputError
-                                    :message="userForm.errors.role_id"
-                                />
-                            </div>
-
-                            <Button
-                                type="submit"
-                                :disabled="
-                                    userForm.processing ||
-                                    !userForm.user_id ||
-                                    !userForm.role_id
-                                "
-                            >
-                                Vincular
-                            </Button>
-                        </form>
-
-                        <!-- Tabela de usuários vinculados -->
-                        <div class="rounded-md border">
-                            <table class="w-full text-left text-sm">
-                                <thead
-                                    class="bg-muted/50 text-muted-foreground"
-                                >
-                                    <tr>
-                                        <th class="px-4 py-3 font-medium">
-                                            Nome
-                                        </th>
-                                        <th class="px-4 py-3 font-medium">
-                                            E-mail
-                                        </th>
-                                        <th class="px-4 py-3 font-medium">
-                                            Perfil
-                                        </th>
-                                        <th
-                                            class="px-4 py-3 text-right font-medium"
-                                        >
-                                            Ação
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y">
-                                    <tr
-                                        v-for="su in props.schoolUsers.data"
-                                        :key="su.id"
-                                    >
-                                        <td class="px-4 py-3">{{ su.name }}</td>
-                                        <td
-                                            class="px-4 py-3 text-muted-foreground"
-                                        >
-                                            {{ su.email }}
-                                        </td>
-                                        <td class="px-4 py-3">
-                                            <span
-                                                class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-primary/20 ring-inset"
-                                            >
-                                                {{ su.role?.name || 'N/A' }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 text-right">
-                                            <button
-                                                class="rounded p-1 text-destructive hover:bg-muted"
-                                                title="Remover Vínculo"
-                                                @click="detachUser(su.uuid)"
-                                            >
-                                                <Trash2 class="h-4 w-4" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr
-                                        v-if="
-                                            props.schoolUsers.data.length === 0
-                                        "
-                                    >
-                                        <td
-                                            colspan="4"
-                                            class="px-4 py-8 text-center text-muted-foreground"
-                                        >
-                                            Nenhum usuário vinculado a esta
-                                            escola ainda.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Botões -->
+                    <!-- Action bar (always visible, belongs to the details form) -->
                     <div
+                        v-show="activeTab === 'details'"
                         class="flex items-center justify-between gap-4 border-t bg-muted/20 px-6 py-4"
                     >
                         <Button
@@ -381,6 +245,129 @@ function detachUser(userId: string) {
                         </Button>
                     </div>
                 </Form>
+
+                <!-- Users tab: lives OUTSIDE the Inertia Form to avoid nested <form> -->
+                <div v-show="activeTab === 'users'" class="space-y-6 p-6">
+                    <!-- Attach user -->
+                    <div
+                        class="flex flex-wrap items-end gap-4 rounded-md bg-muted/50 p-4"
+                    >
+                        <div class="min-w-[200px] flex-1 space-y-2">
+                            <Label>Usuário</Label>
+                            <Select v-model="userForm.user_id">
+                                <SelectTrigger>
+                                    <SelectValue
+                                        placeholder="Selecione um usuário..."
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="u in props.allUsers ?? []"
+                                        :key="u.uuid"
+                                        :value="u.uuid"
+                                    >
+                                        {{ u.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError :message="userForm.errors.user_id" />
+                        </div>
+
+                        <div class="w-48 space-y-2">
+                            <Label>Perfil na Escola</Label>
+                            <Select v-model="userForm.role_id">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Perfil..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="r in props.availableRoles ?? []"
+                                        :key="r.uuid"
+                                        :value="r.uuid"
+                                    >
+                                        {{ r.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError :message="userForm.errors.role_id" />
+                        </div>
+
+                        <Button
+                            type="button"
+                            :disabled="
+                                userForm.processing ||
+                                !userForm.user_id ||
+                                !userForm.role_id
+                            "
+                            @click="attachUser"
+                        >
+                            Vincular
+                        </Button>
+                    </div>
+
+                    <!-- Linked users table -->
+                    <div class="rounded-md border">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-muted/50 text-muted-foreground">
+                                <tr>
+                                    <th class="px-4 py-3 font-medium">Nome</th>
+                                    <th class="px-4 py-3 font-medium">
+                                        E-mail
+                                    </th>
+                                    <th class="px-4 py-3 font-medium">
+                                        Perfil
+                                    </th>
+                                    <th
+                                        class="px-4 py-3 text-right font-medium"
+                                    >
+                                        Ação
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr
+                                    v-for="su in props.school.users ?? []"
+                                    :key="su.uuid"
+                                >
+                                    <td class="px-4 py-3">{{ su.name }}</td>
+                                    <td class="px-4 py-3 text-muted-foreground">
+                                        {{ su.email }}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span
+                                            class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-primary/20 ring-inset"
+                                        >
+                                            {{ su.role?.name ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <button
+                                            type="button"
+                                            class="rounded p-1 text-destructive hover:bg-muted"
+                                            title="Remover Vínculo"
+                                            @click="detachUser(su.uuid)"
+                                        >
+                                            <Trash2 class="h-4 w-4" />
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr
+                                    v-if="
+                                        (props.school.users ?? []).length === 0
+                                    "
+                                >
+                                    <td
+                                        colspan="4"
+                                        class="px-4 py-8 text-center text-muted-foreground"
+                                    >
+                                        Nenhum usuário vinculado a esta escola
+                                        ainda.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </AppLayout>
