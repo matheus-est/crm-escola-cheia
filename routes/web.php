@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActiveSchoolController;
 use App\Http\Controllers\Settings\PasswordChangeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -29,6 +30,7 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('password/change', [PasswordChangeController::class, 'show'])->name('password.change');
     Route::post('password/change', [PasswordChangeController::class, 'update'])->name('password.change.update');
+    Route::post('active-school', [ActiveSchoolController::class, 'store'])->name('active-school.store');
 });
 
 Route::get('dashboard', function () {

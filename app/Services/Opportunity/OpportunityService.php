@@ -6,17 +6,15 @@ namespace App\Services\Opportunity;
 
 use App\Enums\SchoolYearStatus;
 use App\Models\Opportunity;
-use App\Models\School;
 use App\Models\SchoolYear;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
 class OpportunityService
 {
-    public function list(School $school, array $filters = []): LengthAwarePaginator
+    public function list(array $filters = []): LengthAwarePaginator
     {
-        $query = Opportunity::query()
-            ->where('school_id', $school->id);
+        $query = Opportunity::query();
 
         if (array_key_exists('status', $filters) && $filters['status'] !== null) {
             $query->where('status', $filters['status']);
@@ -37,13 +35,9 @@ class OpportunityService
         return $query->orderByDesc('created_at')->paginate(15);
     }
 
-    public function create(School $school, array $data): Opportunity
+    public function create(array $data): Opportunity
     {
-        $opportunity = new Opportunity($data);
-        $opportunity->school_id = $school->id;
-        $opportunity->save();
-
-        return $opportunity;
+        return Opportunity::create($data);
     }
 
     public function update(Opportunity $opportunity, array $data): Opportunity

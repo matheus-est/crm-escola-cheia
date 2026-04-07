@@ -5,45 +5,45 @@ declare(strict_types=1);
 namespace App\Services\Guardian;
 
 use App\Models\Guardian;
-use App\Models\School;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
 class GuardianService
 {
-    public function lookup(School $school, string $cpf): ?Guardian
+    public function lookup(string $cpf): ?Guardian
     {
+        $schoolId = app()->bound('tenant.school_id') ? app('tenant.school_id') : null;
+
         return Guardian::withoutTenantScope()
-            ->where('school_id', $school->id)
+            ->where('school_id', $schoolId)
             ->where('cpf', $cpf)
             ->first();
     }
 
-    public function findOrCreate(School $school, array $data): Guardian
+    public function findOrCreate(array $data): Guardian
     {
         if (array_key_exists('cpf', $data) && $data['cpf'] !== null) {
-            $existing = $this->lookup($school, $data['cpf']);
+            $existing = $this->lookup($data['cpf']);
 
             if ($existing !== null) {
                 return $existing;
             }
         }
 
-        return $this->create($school, $data);
+        return $this->create($data);
     }
 
-    public function list(School $school): LengthAwarePaginator
+    public function list(): LengthAwarePaginator
     {
         return Guardian::query()
-            ->where('school_id', $school->id)
             ->orderBy('nome')
             ->paginate(15);
     }
 
-    public function create(School $school, array $data): Guardian
+    public function create(array $data): Guardian
     {
         if (array_key_exists('cpf', $data) && $data['cpf'] !== null) {
-            $exists = $this->lookup($school, $data['cpf']);
+            $exists = $this->lookup($data['cpf']);
 
             if ($exists !== null) {
                 throw ValidationException::withMessages([
@@ -52,11 +52,7 @@ class GuardianService
             }
         }
 
-        $guardian = new Guardian($data);
-        $guardian->school_id = $school->id;
-        $guardian->save();
-
-        return $guardian;
+        return Guardian::create($data);
     }
 
     public function update(Guardian $guardian, array $data): Guardian

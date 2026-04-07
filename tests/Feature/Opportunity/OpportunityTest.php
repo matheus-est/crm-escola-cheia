@@ -102,14 +102,14 @@ it('GET index retorna 200 para usuário Master autenticado', function (): void {
 
     $this->withoutVite()
         ->actingAs($user)
-        ->get(route('tenant.opportunities.index', $school))
+        ->get(route('tenant.opportunities.index'))
         ->assertStatus(200);
 });
 
 it('GET index retorna 302 para usuário não autenticado', function (): void {
     $school = makeSchoolForOpportunityTests();
 
-    $this->get(route('tenant.opportunities.index', $school))
+    $this->get(route('tenant.opportunities.index'))
         ->assertStatus(302);
 });
 
@@ -121,7 +121,7 @@ it('GET create retorna 200 para usuário Master autenticado', function (): void 
 
     $this->withoutVite()
         ->actingAs($user)
-        ->get(route('tenant.opportunities.create', $school))
+        ->get(route('tenant.opportunities.create'))
         ->assertStatus(200);
 });
 
@@ -134,12 +134,12 @@ it('POST store cria uma Oportunidade e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->post(route('tenant.opportunities.store', $school), [
+        ->post(route('tenant.opportunities.store'), [
             'grade_id' => $grade->id,
             'school_year_id' => $schoolYear->id,
             'observations' => 'Observação de teste.',
         ])
-        ->assertRedirect(route('tenant.opportunities.index', $school));
+        ->assertRedirect(route('tenant.opportunities.index'));
 
     $this->assertDatabaseHas('opportunities', [
         'school_id' => $school->id,
@@ -156,7 +156,7 @@ it('POST store com grade_id e school_year_id ausentes retorna 422', function ():
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.opportunities.store', $school), [])
+        ->post(route('tenant.opportunities.store'), [])
         ->assertStatus(422)
         ->assertJsonValidationErrors(['grade_id', 'school_year_id']);
 });
@@ -169,10 +169,10 @@ it('PUT update atualiza a Oportunidade e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->put(route('tenant.opportunities.update', [$school, $opportunity]), [
+        ->put(route('tenant.opportunities.update', [$opportunity]), [
             'observations' => 'Observação atualizada.',
         ])
-        ->assertRedirect(route('tenant.opportunities.index', $school));
+        ->assertRedirect(route('tenant.opportunities.index'));
 
     $this->assertDatabaseHas('opportunities', [
         'id' => $opportunity->id,
@@ -189,7 +189,7 @@ it('PUT update em oportunidade com status terminal retorna 422', function (): vo
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->put(route('tenant.opportunities.update', [$school, $opportunity]), [
+        ->put(route('tenant.opportunities.update', [$opportunity]), [
             'observations' => 'Tentando editar.',
         ])
         ->assertStatus(422)
@@ -204,8 +204,8 @@ it('DELETE destroy soft-deleta a Oportunidade e redireciona', function (): void 
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->delete(route('tenant.opportunities.destroy', [$school, $opportunity]))
-        ->assertRedirect(route('tenant.opportunities.index', $school));
+        ->delete(route('tenant.opportunities.destroy', [$opportunity]))
+        ->assertRedirect(route('tenant.opportunities.index'));
 
     $this->assertSoftDeleted('opportunities', [
         'id' => $opportunity->id,
@@ -220,7 +220,7 @@ it('DELETE destroy por usuário Gestor retorna 403', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($gestor)
-        ->delete(route('tenant.opportunities.destroy', [$school, $opportunity]))
+        ->delete(route('tenant.opportunities.destroy', [$opportunity]))
         ->assertStatus(403);
 });
 
@@ -236,7 +236,7 @@ it('Oportunidade de outra escola não é acessível pelo usuário do tenant B', 
     app()->instance('tenant.school_id', $schoolB->id);
 
     $this->actingAs($user)
-        ->get(route('tenant.opportunities.edit', [$schoolB, $opportunityA->uuid]))
+        ->get(route('tenant.opportunities.edit', [$opportunityA->uuid]))
         ->assertStatus(404);
 });
 
@@ -256,15 +256,48 @@ it('POST store com school_year encerrado cria oportunidade e redireciona com war
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->post(route('tenant.opportunities.store', $school), [
+        ->post(route('tenant.opportunities.store'), [
             'grade_id' => $grade->id,
             'school_year_id' => $schoolYear->id,
         ])
-        ->assertRedirect(route('tenant.opportunities.index', $school))
+        ->assertRedirect(route('tenant.opportunities.index'))
         ->assertSessionHas('warning');
 
     $this->assertDatabaseHas('opportunities', [
         'school_id' => $school->id,
         'school_year_id' => $schoolYear->id,
+    ]);
+});
+
+it('POST store com registration_type, segment_id, history e indications persiste os campos', function (): void {
+    $user = opportunityMasterUser();
+    $school = makeSchoolForOpportunityTests();
+    $grade = makeGradeForOpportunity($school);
+    $schoolYear = makeSchoolYearForOpportunity($school);
+
+    $segment = Segment::firstOrCreate(
+        ['name' => 'Ensino Fundamental'],
+        ['name' => 'Ensino Fundamental'],
+    );
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->actingAs($user)
+        ->post(route('tenant.opportunities.store'), [
+            'grade_id' => $grade->id,
+            'school_year_id' => $schoolYear->id,
+            'registration_type' => 'agendamento',
+            'segment_id' => $segment->id,
+            'history' => 'Histórico do aluno.',
+            'indications' => 'Indicação de amigo.',
+        ])
+        ->assertStatus(302);
+
+    $this->assertDatabaseHas('opportunities', [
+        'school_id' => $school->id,
+        'registration_type' => 'agendamento',
+        'segment_id' => $segment->id,
+        'history' => 'Histórico do aluno.',
+        'indications' => 'Indicação de amigo.',
     ]);
 });

@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace App\Services\SchoolYear;
 
-use App\Models\School;
 use App\Models\SchoolYear;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class SchoolYearService
 {
-    public function list(School $school, array $filters = []): LengthAwarePaginator
+    public function list(array $filters = []): LengthAwarePaginator
     {
-        $query = SchoolYear::query()->where('school_id', $school->id);
+        $query = SchoolYear::query();
 
-        if (($filters['nome'] ?? '') !== '') {
+        if (array_key_exists('nome', $filters) && $filters['nome'] !== '') {
             $query->where('nome', 'LIKE', '%'.$filters['nome'].'%');
         }
 
-        if (($filters['status'] ?? '') !== '') {
+        if (array_key_exists('status', $filters) && $filters['status'] !== '') {
             $query->where('status', $filters['status']);
         }
 
@@ -32,13 +31,9 @@ class SchoolYearService
         return $query->paginate($perPage);
     }
 
-    public function create(School $school, array $data): SchoolYear
+    public function create(array $data): SchoolYear
     {
-        $schoolYear = new SchoolYear($data);
-        $schoolYear->school_id = $school->id;
-        $schoolYear->save();
-
-        return $schoolYear;
+        return SchoolYear::create($data);
     }
 
     public function update(SchoolYear $schoolYear, array $data): SchoolYear

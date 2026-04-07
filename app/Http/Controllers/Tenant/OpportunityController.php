@@ -11,8 +11,8 @@ use App\Models\Grade;
 use App\Models\Guardian;
 use App\Models\LeadSource;
 use App\Models\Opportunity;
-use App\Models\School;
 use App\Models\SchoolYear;
+use App\Models\Segment;
 use App\Models\Student;
 use App\Services\Opportunity\OpportunityService;
 use Illuminate\Http\RedirectResponse;
@@ -27,19 +27,19 @@ class OpportunityController extends Controller
         protected readonly OpportunityService $opportunityService,
     ) {}
 
-    public function index(Request $request, School $school): Response
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Opportunity::class);
 
-        $opportunities = $this->opportunityService->list($school, $request->all());
+        $school = auth()->user()->currentSchool();
 
-        $grades = Grade::query()->where('school_id', $school->id)->orderBy('nome')->get();
-        $schoolYears = SchoolYear::query()->where('school_id', $school->id)->orderBy('nome')->get();
-        $leadSources = LeadSource::query()
-            ->where(fn ($q) => $q->where('school_id', $school->id)->orWhereNull('school_id'))
-            ->orderBy('nome')
-            ->get();
+        $opportunities = $this->opportunityService->list($request->all());
+
+        $grades = Grade::query()->orderBy('nome')->get();
+        $schoolYears = SchoolYear::query()->orderBy('nome')->get();
+        $leadSources = LeadSource::query()->orderBy('nome')->get();
         $responsibleUsers = $school->users()->orderBy('name')->get();
+        $segments = Segment::query()->orderBy('name')->get();
 
         return Inertia::render('opportunities/Index', [
             'school' => $school,
@@ -48,22 +48,23 @@ class OpportunityController extends Controller
             'schoolYears' => $schoolYears,
             'leadSources' => $leadSources,
             'responsibleUsers' => $responsibleUsers,
+            'segments' => $segments,
         ]);
     }
 
-    public function create(School $school): Response
+    public function create(): Response
     {
         Gate::authorize('create', Opportunity::class);
 
-        $students = Student::query()->where('school_id', $school->id)->orderBy('nome')->get();
-        $guardians = Guardian::query()->where('school_id', $school->id)->orderBy('nome')->get();
-        $grades = Grade::query()->where('school_id', $school->id)->orderBy('nome')->get();
-        $schoolYears = SchoolYear::query()->where('school_id', $school->id)->orderBy('nome')->get();
-        $leadSources = LeadSource::query()
-            ->where(fn ($q) => $q->where('school_id', $school->id)->orWhereNull('school_id'))
-            ->orderBy('nome')
-            ->get();
+        $school = auth()->user()->currentSchool();
+
+        $students = Student::query()->orderBy('nome')->get();
+        $guardians = Guardian::query()->orderBy('nome')->get();
+        $grades = Grade::query()->orderBy('nome')->get();
+        $schoolYears = SchoolYear::query()->orderBy('nome')->get();
+        $leadSources = LeadSource::query()->orderBy('nome')->get();
         $users = $school->users()->orderBy('name')->get();
+        $segments = Segment::query()->orderBy('name')->get();
 
         return Inertia::render('opportunities/Create', [
             'school' => $school,
@@ -73,16 +74,17 @@ class OpportunityController extends Controller
             'schoolYears' => $schoolYears,
             'leadSources' => $leadSources,
             'users' => $users,
+            'segments' => $segments,
         ]);
     }
 
-    public function store(StoreOpportunityRequest $request, School $school): RedirectResponse
+    public function store(StoreOpportunityRequest $request): RedirectResponse
     {
         Gate::authorize('create', Opportunity::class);
 
         $validated = $request->validated();
 
-        $this->opportunityService->create($school, $validated);
+        $this->opportunityService->create($validated);
 
         $flashKey = $this->opportunityService->hasClosedSchoolYear($validated)
             ? 'warning'
@@ -92,23 +94,23 @@ class OpportunityController extends Controller
             ? 'Oportunidade criada, mas o ano letivo selecionado está encerrado.'
             : 'Oportunidade criada com sucesso.';
 
-        return to_route('tenant.opportunities.index', $school)
+        return to_route('tenant.opportunities.index')
             ->with($flashKey, $flashMessage);
     }
 
-    public function edit(School $school, Opportunity $opportunity): Response
+    public function edit(Opportunity $opportunity): Response
     {
         Gate::authorize('update', $opportunity);
 
-        $students = Student::query()->where('school_id', $school->id)->orderBy('nome')->get();
-        $guardians = Guardian::query()->where('school_id', $school->id)->orderBy('nome')->get();
-        $grades = Grade::query()->where('school_id', $school->id)->orderBy('nome')->get();
-        $schoolYears = SchoolYear::query()->where('school_id', $school->id)->orderBy('nome')->get();
-        $leadSources = LeadSource::query()
-            ->where(fn ($q) => $q->where('school_id', $school->id)->orWhereNull('school_id'))
-            ->orderBy('nome')
-            ->get();
+        $school = auth()->user()->currentSchool();
+
+        $students = Student::query()->orderBy('nome')->get();
+        $guardians = Guardian::query()->orderBy('nome')->get();
+        $grades = Grade::query()->orderBy('nome')->get();
+        $schoolYears = SchoolYear::query()->orderBy('nome')->get();
+        $leadSources = LeadSource::query()->orderBy('nome')->get();
         $users = $school->users()->orderBy('name')->get();
+        $segments = Segment::query()->orderBy('name')->get();
 
         return Inertia::render('opportunities/Edit', [
             'school' => $school,
@@ -119,26 +121,27 @@ class OpportunityController extends Controller
             'schoolYears' => $schoolYears,
             'leadSources' => $leadSources,
             'users' => $users,
+            'segments' => $segments,
         ]);
     }
 
-    public function update(UpdateOpportunityRequest $request, School $school, Opportunity $opportunity): RedirectResponse
+    public function update(UpdateOpportunityRequest $request, Opportunity $opportunity): RedirectResponse
     {
         Gate::authorize('update', $opportunity);
 
         $this->opportunityService->update($opportunity, $request->validated());
 
-        return to_route('tenant.opportunities.index', $school)
+        return to_route('tenant.opportunities.index')
             ->with('success', 'Oportunidade atualizada com sucesso.');
     }
 
-    public function destroy(School $school, Opportunity $opportunity): RedirectResponse
+    public function destroy(Opportunity $opportunity): RedirectResponse
     {
         Gate::authorize('delete', $opportunity);
 
         $opportunity->delete();
 
-        return to_route('tenant.opportunities.index', $school)
+        return to_route('tenant.opportunities.index')
             ->with('success', 'Oportunidade excluída com sucesso.');
     }
 }

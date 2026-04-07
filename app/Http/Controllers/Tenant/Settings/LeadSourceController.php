@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LeadSource\LeadSourceStoreRequest;
 use App\Http\Requests\LeadSource\LeadSourceUpdateRequest;
 use App\Models\LeadSource;
-use App\Models\School;
 use App\Services\LeadSource\LeadSourceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +21,7 @@ class LeadSourceController extends Controller
         protected readonly LeadSourceService $leadSourceService,
     ) {}
 
-    public function index(Request $request, School $school): Response
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', LeadSource::class);
 
@@ -33,42 +32,42 @@ class LeadSourceController extends Controller
             'per_page' => $request->input('per_page', 10),
         ];
 
-        $leadSources = $this->leadSourceService->list($school, $filters);
+        $leadSources = $this->leadSourceService->list($filters);
 
         return Inertia::render('tenant-settings/LeadSources', [
-            'school' => $school,
+            'school' => auth()->user()->currentSchool(),
             'leadSources' => $leadSources,
             'filters' => $filters,
         ]);
     }
 
-    public function store(LeadSourceStoreRequest $request, School $school): RedirectResponse
+    public function store(LeadSourceStoreRequest $request): RedirectResponse
     {
         Gate::authorize('create', LeadSource::class);
 
-        $this->leadSourceService->create($school, $request->validated());
+        $this->leadSourceService->create($request->validated());
 
-        return to_route('tenant.lead_sources.index', $school)
+        return to_route('tenant.lead_sources.index')
             ->with('success', 'Origem de lead criada com sucesso.');
     }
 
-    public function update(LeadSourceUpdateRequest $request, School $school, LeadSource $leadSource): RedirectResponse
+    public function update(LeadSourceUpdateRequest $request, LeadSource $leadSource): RedirectResponse
     {
         Gate::authorize('update', $leadSource);
 
         $this->leadSourceService->update($leadSource, $request->validated());
 
-        return to_route('tenant.lead_sources.index', $school)
+        return to_route('tenant.lead_sources.index')
             ->with('success', 'Origem de lead atualizada com sucesso.');
     }
 
-    public function destroy(School $school, LeadSource $leadSource): RedirectResponse
+    public function destroy(LeadSource $leadSource): RedirectResponse
     {
         Gate::authorize('delete', $leadSource);
 
         $this->leadSourceService->destroy($leadSource);
 
-        return to_route('tenant.lead_sources.index', $school)
+        return to_route('tenant.lead_sources.index')
             ->with('success', 'Origem de lead excluída com sucesso.');
     }
 }

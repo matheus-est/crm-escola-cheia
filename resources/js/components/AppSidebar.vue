@@ -14,6 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type MenuModule } from '@/types';
 import AppLogo from './AppLogo.vue';
+import TenantSwitcher from './TenantSwitcher.vue';
 
 interface MenuItem {
     id: number | null;
@@ -55,6 +56,11 @@ const mainNavItems = computed(() =>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
+                <TenantSwitcher
+                    :schools="page.props.auth.schools"
+                    :current-school="page.props.auth.current_school"
+                    :is-cross-tenant="page.props.auth.is_cross_tenant"
+                />
             </SidebarMenu>
         </SidebarHeader>
 

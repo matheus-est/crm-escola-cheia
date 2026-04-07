@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Guardian\GuardianStoreRequest;
 use App\Http\Requests\Guardian\GuardianUpdateRequest;
 use App\Models\Guardian;
-use App\Models\School;
 use App\Services\Guardian\GuardianService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -22,53 +21,52 @@ class GuardianController extends Controller
         protected readonly GuardianService $guardianService,
     ) {}
 
-    public function index(School $school): Response
+    public function index(): Response
     {
         Gate::authorize('viewAny', Guardian::class);
 
-        $guardians = $this->guardianService->list($school);
+        $guardians = $this->guardianService->list();
 
         return Inertia::render('guardians/Index', [
-            'school' => $school,
             'guardians' => $guardians,
         ]);
     }
 
-    public function store(GuardianStoreRequest $request, School $school): RedirectResponse
+    public function store(GuardianStoreRequest $request): RedirectResponse
     {
         Gate::authorize('create', Guardian::class);
 
-        $this->guardianService->create($school, $request->validated());
+        $this->guardianService->create($request->validated());
 
-        return to_route('tenant.guardians.index', $school)
+        return to_route('tenant.guardians.index')
             ->with('success', 'Responsável criado com sucesso.');
     }
 
-    public function update(GuardianUpdateRequest $request, School $school, Guardian $guardian): RedirectResponse
+    public function update(GuardianUpdateRequest $request, Guardian $guardian): RedirectResponse
     {
         Gate::authorize('update', $guardian);
 
         $this->guardianService->update($guardian, $request->validated());
 
-        return to_route('tenant.guardians.index', $school)
+        return to_route('tenant.guardians.index')
             ->with('success', 'Responsável atualizado com sucesso.');
     }
 
-    public function destroy(School $school, Guardian $guardian): RedirectResponse
+    public function destroy(Guardian $guardian): RedirectResponse
     {
         Gate::authorize('delete', $guardian);
 
         $guardian->delete();
 
-        return to_route('tenant.guardians.index', $school)
+        return to_route('tenant.guardians.index')
             ->with('success', 'Responsável excluído com sucesso.');
     }
 
-    public function lookup(School $school, string $cpf): JsonResponse
+    public function lookup(string $cpf): JsonResponse
     {
         Gate::authorize('viewAny', Guardian::class);
 
-        $guardian = $this->guardianService->lookup($school, $cpf);
+        $guardian = $this->guardianService->lookup($cpf);
 
         if ($guardian === null) {
             return response()->json(['message' => 'Responsável não encontrado.'], 404);

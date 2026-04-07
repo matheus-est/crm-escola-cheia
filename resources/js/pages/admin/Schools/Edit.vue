@@ -57,6 +57,14 @@ const toast = useToast();
 const activeTab = ref<'details' | 'users'>('details');
 
 const selectedStatus = ref(props.school.status);
+const slugUnlocked = ref(false);
+
+function unlockSlug() {
+    slugUnlocked.value = true;
+    toast.warning(
+        'Slug desbloqueado. Alterar este valor quebrará todos os links públicos de captação desta escola.',
+    );
+}
 
 const handleSuccess = () => {
     toast.success('Escola atualizada com sucesso.');
@@ -182,17 +190,39 @@ function detachUser(userUuid: string) {
 
                             <div class="space-y-2">
                                 <Label for="slug">Slug da Instância</Label>
-                                <Input
-                                    id="slug"
-                                    name="slug"
-                                    :default-value="props.school.slug"
-                                    placeholder="..."
-                                    readonly
-                                    class="cursor-not-allowed bg-muted"
-                                />
+                                <div class="flex gap-2">
+                                    <Input
+                                        id="slug"
+                                        name="slug"
+                                        :default-value="props.school.slug"
+                                        placeholder="..."
+                                        :readonly="!slugUnlocked"
+                                        :class="[
+                                            'flex-1',
+                                            !slugUnlocked
+                                                ? 'cursor-not-allowed bg-muted'
+                                                : 'border-amber-500 ring-1 ring-amber-500/50 focus-visible:ring-amber-500',
+                                        ]"
+                                    />
+                                    <Button
+                                        v-if="!slugUnlocked"
+                                        type="button"
+                                        variant="outline"
+                                        class="shrink-0 border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-500/10"
+                                        @click="unlockSlug"
+                                    >
+                                        Desbloquear
+                                    </Button>
+                                    <span
+                                        v-else
+                                        class="inline-flex items-center gap-1 rounded-md border border-amber-500/50 bg-amber-50/50 px-3 text-xs font-medium text-amber-600 dark:bg-amber-500/10 dark:text-amber-500"
+                                    >
+                                        <AlertCircle class="h-3 w-3" />
+                                        Editando
+                                    </span>
+                                </div>
                                 <p class="text-xs text-muted-foreground">
-                                    O slug é usado nas URLs públicas e não pode
-                                    ser editado pelo frontend.
+                                    O slug é usado nas URLs públicas dos formulários de captação.
                                 </p>
                                 <InputError :message="errors.slug" />
                             </div>

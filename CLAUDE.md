@@ -61,10 +61,12 @@ Wait for confirmation before continuing.
 ## Multi-tenancy — critical rules
 
 - Every domain model uses `BelongsToTenant` (GlobalScope by `school_id`)
-- `school_id` **never** from request — always from `auth()->user()->currentSchool()`
+- `school_id` **never** from request — always auto-set by `BelongsToTenant` `creating` event from `app('tenant.school_id')`
 - `SchoolService::attachUser()` is the **only** point that inserts into `school_user`
-- Cross-tenant resolves tenant via `{school_uuid}` in the route
-- `EnsureTenantAccess` aborts 403 if gestor/comercial has no link in `school_user`
+- Tenant resolved exclusively from session (`active_school_uuid`) via `SetActiveTenant` → `User::currentSchool()`
+- Tenant routes use prefix `/t` — **no** `{school_uuid}` in URL
+- Tenant controllers **never** receive `School $school` as route parameter — use `auth()->user()->currentSchool()` when school object is needed
+- `EnsureTenantAccess` aborts 403 if user has no valid school in session
 
 ## Critical business rules
 
@@ -78,5 +80,5 @@ Wait for confirmation before continuing.
 ## Controller structure
 
 - `Controllers/Admin/` → cross-tenant
-- `Controllers/Tenant/` → tenant-scoped (`/t/{school_uuid}`)
+- `Controllers/Tenant/` → tenant-scoped (`/t`)
 - `Controllers/Public/` → no authentication

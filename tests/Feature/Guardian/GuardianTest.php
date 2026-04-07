@@ -72,14 +72,14 @@ it('GET index retorna 200 para usuário Master autenticado', function (): void {
 
     $this->withoutVite()
         ->actingAs($user)
-        ->get(route('tenant.guardians.index', $school))
+        ->get(route('tenant.guardians.index'))
         ->assertStatus(200);
 });
 
 it('GET index retorna 302 para usuário não autenticado', function (): void {
     $school = makeSchoolForGuardianTests();
 
-    $this->get(route('tenant.guardians.index', $school))
+    $this->get(route('tenant.guardians.index'))
         ->assertStatus(302);
 });
 
@@ -90,13 +90,13 @@ it('POST store cria um Guardian e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->post(route('tenant.guardians.store', $school), [
+        ->post(route('tenant.guardians.store'), [
             'nome' => 'Maria da Silva',
             'cpf' => '987.654.321-00',
             'telefone' => '(11) 99999-9999',
             'email' => 'maria@escola.com',
         ])
-        ->assertRedirect(route('tenant.guardians.index', $school));
+        ->assertRedirect(route('tenant.guardians.index'));
 
     $this->assertDatabaseHas('guardians', [
         'school_id' => $school->id,
@@ -114,7 +114,7 @@ it('CPF duplicado no mesmo tenant retorna 422', function (): void {
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.guardians.store', $school), [
+        ->post(route('tenant.guardians.store'), [
             'nome' => 'Outro Responsável',
             'cpf' => '987.654.321-00',
         ])
@@ -131,11 +131,11 @@ it('CPF igual em tenant diferente é aceito', function (): void {
     app()->instance('tenant.school_id', $school2->id);
 
     $this->actingAs($user)
-        ->post(route('tenant.guardians.store', $school2), [
+        ->post(route('tenant.guardians.store'), [
             'nome' => 'Responsável Outro Tenant',
             'cpf' => '987.654.321-00',
         ])
-        ->assertRedirect(route('tenant.guardians.index', $school2));
+        ->assertRedirect(route('tenant.guardians.index'));
 
     $this->assertDatabaseHas('guardians', [
         'school_id' => $school2->id,
@@ -152,7 +152,7 @@ it('GET lookup retorna 200 com Guardian existente', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->getJson(route('tenant.guardians.lookup', [$school, '987.654.321-00']))
+        ->getJson(route('tenant.guardians.lookup', ['987.654.321-00']))
         ->assertStatus(200)
         ->assertJsonFragment(['cpf' => '987.654.321-00']);
 });
@@ -164,7 +164,7 @@ it('GET lookup retorna 404 para CPF inexistente', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->getJson(route('tenant.guardians.lookup', [$school, '000.000.000-00']))
+        ->getJson(route('tenant.guardians.lookup', ['000.000.000-00']))
         ->assertStatus(404);
 });
 
@@ -176,11 +176,11 @@ it('PUT update atualiza o Guardian e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->put(route('tenant.guardians.update', [$school, $guardian]), [
+        ->put(route('tenant.guardians.update', [$guardian]), [
             'nome' => 'Maria Atualizada',
             'cpf' => '987.654.321-00',
         ])
-        ->assertRedirect(route('tenant.guardians.index', $school));
+        ->assertRedirect(route('tenant.guardians.index'));
 
     $this->assertDatabaseHas('guardians', [
         'id' => $guardian->id,
@@ -196,8 +196,8 @@ it('DELETE destroy remove o Guardian e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->delete(route('tenant.guardians.destroy', [$school, $guardian]))
-        ->assertRedirect(route('tenant.guardians.index', $school));
+        ->delete(route('tenant.guardians.destroy', [$guardian]))
+        ->assertRedirect(route('tenant.guardians.index'));
 
     $this->assertDatabaseMissing('guardians', [
         'id' => $guardian->id,
@@ -211,11 +211,38 @@ it('findOrCreate retorna existente se CPF já cadastrado', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $service = app(GuardianService::class);
-    $result = $service->findOrCreate($school, [
+    $result = $service->findOrCreate([
         'nome' => 'Outro Nome',
         'cpf' => '987.654.321-00',
     ]);
 
     expect($result->id)->toBe($existing->id);
     expect(Guardian::withoutTenantScope()->where('school_id', $school->id)->count())->toBe(1);
+});
+
+it('POST store cria um Guardian com campos de endereço e persiste', function (): void {
+    $user = guardianMasterUser();
+    $school = makeSchoolForGuardianTests();
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->actingAs($user)
+        ->post(route('tenant.guardians.store'), [
+            'nome' => 'José com Endereço',
+            'cpf' => '123.456.789-00',
+            'cep' => '01310100',
+            'logradouro' => 'Av. Paulista',
+            'numero' => '1000',
+            'estado' => 'SP',
+            'cidade' => 'São Paulo',
+            'bairro' => 'Bela Vista',
+        ])
+        ->assertStatus(302);
+
+    $this->assertDatabaseHas('guardians', [
+        'school_id' => $school->id,
+        'nome' => 'José com Endereço',
+        'cep' => '01310100',
+        'estado' => 'SP',
+    ]);
 });

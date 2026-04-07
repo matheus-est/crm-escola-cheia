@@ -26,6 +26,12 @@ class Guardian extends Model implements Auditable
         'cpf',
         'telefone',
         'email',
+        'cep',
+        'logradouro',
+        'numero',
+        'estado',
+        'cidade',
+        'bairro',
     ];
 
     public function getRouteKeyName(): string

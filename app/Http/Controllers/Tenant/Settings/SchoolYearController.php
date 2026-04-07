@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Tenant\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SchoolYear\SchoolYearStoreRequest;
 use App\Http\Requests\SchoolYear\SchoolYearUpdateRequest;
-use App\Models\School;
 use App\Models\SchoolYear;
 use App\Services\SchoolYear\SchoolYearService;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +21,7 @@ class SchoolYearController extends Controller
         protected readonly SchoolYearService $schoolYearService,
     ) {}
 
-    public function index(Request $request, School $school): Response
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', SchoolYear::class);
 
@@ -34,42 +33,42 @@ class SchoolYearController extends Controller
             'per_page' => $request->input('per_page', 10),
         ];
 
-        $schoolYears = $this->schoolYearService->list($school, $filters);
+        $schoolYears = $this->schoolYearService->list($filters);
 
         return Inertia::render('tenant-settings/SchoolYears', [
-            'school' => $school,
+            'school' => auth()->user()->currentSchool(),
             'schoolYears' => $schoolYears,
             'filters' => $filters,
         ]);
     }
 
-    public function store(SchoolYearStoreRequest $request, School $school): RedirectResponse
+    public function store(SchoolYearStoreRequest $request): RedirectResponse
     {
         Gate::authorize('create', SchoolYear::class);
 
-        $this->schoolYearService->create($school, $request->validated());
+        $this->schoolYearService->create($request->validated());
 
-        return to_route('tenant.school_years.index', $school)
+        return to_route('tenant.school_years.index')
             ->with('success', 'Ano letivo criado com sucesso.');
     }
 
-    public function update(SchoolYearUpdateRequest $request, School $school, SchoolYear $schoolYear): RedirectResponse
+    public function update(SchoolYearUpdateRequest $request, SchoolYear $schoolYear): RedirectResponse
     {
         Gate::authorize('update', $schoolYear);
 
         $this->schoolYearService->update($schoolYear, $request->validated());
 
-        return to_route('tenant.school_years.index', $school)
+        return to_route('tenant.school_years.index')
             ->with('success', 'Ano letivo atualizado com sucesso.');
     }
 
-    public function destroy(School $school, SchoolYear $schoolYear): RedirectResponse
+    public function destroy(SchoolYear $schoolYear): RedirectResponse
     {
         Gate::authorize('delete', $schoolYear);
 
         $this->schoolYearService->destroy($schoolYear);
 
-        return to_route('tenant.school_years.index', $school)
+        return to_route('tenant.school_years.index')
             ->with('success', 'Ano letivo excluído com sucesso.');
     }
 }

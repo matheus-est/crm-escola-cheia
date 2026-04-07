@@ -54,7 +54,7 @@ const props = defineProps<{
 const toast = useToast();
 
 const breadcrumbItems: BreadcrumbItem[] = [
-    { title: 'Origens de Lead', href: index(props.school.uuid).url },
+    { title: 'Origens de Lead', href: index().url },
 ];
 
 const filters = computed(() => props.filters);
@@ -93,7 +93,7 @@ function updatePerPage(value: string): void {
 
 function applyFilters(): void {
     router.post(
-        index.post(props.school.uuid).url,
+        index.post().url,
         {
             nome: localFilters.value.nome,
             sort_by: localFilters.value.sort_by,
@@ -105,7 +105,7 @@ function applyFilters(): void {
 }
 
 function clearFilters(): void {
-    router.visit(index(props.school.uuid).url);
+    router.visit(index().url);
 }
 
 // — Inline form (create / edit) —
@@ -165,7 +165,6 @@ function confirmDelete(): void {
 
     router.delete(
         destroy({
-            school_uuid: props.school.uuid,
             leadSource: leadSourceToDelete.value.uuid,
         }).url,
         {
@@ -310,7 +309,7 @@ function confirmDelete(): void {
                 <Form
                     v-if="formMode === 'create'"
                     method="post"
-                    :action="store(school.uuid).url"
+                    :action="store().url"
                     class="space-y-0"
                     v-slot="{ errors, processing }"
                     @success="handleFormSuccess"
@@ -370,7 +369,6 @@ function confirmDelete(): void {
                     method="put"
                     :action="
                         update({
-                            school_uuid: school.uuid,
                             leadSource: editingLeadSource.uuid,
                         }).url
                     "

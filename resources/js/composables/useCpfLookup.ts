@@ -5,7 +5,6 @@ import type { Guardian, Student } from '@/types/crm';
 
 interface UseCpfLookupOptions {
     type: 'student' | 'guardian';
-    schoolUuid: string;
     onFound: (data: Student | Guardian) => void;
     onNotFound?: () => void;
 }
@@ -33,14 +32,8 @@ export function useCpfLookup(options: UseCpfLookupOptions) {
             try {
                 const url =
                     options.type === 'student'
-                        ? studentsLookup({
-                              school_uuid: options.schoolUuid,
-                              cpf: cpfValue,
-                          }).url
-                        : guardiansLookup({
-                              school_uuid: options.schoolUuid,
-                              cpf: cpfValue,
-                          }).url;
+                        ? studentsLookup(cpfValue).url
+                        : guardiansLookup(cpfValue).url;
 
                 const response = await fetch(url, {
                     headers: { Accept: 'application/json' },

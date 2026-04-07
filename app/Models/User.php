@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\SchoolStatus;
 use App\Observers\UserObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -27,6 +29,7 @@ class User extends Authenticatable implements Auditable
         'password',
         'role_id',
         'password_changed_at',
+        'school_current_id',
     ];
 
     protected $hidden = [
@@ -58,43 +61,49 @@ class User extends Authenticatable implements Auditable
         return $this->belongsTo(Role::class);
     }
 
-    /**
-     * Determines whether the user has cross-tenant access.
-     * Cross-tenant roles can operate across multiple schools without a school_user pivot entry.
-     */
+    public function schools(): BelongsToMany
+    {
+        return $this->belongsToMany(School::class, 'school_user', 'user_id', 'school_id')
+            ->withPivot('is_active');
+    }
+    
     public function isCrossTenant(): bool
     {
         return in_array($this->role?->name, ['Master', 'Admin', 'Operacao'], strict: true);
     }
-
-    /**
-     * Determines whether the user holds the Master role.
-     */
+    
     public function isMaster(): bool
     {
         return $this->role?->name === 'Master';
     }
-
-    /**
-     * Returns the currently active School for this user, resolved from the service container.
-     *
-     * The tenant school_id is bound to the container by SetActiveTenant middleware.
-     *
-     * TODO: model School criado na Etapa 1.x — retorna null até que o model exista.
-     *
-     * @return School|null
-     */
-    public function currentSchool(): ?object
+    
+    public function currentSchool(): ?School
     {
-        // School model does not exist until Etapa 1.x — guard to avoid fatal error.
-        if (! class_exists(School::class)) { // @phpstan-ignore-line
+        if (! class_exists(School::class)) {
             return null;
         }
 
         if (app()->bound('tenant.school_id')) {
-            return School::find(app('tenant.school_id')); // @phpstan-ignore-line
+            return School::find(app('tenant.school_id'));
         }
 
-        return null;
+        $uuid = session('active_school_uuid');
+        if ($uuid === null) {
+            return null;
+        }
+
+        $school = School::where('uuid', $uuid)->first();
+        if ($school === null) {
+            return null;
+        }
+
+        if ($this->isCrossTenant()) {
+            return $school->status === SchoolStatus::Active ? $school : null;
+        }
+
+        return $this->schools()
+            ->where('schools.id', $school->id)
+            ->wherePivot('is_active', true)
+            ->first();
     }
 }

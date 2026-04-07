@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\SchoolStatus;
+use App\Models\School;
 use App\Services\Acl\TermService;
 use App\Services\Menu\MenuService;
 use App\Services\SettingService;
@@ -48,31 +50,78 @@ class HandleInertiaRequests extends Middleware
                 fn () => json_decode(file_get_contents(lang_path("{$locale}.json")), true)
             ),
 
-            'name' => fn () => $this->settingService->get('app_name', config('app.name')),
-            'logo_light' => fn () => $this->settingService->get('logo_light'),
-            'logo_dark' => fn () => $this->settingService->get('logo_dark'),
+            'name'         => fn () => $this->settingService->get('app_name', config('app.name')),
+            'logo_light'   => fn () => $this->settingService->get('logo_light'),
+            'logo_dark'    => fn () => $this->settingService->get('logo_dark'),
             'company_name' => fn () => $this->settingService->get('company_name'),
-            'dpo_email' => fn () => $this->settingService->get('dpo_email'),
+            'dpo_email'    => fn () => $this->settingService->get('dpo_email'),
 
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'uuid' => $request->user()->uuid,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'role' => $request->user()->role ? [
-                        'id' => $request->user()->role->id,
-                        'name' => $request->user()->role->name,
-                    ] : null,
+                'user' => $user ? [
+                    'uuid'  => $user->uuid,
+                    'name'  => $user->name,
+                    'email' => $user->email,
+                    'role'  => $user->role ? ['name' => $user->role->name] : null,
                 ] : null,
-                'permissions' => $user?->role?->permissions->pluck('name') ?? collect(),
+                'permissions'      => $user?->role?->permissions->pluck('name') ?? collect(),
+                'is_cross_tenant'  => $user?->isCrossTenant() ?? false,
+
+                'schools' => function () use ($request) {
+                    $user = $request->user();
+                    if ($user === null) {
+                        return [];
+                    }
+                    if ($user->isCrossTenant()) {
+                        return School::query()
+                            ->where('status', SchoolStatus::Active->value)
+                            ->get(['uuid', 'razao_social']);
+                    }
+
+                    return $user->schools()
+                        ->wherePivot('is_active', true)
+                        ->get(['schools.uuid', 'schools.razao_social']);
+                },
+
+                'current_school' => function () use ($request) {
+                    $user = $request->user();
+                    if ($user === null) {
+                        return null;
+                    }
+                    
+                    if (app()->bound('tenant.school_id')) {
+                        $school = School::find(app('tenant.school_id'));
+                        if ($school) {
+                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social];
+                        }
+                    }
+                    
+                    $sessionUuid = session('active_school_uuid');
+                    if ($sessionUuid) {
+                        $school = School::query()
+                            ->where('uuid', $sessionUuid)
+                            ->where('status', SchoolStatus::Active)
+                            ->first();
+                        if ($school) {
+                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social];
+                        }
+                    }
+                    
+                    if ($user->school_current_id !== null) {
+                        $school = School::find($user->school_current_id);
+                        if ($school && $school->status === SchoolStatus::Active) {
+                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social];
+                        }
+                    }
+
+                    return null;
+                },
             ],
 
-            'menu' => $this->getMenu($request),
+            'menu'       => $this->getMenu($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
 
-            'currentTerm' => $activeTerm?->only(['id', 'uuid', 'version', 'title', 'content', 'effective_at', 'is_active']),
-            'userAcceptance' => $acceptance?->only(['id', 'term_version_id', 'accepted_at']),
+            'currentTerm'        => $activeTerm?->only(['id', 'uuid', 'version', 'title', 'content', 'effective_at', 'is_active']),
+            'userAcceptance'     => $acceptance?->only(['id', 'term_version_id', 'accepted_at']),
             'needsTermAcceptance' => $user ? $termService->needsAcceptance($user) : false,
         ];
     }

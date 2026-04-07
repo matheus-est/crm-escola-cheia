@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
-    ->prefix('t/{school_uuid}')
+    ->prefix('tenant')
     ->name('tenant.')
     ->group(function (): void {
         Route::get('/dashboard', fn () => Inertia::render('Dashboard'))

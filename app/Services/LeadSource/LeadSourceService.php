@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace App\Services\LeadSource;
 
 use App\Models\LeadSource;
-use App\Models\School;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
 class LeadSourceService
 {
-    public function list(School $school, array $filters = []): LengthAwarePaginator
+    public function list(array $filters = []): LengthAwarePaginator
     {
+        $schoolId = app()->bound('tenant.school_id') ? app('tenant.school_id') : null;
+
         $query = LeadSource::query()
-            ->where(function ($q) use ($school): void {
-                $q->where('school_id', $school->id)
+            ->where(function ($q) use ($schoolId): void {
+                $q->where('school_id', $schoolId)
                     ->orWhere('is_system', true);
             });
 
@@ -33,10 +34,10 @@ class LeadSourceService
         return $query->paginate($perPage);
     }
 
-    public function create(School $school, array $data): LeadSource
+    public function create(array $data): LeadSource
     {
         $leadSource = new LeadSource($data);
-        $leadSource->school_id = $school->id;
+        $leadSource->school_id = app()->bound('tenant.school_id') ? app('tenant.school_id') : null;
         $leadSource->is_system = false;
         $leadSource->save();
 

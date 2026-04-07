@@ -135,7 +135,7 @@ it('list() retorna origens do tenant e origens de sistema juntas', function (): 
     app()->instance('tenant.school_id', $school->id);
 
     $service = app(LeadSourceService::class);
-    $paginator = $service->list($school);
+    $paginator = $service->list();
 
     $ids = $paginator->pluck('id')->all();
 
@@ -155,14 +155,14 @@ it('GET index retorna 200 para usuário Master autenticado', function (): void {
 
     $this->withoutVite()
         ->actingAs($user)
-        ->get(route('tenant.lead_sources.index', $school))
+        ->get(route('tenant.lead_sources.index'))
         ->assertStatus(200);
 });
 
 it('GET index retorna 302 para usuário não autenticado', function (): void {
     $school = makeSchoolForLeadSourceTests();
 
-    $this->get(route('tenant.lead_sources.index', $school))
+    $this->get(route('tenant.lead_sources.index'))
         ->assertStatus(302);
 });
 
@@ -177,11 +177,11 @@ it('POST store cria uma LeadSource e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->post(route('tenant.lead_sources.store', $school), [
+        ->post(route('tenant.lead_sources.store'), [
             'nome' => 'Instagram',
             'is_active' => true,
         ])
-        ->assertRedirect(route('tenant.lead_sources.index', $school));
+        ->assertRedirect(route('tenant.lead_sources.index'));
 
     $this->assertDatabaseHas('lead_sources', [
         'school_id' => $school->id,
@@ -198,7 +198,7 @@ it('POST store retorna 422 quando nome está vazio', function (): void {
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.lead_sources.store', $school), [
+        ->post(route('tenant.lead_sources.store'), [
             'nome' => '',
         ])
         ->assertStatus(422)
@@ -213,7 +213,7 @@ it('POST store retorna 403 para usuário Comercial', function (): void {
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.lead_sources.store', $school), [
+        ->post(route('tenant.lead_sources.store'), [
             'nome' => 'Facebook',
             'is_active' => true,
         ])
@@ -232,11 +232,11 @@ it('PUT update atualiza uma LeadSource e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->put(route('tenant.lead_sources.update', [$school, $leadSource]), [
+        ->put(route('tenant.lead_sources.update', [$leadSource]), [
             'nome' => 'Origem Atualizada',
             'is_active' => false,
         ])
-        ->assertRedirect(route('tenant.lead_sources.index', $school));
+        ->assertRedirect(route('tenant.lead_sources.index'));
 
     $this->assertDatabaseHas('lead_sources', [
         'id' => $leadSource->id,
@@ -254,7 +254,7 @@ it('PUT update em origem de sistema retorna 403', function (): void {
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->put(route('tenant.lead_sources.update', [$school, $systemSource]), [
+        ->put(route('tenant.lead_sources.update', [$systemSource]), [
             'nome' => 'Tentativa',
             'is_active' => true,
         ])
@@ -273,8 +273,8 @@ it('DELETE destroy remove uma LeadSource e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->delete(route('tenant.lead_sources.destroy', [$school, $leadSource]))
-        ->assertRedirect(route('tenant.lead_sources.index', $school));
+        ->delete(route('tenant.lead_sources.destroy', [$leadSource]))
+        ->assertRedirect(route('tenant.lead_sources.index'));
 
     $this->assertDatabaseMissing('lead_sources', [
         'id' => $leadSource->id,
@@ -290,7 +290,7 @@ it('DELETE destroy em origem de sistema retorna 403', function (): void {
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->delete(route('tenant.lead_sources.destroy', [$school, $systemSource]))
+        ->delete(route('tenant.lead_sources.destroy', [$systemSource]))
         ->assertStatus(403);
 
     $this->assertDatabaseHas('lead_sources', [

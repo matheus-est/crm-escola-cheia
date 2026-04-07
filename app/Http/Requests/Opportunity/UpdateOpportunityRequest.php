@@ -23,6 +23,10 @@ class UpdateOpportunityRequest extends FormRequest
             'lead_source_id' => ['nullable', 'exists:lead_sources,id'],
             'responsible_user_id' => ['nullable', 'exists:users,id'],
             'observations' => ['nullable', 'string', 'max:2000'],
+            'history' => ['nullable', 'string', 'max:5000'],
+            'indications' => ['nullable', 'string', 'max:2000'],
+            'registration_type' => ['nullable', 'string', 'in:agendamento,evento'],
+            'segment_id' => ['nullable', 'exists:segments,id'],
         ];
     }
 }

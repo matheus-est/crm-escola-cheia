@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\StudentStoreRequest;
 use App\Http\Requests\Student\StudentUpdateRequest;
-use App\Models\School;
 use App\Models\Student;
 use App\Services\Student\StudentService;
 use Illuminate\Http\JsonResponse;
@@ -22,53 +21,52 @@ class StudentController extends Controller
         protected readonly StudentService $studentService,
     ) {}
 
-    public function index(School $school): Response
+    public function index(): Response
     {
         Gate::authorize('viewAny', Student::class);
 
-        $students = $this->studentService->list($school);
+        $students = $this->studentService->list();
 
         return Inertia::render('students/Index', [
-            'school' => $school,
             'students' => $students,
         ]);
     }
 
-    public function store(StudentStoreRequest $request, School $school): RedirectResponse
+    public function store(StudentStoreRequest $request): RedirectResponse
     {
         Gate::authorize('create', Student::class);
 
-        $this->studentService->create($school, $request->validated());
+        $this->studentService->create($request->validated());
 
-        return to_route('tenant.students.index', $school)
+        return to_route('tenant.students.index')
             ->with('success', 'Aluno criado com sucesso.');
     }
 
-    public function update(StudentUpdateRequest $request, School $school, Student $student): RedirectResponse
+    public function update(StudentUpdateRequest $request, Student $student): RedirectResponse
     {
         Gate::authorize('update', $student);
 
         $this->studentService->update($student, $request->validated());
 
-        return to_route('tenant.students.index', $school)
+        return to_route('tenant.students.index')
             ->with('success', 'Aluno atualizado com sucesso.');
     }
 
-    public function destroy(School $school, Student $student): RedirectResponse
+    public function destroy(Student $student): RedirectResponse
     {
         Gate::authorize('delete', $student);
 
         $student->delete();
 
-        return to_route('tenant.students.index', $school)
+        return to_route('tenant.students.index')
             ->with('success', 'Aluno excluído com sucesso.');
     }
 
-    public function lookup(School $school, string $cpf): JsonResponse
+    public function lookup(string $cpf): JsonResponse
     {
         Gate::authorize('viewAny', Student::class);
 
-        $student = $this->studentService->lookup($school, $cpf);
+        $student = $this->studentService->lookup($cpf);
 
         if ($student === null) {
             return response()->json(['message' => 'Aluno não encontrado.'], 404);

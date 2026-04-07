@@ -40,7 +40,7 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Oportunidades', href: index(props.school.uuid).url },
+    { title: 'Oportunidades', href: index().url },
     { title: 'Nova Oportunidade', href: '#' },
 ];
 
@@ -56,7 +56,6 @@ const {
     triggerLookup: lookupStudent,
 } = useCpfLookup({
     type: 'student',
-    schoolUuid: props.school.uuid,
     onFound: (data) => {
         foundStudent.value = data as Student;
     },
@@ -79,7 +78,6 @@ const {
     triggerLookup: lookupGuardian,
 } = useCpfLookup({
     type: 'guardian',
-    schoolUuid: props.school.uuid,
     onFound: (data) => {
         foundGuardian.value = data as Guardian;
     },
@@ -94,7 +92,7 @@ watch(guardianCpf, (newVal) => {
 
 function handleSuccess(): void {
     toast.success('Oportunidade criada com sucesso.');
-    router.visit(index(props.school.uuid).url);
+    router.visit(index().url);
 }
 
 function handleError(): void {
@@ -109,7 +107,7 @@ function handleError(): void {
         <div class="space-y-4">
             <div class="flex items-center gap-4">
                 <Link
-                    :href="index(props.school.uuid).url"
+                    :href="index().url"
                     class="rounded-md p-2 hover:bg-muted"
                 >
                     <ArrowLeft class="h-5 w-5" />
@@ -124,7 +122,7 @@ function handleError(): void {
             <div class="rounded-md border">
                 <Form
                     method="post"
-                    :action="store(props.school.uuid).url"
+                    :action="store().url"
                     class="space-y-6"
                     v-slot="{ errors, processing }"
                     @success="handleSuccess"
@@ -307,9 +305,6 @@ function handleError(): void {
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value=""
-                                                >Nenhuma</SelectItem
-                                            >
                                             <SelectItem
                                                 v-for="ls in props.leadSources"
                                                 :key="ls.uuid"
@@ -335,9 +330,6 @@ function handleError(): void {
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value=""
-                                                >Nenhum</SelectItem
-                                            >
                                             <SelectItem
                                                 v-for="user in props.users"
                                                 :key="user.uuid"
@@ -375,7 +367,7 @@ function handleError(): void {
                                 @click="
                                     () =>
                                         router.visit(
-                                            index(props.school.uuid).url,
+                                            index().url,
                                         )
                                 "
                                 :disabled="processing"

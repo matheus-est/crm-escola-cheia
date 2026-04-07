@@ -70,14 +70,14 @@ it('GET index retorna 200 para usuário Master autenticado', function (): void {
 
     $this->withoutVite()
         ->actingAs($user)
-        ->get(route('tenant.students.index', $school))
+        ->get(route('tenant.students.index'))
         ->assertStatus(200);
 });
 
 it('GET index retorna 302 para usuário não autenticado', function (): void {
     $school = makeSchoolForStudentTests();
 
-    $this->get(route('tenant.students.index', $school))
+    $this->get(route('tenant.students.index'))
         ->assertStatus(302);
 });
 
@@ -88,12 +88,12 @@ it('POST store cria um Student e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->post(route('tenant.students.store', $school), [
+        ->post(route('tenant.students.store'), [
             'nome' => 'João da Silva',
             'cpf' => '123.456.789-00',
             'data_nascimento' => '2010-05-15',
         ])
-        ->assertRedirect(route('tenant.students.index', $school));
+        ->assertRedirect(route('tenant.students.index'));
 
     $this->assertDatabaseHas('students', [
         'school_id' => $school->id,
@@ -111,7 +111,7 @@ it('CPF duplicado no mesmo tenant retorna 422', function (): void {
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.students.store', $school), [
+        ->post(route('tenant.students.store'), [
             'nome' => 'Outro Aluno',
             'cpf' => '123.456.789-00',
         ])
@@ -128,11 +128,11 @@ it('CPF igual em tenant diferente é aceito', function (): void {
     app()->instance('tenant.school_id', $school2->id);
 
     $this->actingAs($user)
-        ->post(route('tenant.students.store', $school2), [
+        ->post(route('tenant.students.store'), [
             'nome' => 'Aluno Outro Tenant',
             'cpf' => '123.456.789-00',
         ])
-        ->assertRedirect(route('tenant.students.index', $school2));
+        ->assertRedirect(route('tenant.students.index'));
 
     $this->assertDatabaseHas('students', [
         'school_id' => $school2->id,
@@ -149,7 +149,7 @@ it('GET lookup retorna 200 com Student existente', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->getJson(route('tenant.students.lookup', [$school, '123.456.789-00']))
+        ->getJson(route('tenant.students.lookup', ['123.456.789-00']))
         ->assertStatus(200)
         ->assertJsonFragment(['cpf' => '123.456.789-00']);
 });
@@ -161,7 +161,7 @@ it('GET lookup retorna 404 para CPF inexistente', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->getJson(route('tenant.students.lookup', [$school, '999.999.999-99']))
+        ->getJson(route('tenant.students.lookup', ['999.999.999-99']))
         ->assertStatus(404);
 });
 
@@ -173,11 +173,11 @@ it('PUT update atualiza o Student e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->put(route('tenant.students.update', [$school, $student]), [
+        ->put(route('tenant.students.update', [$student]), [
             'nome' => 'João Atualizado',
             'cpf' => '123.456.789-00',
         ])
-        ->assertRedirect(route('tenant.students.index', $school));
+        ->assertRedirect(route('tenant.students.index'));
 
     $this->assertDatabaseHas('students', [
         'id' => $student->id,
@@ -193,8 +193,8 @@ it('DELETE destroy remove o Student e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->delete(route('tenant.students.destroy', [$school, $student]))
-        ->assertRedirect(route('tenant.students.index', $school));
+        ->delete(route('tenant.students.destroy', [$student]))
+        ->assertRedirect(route('tenant.students.index'));
 
     $this->assertDatabaseMissing('students', [
         'id' => $student->id,
@@ -208,7 +208,7 @@ it('findOrCreate retorna existente se CPF já cadastrado', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $service = app(StudentService::class);
-    $result = $service->findOrCreate($school, [
+    $result = $service->findOrCreate([
         'nome' => 'Outro Nome',
         'cpf' => '123.456.789-00',
     ]);

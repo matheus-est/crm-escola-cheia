@@ -73,7 +73,7 @@ it('GET index retorna 200 para usuário Master autenticado', function (): void {
 
     $this->withoutVite()
         ->actingAs($user)
-        ->get(route('tenant.school_years.index', $school))
+        ->get(route('tenant.school_years.index'))
         ->assertStatus(200);
 });
 
@@ -85,14 +85,14 @@ it('GET index retorna 200 para usuário Gestor com acesso ao tenant', function (
 
     $this->withoutVite()
         ->actingAs($user)
-        ->get(route('tenant.school_years.index', $school))
+        ->get(route('tenant.school_years.index'))
         ->assertStatus(200);
 });
 
 it('GET index retorna 302 para usuário não autenticado', function (): void {
     $school = makeSchoolForYearTests();
 
-    $this->get(route('tenant.school_years.index', $school))
+    $this->get(route('tenant.school_years.index'))
         ->assertStatus(302);
 });
 
@@ -103,13 +103,13 @@ it('POST store cria um SchoolYear e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->post(route('tenant.school_years.store', $school), [
+        ->post(route('tenant.school_years.store'), [
             'nome' => 'Ano Letivo 2025',
             'inicio' => '2025-01-01',
             'fim' => '2025-12-31',
             'status' => 'planejamento',
         ])
-        ->assertRedirect(route('tenant.school_years.index', $school));
+        ->assertRedirect(route('tenant.school_years.index'));
 
     $this->assertDatabaseHas('school_years', [
         'school_id' => $school->id,
@@ -125,13 +125,13 @@ it('PUT update atualiza o SchoolYear e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->put(route('tenant.school_years.update', [$school, $schoolYear]), [
+        ->put(route('tenant.school_years.update', [$schoolYear]), [
             'nome' => 'Ano Letivo 2025 Atualizado',
             'inicio' => '2025-01-01',
             'fim' => '2025-12-31',
             'status' => 'ativo',
         ])
-        ->assertRedirect(route('tenant.school_years.index', $school));
+        ->assertRedirect(route('tenant.school_years.index'));
 
     $this->assertDatabaseHas('school_years', [
         'id' => $schoolYear->id,
@@ -148,8 +148,8 @@ it('DELETE destroy remove o SchoolYear e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->delete(route('tenant.school_years.destroy', [$school, $schoolYear]))
-        ->assertRedirect(route('tenant.school_years.index', $school));
+        ->delete(route('tenant.school_years.destroy', [$schoolYear]))
+        ->assertRedirect(route('tenant.school_years.index'));
 
     $this->assertDatabaseMissing('school_years', [
         'id' => $schoolYear->id,
@@ -164,7 +164,7 @@ it('POST store retorna erro de validação quando fim é anterior a inicio', fun
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.school_years.store', $school), [
+        ->post(route('tenant.school_years.store'), [
             'nome' => 'Ano Letivo Inválido',
             'inicio' => '2025-12-31',
             'fim' => '2025-01-01',
@@ -189,7 +189,7 @@ it('Comercial recebe 403 ao tentar criar SchoolYear', function (): void {
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.school_years.store', $school), [
+        ->post(route('tenant.school_years.store'), [
             'nome' => 'Ano Letivo 2025',
             'inicio' => '2025-01-01',
             'fim' => '2025-12-31',

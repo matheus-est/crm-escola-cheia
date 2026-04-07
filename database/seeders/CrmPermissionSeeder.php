@@ -28,7 +28,7 @@ class CrmPermissionSeeder extends Seeder
             'slug' => 'leads',
             'name' => 'Leads',
             'icon' => 'Users',
-            'url' => '/leads',
+            'url' => '/tenant/leads',
             'description' => 'Gestão de captação',
             'order' => 11,
             'show_in_menu' => true,
@@ -38,7 +38,7 @@ class CrmPermissionSeeder extends Seeder
             'slug' => 'oportunidades',
             'name' => 'Oportunidades',
             'icon' => 'Target',
-            'url' => '/opportunities',
+            'url' => '/tenant/opportunities',
             'description' => 'Gestão de matrículas e funil',
             'order' => 12,
             'show_in_menu' => true,
@@ -48,7 +48,7 @@ class CrmPermissionSeeder extends Seeder
             'slug' => 'tarefas',
             'name' => 'Tarefas',
             'icon' => 'CheckSquare',
-            'url' => '/tasks',
+            'url' => '/tenant/tasks',
             'description' => 'Gestão de tarefas e retornos',
             'order' => 13,
             'show_in_menu' => true,
@@ -58,7 +58,7 @@ class CrmPermissionSeeder extends Seeder
             'slug' => 'school_years',
             'name' => 'Anos Letivos',
             'icon' => 'CalendarDays',
-            'url' => '/tenant-settings/school-years',
+            'url' => '/tenant/tenant-settings/school-years',
             'description' => 'Gestão de anos letivos do tenant',
             'order' => 20,
             'show_in_menu' => true,
@@ -68,7 +68,7 @@ class CrmPermissionSeeder extends Seeder
             'slug' => 'lead_sources',
             'name' => 'Origens de Lead',
             'icon' => 'Tags',
-            'url' => '/tenant-settings/lead-sources',
+            'url' => '/tenant/tenant-settings/lead-sources',
             'description' => 'Gestão de origens de lead do tenant',
             'order' => 21,
             'show_in_menu' => true,
@@ -78,7 +78,7 @@ class CrmPermissionSeeder extends Seeder
             'slug' => 'grades',
             'name' => 'Turmas/Séries',
             'icon' => 'GraduationCap',
-            'url' => '/tenant-settings/grades',
+            'url' => '/tenant/tenant-settings/grades',
             'description' => 'Gestão de turmas e séries do tenant',
             'order' => 22,
             'show_in_menu' => true,
@@ -161,8 +161,6 @@ class CrmPermissionSeeder extends Seeder
             ->get();
 
         $allCrmIds = $allCrmPermissions->pluck('id');
-
-        $configModuleSlugs = ['school_years', 'lead_sources', 'grades'];
 
         /** @var array<string, list<string>> $rolePermissionMap */
         $rolePermissionMap = [

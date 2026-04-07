@@ -4,46 +4,46 @@ declare(strict_types=1);
 
 namespace App\Services\Student;
 
-use App\Models\School;
 use App\Models\Student;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
 class StudentService
 {
-    public function lookup(School $school, string $cpf): ?Student
+    public function lookup(string $cpf): ?Student
     {
+        $schoolId = app()->bound('tenant.school_id') ? app('tenant.school_id') : null;
+
         return Student::withoutTenantScope()
-            ->where('school_id', $school->id)
+            ->where('school_id', $schoolId)
             ->where('cpf', $cpf)
             ->first();
     }
 
-    public function findOrCreate(School $school, array $data): Student
+    public function findOrCreate(array $data): Student
     {
         if (array_key_exists('cpf', $data) && $data['cpf'] !== null) {
-            $existing = $this->lookup($school, $data['cpf']);
+            $existing = $this->lookup($data['cpf']);
 
             if ($existing !== null) {
                 return $existing;
             }
         }
 
-        return $this->create($school, $data);
+        return $this->create($data);
     }
 
-    public function list(School $school): LengthAwarePaginator
+    public function list(): LengthAwarePaginator
     {
         return Student::query()
-            ->where('school_id', $school->id)
             ->orderBy('nome')
             ->paginate(15);
     }
 
-    public function create(School $school, array $data): Student
+    public function create(array $data): Student
     {
         if (array_key_exists('cpf', $data) && $data['cpf'] !== null) {
-            $exists = $this->lookup($school, $data['cpf']);
+            $exists = $this->lookup($data['cpf']);
 
             if ($exists !== null) {
                 throw ValidationException::withMessages([
@@ -52,11 +52,7 @@ class StudentService
             }
         }
 
-        $student = new Student($data);
-        $student->school_id = $school->id;
-        $student->save();
-
-        return $student;
+        return Student::create($data);
     }
 
     public function update(Student $student, array $data): Student

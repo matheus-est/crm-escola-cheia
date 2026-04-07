@@ -15,6 +15,12 @@ export interface Guardian {
     cpf: string;
     telefone: string | null;
     email: string | null;
+    cep: string | null;
+    logradouro: string | null;
+    numero: string | null;
+    estado: string | null;
+    cidade: string | null;
+    bairro: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -144,16 +150,27 @@ export type OpportunityStatus =
     | 'matricula'
     | 'recusado';
 
+export type RegistrationType = 'agendamento' | 'evento';
+
 export interface Grade {
     uuid: string;
     nome: string;
     segment_id: number;
 }
 
+export interface Segment {
+    uuid: string;
+    name: string;
+}
+
 export interface Opportunity {
     uuid: string;
     status: OpportunityStatus;
     observations: string | null;
+    history: string | null;
+    indications: string | null;
+    registration_type: RegistrationType | null;
+    segment?: Segment | null;
     student?: Student | null;
     guardian?: Guardian | null;
     grade?: Grade | null;
@@ -177,4 +194,11 @@ export interface TenantUser {
     uuid: string;
     name: string;
     email: string;
+}
+
+export interface ResponsavelInput {
+    _key: string;
+    name: string;
+    email: string;
+    role_id: string;
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\OpportunityStatus;
+use App\Enums\RegistrationType;
 use App\Models\Concerns\BelongsToTenant;
 use App\Observers\OpportunityObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -29,14 +30,19 @@ class Opportunity extends Model implements Auditable
         'school_year_id',
         'lead_source_id',
         'responsible_user_id',
+        'segment_id',
         'status',
         'observations',
+        'history',
+        'indications',
+        'registration_type',
     ];
 
     protected function casts(): array
     {
         return [
             'status' => OpportunityStatus::class,
+            'registration_type' => RegistrationType::class,
         ];
     }
 
@@ -78,5 +84,10 @@ class Opportunity extends Model implements Auditable
     public function responsibleUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responsible_user_id');
+    }
+
+    public function segment(): BelongsTo
+    {
+        return $this->belongsTo(Segment::class);
     }
 }

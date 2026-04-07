@@ -43,7 +43,7 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Oportunidades', href: index(props.school.uuid).url },
+    { title: 'Oportunidades', href: index().url },
     { title: 'Editar Oportunidade', href: '#' },
 ];
 
@@ -65,7 +65,6 @@ const {
     triggerLookup: lookupStudent,
 } = useCpfLookup({
     type: 'student',
-    schoolUuid: props.school.uuid,
     onFound: (data) => {
         foundStudent.value = data as Student;
     },
@@ -88,7 +87,6 @@ const {
     triggerLookup: lookupGuardian,
 } = useCpfLookup({
     type: 'guardian',
-    schoolUuid: props.school.uuid,
     onFound: (data) => {
         foundGuardian.value = data as Guardian;
     },
@@ -105,7 +103,7 @@ const observationsValue = ref(props.opportunity.observations ?? '');
 
 function handleSuccess(): void {
     toast.success('Oportunidade atualizada com sucesso.');
-    router.visit(index(props.school.uuid).url);
+    router.visit(index().url);
 }
 
 function handleError(): void {
@@ -120,7 +118,7 @@ function handleError(): void {
         <div class="space-y-4">
             <div class="flex items-center gap-4">
                 <Link
-                    :href="index(props.school.uuid).url"
+                    :href="index().url"
                     class="rounded-md p-2 hover:bg-muted"
                 >
                     <ArrowLeft class="h-5 w-5" />
@@ -136,10 +134,7 @@ function handleError(): void {
                 <Form
                     method="put"
                     :action="
-                        update({
-                            school_uuid: props.school.uuid,
-                            opportunity: props.opportunity.uuid,
-                        }).url
+                        update({ opportunity: props.opportunity.uuid }).url
                     "
                     class="space-y-6"
                     v-slot="{ errors, processing }"
@@ -436,7 +431,7 @@ function handleError(): void {
                                 @click="
                                     () =>
                                         router.visit(
-                                            index(props.school.uuid).url,
+                                            index().url,
                                         )
                                 "
                                 :disabled="processing"

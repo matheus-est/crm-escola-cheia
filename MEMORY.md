@@ -7,8 +7,8 @@
 
 ## CURRENT STATE
 
-**Last session:** 2026-04-05
-**Next task:** Stage 5.x — Tasks and Outcomes (service, requests, policy, controller, routes, HTTP tests)
+**Last session:** 2026-04-07
+**Next task:** Stage 5.x — Tasks and Outcomes (service, requests, policy, controller, routes, HTTP tests) — pré-requisitos: OutcomeSeeder fix + OutcomeActionType enum + verificar renitente_count na migration
 
 ### Completed
 
@@ -31,6 +31,9 @@
 - [x] 4.1 — OpportunityStatus enum · migration · Opportunity model · observer · tests (119) — APPROVED 2026-04-03
 - [x] 4.2 — OpportunityService · StoreOpportunityRequest · UpdateOpportunityRequest · OpportunityPolicy · OpportunityController · routes · tests (129) — APPROVED 2026-04-05
 - [x] 4.3 — Frontend Opportunities (Index · Create · Edit) — 2026-04-05
+- [x] 4.4 — ActiveSchoolController · User::schools() · currentSchool() session fallback · active-school.store route · BelongsToTenant auto school_id on creating — 2026-04-07
+- [x] 4.5 — Opportunity form fields: history · indications · registration_type · segment_id · guardian address columns — backend only — 2026-04-07
+- [x] 4.R — Session-based tenant refactor: routes prefix `t` (no school_uuid) · all tenant controllers remove School param · services remove School param · useCpfLookup · Vue Wayfinder calls — 139 tests — 2026-04-07
 - [ ] **5.x — Tasks and Outcomes 🔴**
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
 
@@ -52,8 +55,10 @@
 | 2026-04-02 | `SchoolPolicy::update()` restricted to Master and Admin — Operacao cannot manage school-user links |
 | 2026-04-03 | `Segment` is global (no `BelongsToTenant`) — `Grade` uses `BelongsToTenant` |
 | 2026-04-03 | `LeadSource` uses its own `LeadSourceScope` — not `BelongsToTenant`; `school_id null` = system |
-| 2026-04-03 | `Route::bind('school_uuid')` in `AppServiceProvider` — unknown UUID returns 404 |
 | 2026-04-03 | `useCpfLookup` uses `fetch` — only authorized case outside `useForm` (GET lookup, pure JSON) |
+| 2026-04-07 | Tenant routes use prefix `/t` — no `{school_uuid}` in URL; tenant resolved from session via `SetActiveTenant` → `currentSchool()` |
+| 2026-04-07 | `BelongsToTenant` auto-sets `school_id` via `creating` event — controllers and services never set it manually; `LeadSource` (no BelongsToTenant) still uses `app('tenant.school_id')` explicitly |
+| 2026-04-07 | `useCpfLookup` no longer needs `schoolUuid` — lookup routes are `/t/students/lookup/{cpf}` |
 
 ---
 
@@ -68,9 +73,9 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-02 | `*ControllerTest.php` | Inertia routes in tests: use `withoutVite()` — avoids `ViteException` |
 | 2026-04-02 | `phpunit.xml` | `config:cache` in production makes tests ignore `phpunit.xml` — clear with `php artisan config:clear` before testing |
 | 2026-04-03 | `routes/tenant.php` | Route `lookup/{cpf}` must come BEFORE `{model}` in the group — avoids route model binding conflict |
-| 2026-04-03 | `*Service.php` | `list()` passes explicit `$school` even with `TenantScope` active — ensures isolation without relying on context |
+| 2026-04-07 | `*Service.php` | `list()` relies on `TenantScope` — no `$school` parameter; `LeadSource` list uses explicit `app('tenant.school_id')` in where clause |
 | 2026-04-03 | `OpportunityModelTest.php` | Pest 4: `toThrow(\Throwable::class)` fails — use manual try/catch with boolean flag |
-| 2026-04-03 | `*.vue` (tenant) | Props receive `school` from controller — use `props.school.uuid` for Wayfinder; never `setUrlDefaults` |
+| 2026-04-07 | `*.vue` (tenant) | Wayfinder functions for tenant routes take NO school_uuid — `index()`, `store()`, `update({ opportunity })` — school is in session |
 | 2026-04-05 | \`*Service.php\` | Non-blocking warnings: add \`hasClosed*\` helper on service; controller checks after \`create()\` and flashes \`warning\` vs \`success\` — never block creation |\n| 2026-04-05 | \`*.vue\` (ui) | No \`Textarea\` component in \`ui/\` — use plain \`<textarea>\` with inline Tailwind classes matching shadcn Input style |
 
 ---

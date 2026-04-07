@@ -46,28 +46,37 @@ class RoleSeeder extends Seeder
         );
 
         // CRM roles — cross-tenant and tenant-scoped profiles
-        Role::updateOrCreate(
+        $user = Role::updateOrCreate(
             ['name' => 'Operacao'],
             [
                 'description' => 'Perfil de operação com acesso cross-tenant',
                 'is_default' => false,
             ]
         );
+        $user->permissions()->sync(
+            Permission::whereIn('name', ['dashboard_view'])->pluck('id')
+        );
 
-        Role::updateOrCreate(
+        $user = Role::updateOrCreate(
             ['name' => 'Gestor'],
             [
                 'description' => 'Perfil de gestor com acesso ao próprio tenant',
                 'is_default' => false,
             ]
         );
+        $user->permissions()->sync(
+            Permission::whereIn('name', ['dashboard_view'])->pluck('id')
+        );        
 
-        Role::updateOrCreate(
+        $user = Role::updateOrCreate(
             ['name' => 'Comercial'],
             [
                 'description' => 'Perfil comercial com acesso operacional ao tenant',
                 'is_default' => false,
             ]
+        );
+        $user->permissions()->sync(
+            Permission::whereIn('name', ['dashboard_view'])->pluck('id')
         );
     }
 }
