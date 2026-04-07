@@ -66,6 +66,8 @@ Wait for confirmation before continuing.
 - Tenant resolved exclusively from session (`active_school_uuid`) via `SetActiveTenant` → `User::currentSchool()`
 - Tenant routes use prefix `/t` — **no** `{school_uuid}` in URL
 - Tenant controllers **never** receive `School $school` as route parameter — use `auth()->user()->currentSchool()` when school object is needed
+- Tenant services **never** receive `$school` as parameter — tenant is resolved globally via `BelongsToTenant`
+- In services, always use `Model::create([...])` — **never** `$model->school_id = ...; $model->save()` — `BelongsToTenant` sets `school_id` automatically on the `creating` event
 - `EnsureTenantAccess` aborts 403 if user has no valid school in session
 
 ## Critical business rules
