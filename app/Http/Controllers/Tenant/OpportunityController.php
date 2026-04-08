@@ -21,6 +21,7 @@ use App\Models\Task;
 use App\Services\Opportunity\OpportunityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -35,9 +36,17 @@ class OpportunityController extends Controller
     {
         Gate::authorize('viewAny', Opportunity::class);
 
-        $school = auth()->user()->currentSchool();
+        $school = Auth::user()->currentSchool();
 
         $opportunities = $this->opportunityService->list($request->all());
+
+        $opportunities->load([
+            'student',
+            'guardian',
+            'grade',
+            'schoolYear',
+            'responsibleUser',
+        ]);
 
         $grades = Grade::query()->orderBy('nome')->get();
         $schoolYears = SchoolYear::query()->orderBy('nome')->get();
@@ -60,10 +69,8 @@ class OpportunityController extends Controller
     {
         Gate::authorize('create', Opportunity::class);
 
-        $school = auth()->user()->currentSchool();
-
-        $students = Student::query()->orderBy('nome')->get();
-        $guardians = Guardian::query()->orderBy('nome')->get();
+        $school = Auth::user()->currentSchool();
+        
         $grades = Grade::query()->orderBy('nome')->get();
         $schoolYears = SchoolYear::query()->orderBy('nome')->get();
         $leadSources = LeadSource::query()->orderBy('nome')->get();
@@ -72,8 +79,6 @@ class OpportunityController extends Controller
 
         return Inertia::render('opportunities/Create', [
             'school' => $school,
-            'students' => $students,
-            'guardians' => $guardians,
             'grades' => $grades,
             'schoolYears' => $schoolYears,
             'leadSources' => $leadSources,
@@ -85,9 +90,9 @@ class OpportunityController extends Controller
     public function store(StoreOpportunityRequest $request): RedirectResponse
     {
         Gate::authorize('create', Opportunity::class);
-
+        
         $validated = $request->validated();
-
+        
         $this->opportunityService->create($validated);
 
         $flashKey = $this->opportunityService->hasClosedSchoolYear($validated)
@@ -117,7 +122,7 @@ class OpportunityController extends Controller
             ->orderBy('name')
             ->get();
 
-        $school = auth()->user()->currentSchool();
+        $school = Auth::user()->currentSchool();
         $users = $school->users()->orderBy('name')->get();
 
         return Inertia::render('opportunities/Show', [
@@ -132,7 +137,17 @@ class OpportunityController extends Controller
     {
         Gate::authorize('update', $opportunity);
 
-        $school = auth()->user()->currentSchool();
+        $school = Auth::user()->currentSchool();
+
+        $opportunity->load([
+            'student',
+            'guardian',
+            'grade',
+            'schoolYear',
+            'leadSource',
+            'responsibleUser',
+            'segment',
+        ]);
 
         $students = Student::query()->orderBy('nome')->get();
         $guardians = Guardian::query()->orderBy('nome')->get();

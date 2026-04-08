@@ -369,12 +369,12 @@ function handleError(): void {
                                                 <div class="relative">
                                                     <Input
                                                         id="student-cpf"
+                                                        name="student_cpf"
                                                         placeholder="000.000.000-00"
                                                         class="pr-8"
                                                         :disabled="isTerminal"
-                                                        @input="
-                                                            handleStudentCpfInput
-                                                        "
+                                                        :default-value="props.opportunity.student?.cpf ?? ''"
+                                                        @input="handleStudentCpfInput"
                                                     />
                                                     <span
                                                         v-if="isLoadingStudent"
@@ -386,23 +386,6 @@ function handleError(): void {
                                                     class="text-xs text-destructive"
                                                 >
                                                     {{ studentCpfError }}
-                                                </p>
-                                            </div>
-
-                                            <div
-                                                v-if="foundStudent"
-                                                class="col-span-full rounded-md border border-green-200 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-900/20"
-                                            >
-                                                <p
-                                                    class="font-medium text-green-800 dark:text-green-300"
-                                                >
-                                                    Aluno encontrado:
-                                                    {{ foundStudent.nome }}
-                                                </p>
-                                                <p
-                                                    class="text-green-600 dark:text-green-400"
-                                                >
-                                                    CPF: {{ foundStudent.cpf }}
                                                 </p>
                                             </div>
 
@@ -574,12 +557,12 @@ function handleError(): void {
                                                 <div class="relative">
                                                     <Input
                                                         id="guardian-cpf"
+                                                        name="guardian_cpf"
                                                         placeholder="000.000.000-00"
                                                         class="pr-8"
                                                         :disabled="isTerminal"
-                                                        @input="
-                                                            handleGuardianCpfInput
-                                                        "
+                                                        :default-value="props.opportunity.guardian?.cpf ?? ''"
+                                                        @input="handleGuardianCpfInput"
                                                     />
                                                     <span
                                                         v-if="isLoadingGuardian"
@@ -591,23 +574,6 @@ function handleError(): void {
                                                     class="text-xs text-destructive"
                                                 >
                                                     {{ guardianCpfError }}
-                                                </p>
-                                            </div>
-
-                                            <div
-                                                v-if="foundGuardian"
-                                                class="col-span-full rounded-md border border-green-200 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-900/20"
-                                            >
-                                                <p
-                                                    class="font-medium text-green-800 dark:text-green-300"
-                                                >
-                                                    Responsável encontrado:
-                                                    {{ foundGuardian.nome }}
-                                                </p>
-                                                <p
-                                                    class="text-green-600 dark:text-green-400"
-                                                >
-                                                    CPF: {{ foundGuardian.cpf }}
                                                 </p>
                                             </div>
 

@@ -128,6 +128,7 @@ export interface PaginatedSchoolYears {
 }
 
 export interface LeadSource {
+    id: number;
     uuid: string;
     nome: string;
     is_system: boolean;
@@ -195,6 +196,7 @@ export interface PaginatedOpportunities {
 }
 
 export interface TenantUser {
+    id: number;
     uuid: string;
     name: string;
     email: string;

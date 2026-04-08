@@ -26,11 +26,14 @@ class GuardianService
             $existing = $this->lookup($data['cpf']);
 
             if ($existing !== null) {
+                $existing->fill(array_filter($data, fn($v) => $v !== null && $v !== ''));
+                $existing->save();
+                
                 return $existing;
             }
         }
 
-        return $this->create($data);
+        return Guardian::create($data);
     }
 
     public function list(): LengthAwarePaginator
