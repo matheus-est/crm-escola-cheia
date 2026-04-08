@@ -72,6 +72,7 @@ export interface School {
     uuid: string;
     cnpj: string;
     razao_social: string;
+    nome_fantasia: string | null;
     slug: string;
     logo_path: string | null;
     address_json: Record<string, string> | null;

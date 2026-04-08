@@ -166,19 +166,14 @@ function handleError(): void {
                         </Alert>
 
                         <Tabs default-value="cadastro">
-                            <TabsList
-                                class="w-full justify-start rounded-none border-b bg-transparent px-2 pt-2"
-                            >
+                            <TabsList>
                                 <TabsTrigger value="cadastro"
-                                    class="rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
                                     >Informações do Cadastro</TabsTrigger
                                 >
                                 <TabsTrigger value="aluno"
-                                    class="rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
                                     >Aluno / Responsável</TabsTrigger
                                 >
                                 <TabsTrigger value="complementar"
-                                    class="rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
                                     >Informações Complementares</TabsTrigger
                                 >
                             </TabsList>
@@ -186,9 +181,8 @@ function handleError(): void {
                             <!-- Aba 1: Informações do Cadastro -->
                             <TabsContent
                                 value="cadastro"
-                                class="m-0"
+                                class="space-y-6 pt-6"
                             >
-                                <div class="space-y-6 p-6">
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <!-- Tipo de Cadastro -->
                                     <div class="space-y-2">
@@ -199,7 +193,7 @@ function handleError(): void {
                                             name="registration_type"
                                             :default-value="
                                                 props.opportunity
-                                                    .registration_type ?? undefined
+                                                    .registration_type ?? ''
                                             "
                                             :disabled="isTerminal"
                                         >
@@ -211,6 +205,9 @@ function handleError(): void {
                                                 />
                                             </SelectTrigger>
                                             <SelectContent>
+                                                <SelectItem value=""
+                                                    >Nenhum</SelectItem
+                                                >
                                                 <SelectItem value="agendamento"
                                                     >Agendamento</SelectItem
                                                 >
@@ -234,7 +231,7 @@ function handleError(): void {
                                             :default-value="
                                                 props.opportunity
                                                     .responsible_user?.uuid ??
-                                                undefined
+                                                ''
                                             "
                                             :disabled="isTerminal"
                                         >
@@ -246,6 +243,9 @@ function handleError(): void {
                                                 />
                                             </SelectTrigger>
                                             <SelectContent>
+                                                <SelectItem value=""
+                                                    >Nenhum</SelectItem
+                                                >
                                                 <SelectItem
                                                     v-for="user in props.users"
                                                     :key="user.uuid"
@@ -271,7 +271,7 @@ function handleError(): void {
                                             name="lead_source_id"
                                             :default-value="
                                                 props.opportunity.lead_source
-                                                    ?.uuid ?? undefined
+                                                    ?.uuid ?? ''
                                             "
                                             :disabled="isTerminal"
                                         >
@@ -281,6 +281,9 @@ function handleError(): void {
                                                 />
                                             </SelectTrigger>
                                             <SelectContent>
+                                                <SelectItem value=""
+                                                    >Nenhuma</SelectItem
+                                                >
                                                 <SelectItem
                                                     v-for="ls in props.leadSources"
                                                     :key="ls.uuid"
@@ -312,12 +315,10 @@ function handleError(): void {
                                         </Select>
                                     </div>
                                 </div>
-                                </div>
                             </TabsContent>
 
                             <!-- Aba 2: Aluno / Responsável -->
-                            <TabsContent value="aluno" class="m-0">
-                                <div class="space-y-6 p-6">
+                            <TabsContent value="aluno" class="space-y-6 pt-6">
                                 <!-- Card Aluno -->
                                 <div
                                     class="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
@@ -432,7 +433,7 @@ function handleError(): void {
                                                 name="segment_id"
                                                 :default-value="
                                                     props.opportunity.segment
-                                                        ?.uuid ?? undefined
+                                                        ?.uuid ?? ''
                                                 "
                                                 :disabled="isTerminal"
                                             >
@@ -442,6 +443,9 @@ function handleError(): void {
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
+                                                    <SelectItem value=""
+                                                        >Nenhum</SelectItem
+                                                    >
                                                     <SelectItem
                                                         v-for="segment in props.segments"
                                                         :key="segment.uuid"
@@ -733,15 +737,13 @@ function handleError(): void {
                                         </div>
                                     </div>
                                 </div>
-                                </div>
                             </TabsContent>
 
                             <!-- Aba 3: Informações Complementares -->
                             <TabsContent
                                 value="complementar"
-                                class="m-0"
+                                class="space-y-6 pt-6"
                             >
-                                <div class="space-y-6 p-6">
                                 <div class="space-y-2">
                                     <Label for="history">Histórico</Label>
                                     <textarea
@@ -770,7 +772,6 @@ function handleError(): void {
                                         class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                     ></textarea>
                                     <InputError :message="errors.indications" />
-                                </div>
                                 </div>
                             </TabsContent>
                         </Tabs>

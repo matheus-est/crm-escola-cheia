@@ -13,11 +13,19 @@ class SchoolStoreRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('cnpj')) {
+            $this->merge(['cnpj' => preg_replace('/\D/', '', (string) $this->input('cnpj'))]);
+        }
+    }
+
     public function rules(): array
     {
         return [
             'cnpj' => 'required|string|unique:schools,cnpj',
             'razao_social' => 'required|string|max:255',
+            'nome_fantasia' => 'nullable|string|max:255',
             'logo_path' => 'nullable|string',
             'address_json' => 'nullable|array',
             'status' => 'nullable|string|in:active,inactive',

@@ -18,6 +18,8 @@ Route::middleware(['auth', 'verified', 'role:Master,Admin,Operacao'])
         Route::get('/schools/clearFilters', [SchoolController::class, 'clearFilters'])->name('schools.clearFilters');
         Route::get('/schools/create', [SchoolController::class, 'create'])->name('schools.create');
         Route::post('/schools', [SchoolController::class, 'store'])->name('schools.store');
+        Route::get('/schools/cnpj-lookup/{cnpj}', [SchoolController::class, 'lookupCnpj'])->name('schools.cnpjLookup');
+
         Route::get('/schools/{school}', [SchoolController::class, 'show'])->name('schools.show');
         Route::get('/schools/{school}/edit', [SchoolController::class, 'edit'])->name('schools.edit');
         Route::put('/schools/{school}', [SchoolController::class, 'update'])->name('schools.update');
@@ -27,6 +29,9 @@ Route::middleware(['auth', 'verified', 'role:Master,Admin,Operacao'])
 
         Route::post('schools/{school}/users', [SchoolUserController::class, 'store'])
             ->name('schools.users.store');
+
+        Route::post('schools/{school}/users/create', [SchoolUserController::class, 'storeOrCreate'])
+            ->name('schools.users.storeOrCreate');
 
         Route::delete('schools/{school}/users/{userUuid}', [SchoolUserController::class, 'destroy'])
             ->name('schools.users.destroy');

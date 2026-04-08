@@ -34,6 +34,8 @@
 - [x] 4.4 — ActiveSchoolController · User::schools() · currentSchool() session fallback · active-school.store route · BelongsToTenant auto school_id on creating — 2026-04-07
 - [x] 4.5 — Opportunity form fields: history · indications · registration_type · segment_id · guardian address columns — backend only — 2026-04-07
 - [x] 4.R — Session-based tenant refactor: routes prefix `t` (no school_uuid) · all tenant controllers remove School param · services remove School param · useCpfLookup · Vue Wayfinder calls — 139 tests — 2026-04-07
+- [x] 4.6 — Schools Create/Edit refactor: 2 abas (Dados/Responsáveis) · máscara CNPJ · BrasilAPI lookup · `SchoolController::lookupCnpj()` · `SchoolUserController::storeOrCreate()` · `SchoolService::createUserForSchool()` · `WelcomeSchoolUserMail` · `useCnpjLookup.ts` · shadcn Tabs — 23 tests — 2026-04-07
+- [x] 4.7 — Opportunities Create/Edit refactor: 3 abas (Cadastro/Aluno/Complementar) · CPF mask formatCpf() inline · segments prop · address fields · history / indications Textarea — 2026-04-07
 - [ ] **5.x — Tasks and Outcomes 🔴**
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
 

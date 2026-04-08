@@ -7,8 +7,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\School\SchoolStoreRequest;
 use App\Http\Requests\School\SchoolUpdateRequest;
+use App\Models\Role;
 use App\Models\School;
 use App\Services\School\SchoolService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -62,16 +64,20 @@ class SchoolController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('admin/Schools/Create');
+        return Inertia::render('admin/Schools/Create', [
+            'availableRoles' => Role::query()
+                ->whereIn('name', ['Gestor', 'Comercial'])
+                ->get(['uuid', 'name']),
+        ]);
     }
 
     public function store(SchoolStoreRequest $request): RedirectResponse
     {
         Gate::authorize('create', School::class);
 
-        $this->schoolService->create($request->validated());
+        $school = $this->schoolService->create($request->validated());
 
-        return to_route('admin.schools.index')
+        return to_route('admin.schools.edit', $school)
             ->with('success', 'Escola criada com sucesso.');
     }
 
@@ -79,7 +85,25 @@ class SchoolController extends Controller
     {
         Gate::authorize('view', $school);
 
-        return Inertia::render('admin/Schools/Edit', ['school' => $school->load(['units', 'users.role'])]);
+        return Inertia::render('admin/Schools/Edit', [
+            'school' => $school->load(['units', 'users.role']),
+            'availableRoles' => Role::query()
+                ->whereIn('name', ['Gestor', 'Comercial'])
+                ->get(['uuid', 'name']),
+        ]);
+    }
+
+    public function lookupCnpj(string $cnpj): JsonResponse
+    {
+        try {
+            $data = $this->schoolService->lookupCnpj($cnpj);
+
+            return response()->json($data);
+        } catch (\RuntimeException $e) {
+            throw ValidationException::withMessages([
+                'cnpj' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function update(SchoolUpdateRequest $request, School $school): RedirectResponse

@@ -23,6 +23,7 @@ class School extends Model implements Auditable
         'uuid',
         'cnpj',
         'razao_social',
+        'nome_fantasia',
         'slug',
         'logo_path',
         'address_json',

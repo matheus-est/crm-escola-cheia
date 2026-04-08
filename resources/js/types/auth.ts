@@ -13,6 +13,12 @@ export type Auth = {
     user: User;
 };
 
+export type AuthSchool = {
+    uuid: string;
+    razao_social: string;
+    nome_fantasia: string | null;
+};
+
 export type TwoFactorConfigContent = {
     title: string;
     description: string;

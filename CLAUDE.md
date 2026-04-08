@@ -57,6 +57,8 @@ Wait for confirmation before continuing.
 | `router.reload` | `preserveUrl: true` — never `preserveScroll` |
 | Create form | `<Form method="post" :action="store().url">` |
 | Edit form | `<Form method="put" :action="update({ uuid: props.model.uuid }).url">` + `:default-value` on inputs |
+| Masked inputs (CNPJ, CPF, phone) | Handle `@input` with DOM-only mutation (`input.value = masked`) — **never** `:value` + `ref` + `watch`; the reactive binding causes Vue to re-render on every keystroke, producing visible typing delay and cursor jump |
+| `SelectItem` | **Never** use `value=""` — reka-ui treats empty string as no-value; omit the empty option and rely on `SelectValue placeholder` for optional selects |
 
 ## Multi-tenancy — critical rules
 

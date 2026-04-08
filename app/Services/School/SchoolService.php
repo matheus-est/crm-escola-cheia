@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\School;
 
+use App\Mail\WelcomeSchoolUserMail;
 use App\Models\Role;
 use App\Models\School;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class SchoolService
@@ -112,6 +116,24 @@ class SchoolService
         }
 
         return $response->json();
+    }
+
+    public function createUserForSchool(array $data, School $school, Role $role): User
+    {
+        $temporaryPassword = Str::password(16);
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($temporaryPassword),
+            'role_id' => $role->id,
+        ]);
+
+        Mail::to($user)->queue(new WelcomeSchoolUserMail($user, $temporaryPassword, $school));
+
+        $this->attachUser($school, $user, $role);
+
+        return $user;
     }
 
     public function attachUser(School $school, User $user, Role $role): void

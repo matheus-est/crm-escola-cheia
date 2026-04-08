@@ -50,21 +50,21 @@ class HandleInertiaRequests extends Middleware
                 fn () => json_decode(file_get_contents(lang_path("{$locale}.json")), true)
             ),
 
-            'name'         => fn () => $this->settingService->get('app_name', config('app.name')),
-            'logo_light'   => fn () => $this->settingService->get('logo_light'),
-            'logo_dark'    => fn () => $this->settingService->get('logo_dark'),
+            'name' => fn () => $this->settingService->get('app_name', config('app.name')),
+            'logo_light' => fn () => $this->settingService->get('logo_light'),
+            'logo_dark' => fn () => $this->settingService->get('logo_dark'),
             'company_name' => fn () => $this->settingService->get('company_name'),
-            'dpo_email'    => fn () => $this->settingService->get('dpo_email'),
+            'dpo_email' => fn () => $this->settingService->get('dpo_email'),
 
             'auth' => [
                 'user' => $user ? [
-                    'uuid'  => $user->uuid,
-                    'name'  => $user->name,
+                    'uuid' => $user->uuid,
+                    'name' => $user->name,
                     'email' => $user->email,
-                    'role'  => $user->role ? ['name' => $user->role->name] : null,
+                    'role' => $user->role ? ['name' => $user->role->name] : null,
                 ] : null,
-                'permissions'      => $user?->role?->permissions->pluck('name') ?? collect(),
-                'is_cross_tenant'  => $user?->isCrossTenant() ?? false,
+                'permissions' => $user?->role?->permissions->pluck('name') ?? collect(),
+                'is_cross_tenant' => $user?->isCrossTenant() ?? false,
 
                 'schools' => function () use ($request) {
                     $user = $request->user();
@@ -74,12 +74,12 @@ class HandleInertiaRequests extends Middleware
                     if ($user->isCrossTenant()) {
                         return School::query()
                             ->where('status', SchoolStatus::Active->value)
-                            ->get(['uuid', 'razao_social']);
+                            ->get(['uuid', 'razao_social', 'nome_fantasia']);
                     }
 
                     return $user->schools()
                         ->wherePivot('is_active', true)
-                        ->get(['schools.uuid', 'schools.razao_social']);
+                        ->get(['schools.uuid', 'schools.razao_social', 'schools.nome_fantasia']);
                 },
 
                 'current_school' => function () use ($request) {
@@ -87,14 +87,14 @@ class HandleInertiaRequests extends Middleware
                     if ($user === null) {
                         return null;
                     }
-                    
+
                     if (app()->bound('tenant.school_id')) {
                         $school = School::find(app('tenant.school_id'));
                         if ($school) {
-                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social];
+                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social, 'nome_fantasia' => $school->nome_fantasia];
                         }
                     }
-                    
+
                     $sessionUuid = session('active_school_uuid');
                     if ($sessionUuid) {
                         $school = School::query()
@@ -102,14 +102,14 @@ class HandleInertiaRequests extends Middleware
                             ->where('status', SchoolStatus::Active)
                             ->first();
                         if ($school) {
-                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social];
+                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social, 'nome_fantasia' => $school->nome_fantasia];
                         }
                     }
-                    
+
                     if ($user->school_current_id !== null) {
                         $school = School::find($user->school_current_id);
                         if ($school && $school->status === SchoolStatus::Active) {
-                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social];
+                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social, 'nome_fantasia' => $school->nome_fantasia];
                         }
                     }
 
@@ -117,11 +117,11 @@ class HandleInertiaRequests extends Middleware
                 },
             ],
 
-            'menu'       => $this->getMenu($request),
+            'menu' => $this->getMenu($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
 
-            'currentTerm'        => $activeTerm?->only(['id', 'uuid', 'version', 'title', 'content', 'effective_at', 'is_active']),
-            'userAcceptance'     => $acceptance?->only(['id', 'term_version_id', 'accepted_at']),
+            'currentTerm' => $activeTerm?->only(['id', 'uuid', 'version', 'title', 'content', 'effective_at', 'is_active']),
+            'userAcceptance' => $acceptance?->only(['id', 'term_version_id', 'accepted_at']),
             'needsTermAcceptance' => $user ? $termService->needsAcceptance($user) : false,
         ];
     }
