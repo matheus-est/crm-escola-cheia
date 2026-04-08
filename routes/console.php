@@ -12,3 +12,5 @@ Artisan::command('inspire', function () {
 
 $schedule = app(Schedule::class);
 $schedule->command('audit-logs:purge')->dailyAt('01:00');
+
+$schedule->command('horizon:snapshot')->everyFiveMinutes();

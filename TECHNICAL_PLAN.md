@@ -103,3 +103,15 @@ Conventions: `snake_case` names with dot · UUIDs in params · `to_route()` alwa
 | DELETE | `/admin/schools/{uuid}` | `schools.destroy` |
 | POST | `/admin/schools/{uuid}/users` | `schools.users.store` |
 | DELETE | `/admin/schools/{uuid}/users/{user_uuid}` | `schools.users.destroy` |
+## INFRASTRUCTURE
+
+### Queue workers
+- Dev: `php artisan horizon` — replaces `php artisan queue:work`
+- Production: Supervisor manages the `horizon` process (auto-scaling workers per environment config)
+- Worker queues (priority order): `notifications`, `emails`, `default`
+
+### Scheduled commands
+| Command | Frequency | Purpose |
+|---|---|---|
+| `audit-logs:purge` | daily at 01:00 | Purge old audit log entries |
+| `horizon:snapshot` | every 5 minutes | Capture metrics snapshot for Horizon dashboard graphs |

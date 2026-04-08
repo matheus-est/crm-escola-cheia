@@ -45,7 +45,8 @@
 
 | Date | Decision |
 |---|---|
-| 2026-04-01 | RabbitMQ removed — `QUEUE_CONNECTION=database` |
+| 2026-04-01 | RabbitMQ removed — initially set `QUEUE_CONNECTION=database` |
+| 2026-04-08 | Queue driver migrated to Redis + Laravel Horizon — `QUEUE_CONNECTION=redis`; queues: notifications · emails · default |
 | 2026-04-01 | `school_user` without `role` column — profile via `users.role_id` |
 | 2026-04-01 | `CrmPermissionSeeder` separate — boilerplate seeders not touched |
 | 2026-04-01 | `currentSchool()` uses `class_exists(School::class)` — avoids fatal error before Stage 1.x |
