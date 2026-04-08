@@ -108,6 +108,7 @@ export interface SchoolUnitForm {
 export type SchoolYearStatus = 'ativo' | 'encerrado' | 'planejamento';
 
 export interface SchoolYear {
+    id: number;
     uuid: string;
     nome: string;
     inicio: string;
@@ -154,12 +155,14 @@ export type OpportunityStatus =
 export type RegistrationType = 'agendamento' | 'evento';
 
 export interface Grade {
+    id: number;
     uuid: string;
     nome: string;
     segment_id: number;
 }
 
 export interface Segment {
+    id: number;
     uuid: string;
     name: string;
 }
@@ -247,4 +250,22 @@ export interface Task {
         name: string;
         is_refusal: boolean;
     } | null;
+}
+
+export interface PaginatedGrades {
+    data: (Grade & { order: number; segment?: Segment | null })[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+}
+
+export interface PaginatedTasks {
+    data: Task[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
 }

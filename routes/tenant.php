@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\GuardianController;
 use App\Http\Controllers\Tenant\OpportunityController;
+use App\Http\Controllers\Tenant\Settings\GradeController;
 use App\Http\Controllers\Tenant\Settings\LeadSourceController;
 use App\Http\Controllers\Tenant\Settings\SchoolYearController;
 use App\Http\Controllers\Tenant\StudentController;
@@ -37,6 +38,16 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
             ->name('lead_sources.update');
         Route::delete('/tenant-settings/lead-sources/{leadSource}', [LeadSourceController::class, 'destroy'])
             ->name('lead_sources.destroy');
+
+        // Tenant Settings — Turmas e Séries
+        Route::match(['get', 'post'], '/tenant-settings/grades', [GradeController::class, 'index'])
+            ->name('grades.index');
+        Route::post('/tenant-settings/grades/store', [GradeController::class, 'store'])
+            ->name('grades.store');
+        Route::put('/tenant-settings/grades/{grade}', [GradeController::class, 'update'])
+            ->name('grades.update');
+        Route::delete('/tenant-settings/grades/{grade}', [GradeController::class, 'destroy'])
+            ->name('grades.destroy');
 
         // Alunos
         Route::match(['get', 'post'], '/students', [StudentController::class, 'index'])

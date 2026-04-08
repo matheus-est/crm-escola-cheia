@@ -371,8 +371,8 @@ function handleError(): void {
                                                     <SelectContent>
                                                         <SelectItem
                                                             v-for="grade in props.grades"
-                                                            :key="grade.uuid"
-                                                            :value="grade.uuid"
+                                                            :key="grade.id"
+                                                            :value="grade.id"
                                                         >
                                                             {{ grade.nome }}
                                                         </SelectItem>
@@ -398,9 +398,9 @@ function handleError(): void {
                                                     <SelectContent>
                                                         <SelectItem
                                                             v-for="segment in props.segments"
-                                                            :key="segment.uuid"
+                                                            :key="segment.id"
                                                             :value="
-                                                                segment.uuid
+                                                                segment.id
                                                             "
                                                         >
                                                             {{ segment.name }}
@@ -431,8 +431,8 @@ function handleError(): void {
                                                     <SelectContent>
                                                         <SelectItem
                                                             v-for="sy in props.schoolYears"
-                                                            :key="sy.uuid"
-                                                            :value="sy.uuid"
+                                                            :key="sy.id"
+                                                            :value="sy.id"
                                                         >
                                                             {{ sy.nome }}
                                                         </SelectItem>
