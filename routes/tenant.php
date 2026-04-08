@@ -7,6 +7,7 @@ use App\Http\Controllers\Tenant\OpportunityController;
 use App\Http\Controllers\Tenant\Settings\LeadSourceController;
 use App\Http\Controllers\Tenant\Settings\SchoolYearController;
 use App\Http\Controllers\Tenant\StudentController;
+use App\Http\Controllers\Tenant\TaskController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -68,6 +69,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
             ->name('opportunities.create');
         Route::post('/opportunities', [OpportunityController::class, 'store'])
             ->name('opportunities.store');
+        Route::get('/opportunities/{opportunity}', [OpportunityController::class, 'show'])
+            ->name('opportunities.show');
         Route::get('/opportunities/{opportunity}/edit', [OpportunityController::class, 'edit'])
             ->name('opportunities.edit');
         Route::put('/opportunities/{opportunity}', [OpportunityController::class, 'update'])
@@ -75,12 +78,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
         Route::delete('/opportunities/{opportunity}', [OpportunityController::class, 'destroy'])
             ->name('opportunities.destroy');
 
-        // TODO Etapa 2.x — Tarefas
-        // Route::resource('tarefas', TarefaController::class);
-
-        // TODO Etapa 2.x — Leads
-        // Route::resource('leads', LeadController::class);
-
-        // TODO Etapa 3.x — Configurações do tenant
-        // Route::get('/configuracoes', [TenantSettingsController::class, 'index'])->name('configuracoes.index');
+        // Tarefas
+        Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+        Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+        Route::post('/tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
+        Route::post('/tasks/{task}/cancel', [TaskController::class, 'cancel'])->name('tasks.cancel');
     });

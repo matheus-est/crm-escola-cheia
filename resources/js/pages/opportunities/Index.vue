@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { BookOpen, Filter, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { BookOpen, Eye, Filter, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import Heading from '@/components/Heading.vue';
@@ -22,7 +22,13 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { create, destroy, edit, index } from '@/routes/tenant/opportunities';
+import {
+    create,
+    destroy,
+    edit,
+    index,
+    show,
+} from '@/routes/tenant/opportunities';
 import type { BreadcrumbItem } from '@/types';
 import type {
     Grade,
@@ -45,7 +51,7 @@ const props = defineProps<{
 }>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
-    { title: 'Oportunidades', href: index(props.school.uuid).url },
+    { title: 'Oportunidades', href: '#' },
 ];
 
 const localFilters = ref<{
@@ -104,7 +110,7 @@ function updatePerPage(value: string): void {
 
 function applyFilters(): void {
     router.post(
-        index.post(props.school.uuid).url,
+        index.post().url,
         {
             status: localFilters.value.status,
             grade_id: localFilters.value.grade_id,
@@ -379,7 +385,7 @@ function handleDeleteSuccess(): void {
             <!-- Table header actions -->
             <div class="flex items-center justify-between">
                 <Link
-                    :href="create(props.school.uuid).url"
+                    :href="create().url"
                     class="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                 >
                     <Plus class="h-4 w-4" />
@@ -468,6 +474,17 @@ function handleDeleteSuccess(): void {
                                     class="flex items-center justify-end gap-2"
                                 >
                                     <Link
+                                        :href="
+                                            show({
+                                                opportunity: opportunity.uuid,
+                                            }).url
+                                        "
+                                        class="rounded p-1 hover:bg-muted"
+                                        title="Ver detalhes"
+                                    >
+                                        <Eye class="h-4 w-4" />
+                                    </Link>
+                                    <Link
                                         v-if="
                                             !isTerminalStatus(
                                                 opportunity.status,
@@ -475,7 +492,6 @@ function handleDeleteSuccess(): void {
                                         "
                                         :href="
                                             edit({
-                                                school_uuid: props.school.uuid,
                                                 opportunity: opportunity.uuid,
                                             }).url
                                         "

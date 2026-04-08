@@ -31,6 +31,7 @@ class Opportunity extends Model implements Auditable
         'lead_source_id',
         'responsible_user_id',
         'segment_id',
+        'renitente_count',
         'status',
         'observations',
         'history',
@@ -43,6 +44,7 @@ class Opportunity extends Model implements Auditable
         return [
             'status' => OpportunityStatus::class,
             'registration_type' => RegistrationType::class,
+            'renitente_count' => 'integer',
         ];
     }
 

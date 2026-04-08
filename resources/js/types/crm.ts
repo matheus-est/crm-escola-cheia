@@ -203,3 +203,48 @@ export interface ResponsavelInput {
     email: string;
     role_id: string;
 }
+
+export type TaskStatus = 'open' | 'completed' | 'cancelled';
+export type TaskType =
+    | 'retorno_ligacao'
+    | 'agendamento'
+    | 'lembrete_agenda'
+    | 'reagendamento'
+    | 'double_check'
+    | 'provavel_matricula'
+    | 'evento'
+    | 'lembrete_evento'
+    | 'reagendamento_evento'
+    | 'double_check_evento';
+
+export interface Outcome {
+    uuid: string;
+    name: string;
+    slug: string;
+    task_type: string;
+    is_refusal: boolean;
+    opens_window: string | null;
+}
+
+export interface Task {
+    uuid: string;
+    type: TaskType;
+    status: TaskStatus;
+    is_schedule: boolean;
+    notes: string | null;
+    scheduled_at: string | null;
+    due_at: string | null;
+    completed_at: string | null;
+    cancelled_at: string | null;
+    opportunity?: {
+        uuid: string;
+        status: string;
+        student: { name: string } | null;
+    } | null;
+    assigned_user?: { uuid: string; name: string } | null;
+    outcome?: {
+        uuid: string;
+        name: string;
+        is_refusal: boolean;
+    } | null;
+}

@@ -7,8 +7,8 @@
 
 ## CURRENT STATE
 
-**Last session:** 2026-04-07
-**Next task:** Stage 5.x — Tasks and Outcomes (service, requests, policy, controller, routes, HTTP tests) — pré-requisitos: OutcomeSeeder fix + OutcomeActionType enum + verificar renitente_count na migration
+**Last session:** 2026-04-08
+**Next task:** Stage 5.4 — Reviewer pass on Stage 5 (Tasks + Outcomes full module)
 
 ### Completed
 
@@ -36,7 +36,10 @@
 - [x] 4.R — Session-based tenant refactor: routes prefix `t` (no school_uuid) · all tenant controllers remove School param · services remove School param · useCpfLookup · Vue Wayfinder calls — 139 tests — 2026-04-07
 - [x] 4.6 — Schools Create/Edit refactor: 2 abas (Dados/Responsáveis) · máscara CNPJ · BrasilAPI lookup · `SchoolController::lookupCnpj()` · `SchoolUserController::storeOrCreate()` · `SchoolService::createUserForSchool()` · `WelcomeSchoolUserMail` · `useCnpjLookup.ts` · shadcn Tabs — 23 tests — 2026-04-07
 - [x] 4.7 — Opportunities Create/Edit refactor: 3 abas (Cadastro/Aluno/Complementar) · CPF mask formatCpf() inline · segments prop · address fields · history / indications Textarea — 2026-04-07
-- [ ] **5.x — Tasks and Outcomes 🔴**
+- [x] 5.1 — TaskType · TaskStatus · OutcomeActionType enums · Task model + observer + factory · TaskPolicy · TaskService (list/create/complete/cancel) · OutcomeProcessorService stub · RenitenteCycleService stub · StoreTaskRequest · CompleteTaskRequest · TaskController · TaskResource · routes · renitente_count on opportunities — 18 tests — 2026-04-08
+- [x] 5.2 — OpportunityController::show · OutcomeResource · TaskResource is_schedule · opportunities.show route · OpportunityShowTest (5 tests) — 148 tests — 2026-04-08
+- [x] 5.3 — Show.vue (opportunity detail + active task panel + task history) · OutcomeModal.vue (fetch-based tabulation) · TaskCreateModal.vue (useForm) · Index.vue Eye link + fixed Wayfinder calls · task.ts lib · Task/Outcome/TaskType types in crm.ts — 2026-04-08
+- [ ] **5.4 — Reviewer pass on Stage 5 🔴**
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
 
 ---

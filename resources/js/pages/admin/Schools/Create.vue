@@ -210,16 +210,23 @@ const handleError = () => {
                                         </div>
 
                                         <div class="space-y-2 sm:col-span-2">
-                                            <Label for="nome_fantasia">Nome Fantasia</Label>
+                                            <Label for="nome_fantasia"
+                                                >Nome Fantasia</Label
+                                            >
                                             <Input
                                                 id="nome_fantasia"
                                                 name="nome_fantasia"
                                                 placeholder="Nome exibido no sistema (opcional)"
                                             />
-                                            <p class="text-xs text-muted-foreground">
-                                                Quando preenchido, é exibido no menu de seleção de escola.
+                                            <p
+                                                class="text-xs text-muted-foreground"
+                                            >
+                                                Quando preenchido, é exibido no
+                                                menu de seleção de escola.
                                             </p>
-                                            <InputError :message="errors.nome_fantasia" />
+                                            <InputError
+                                                :message="errors.nome_fantasia"
+                                            />
                                         </div>
                                     </div>
                                 </div>

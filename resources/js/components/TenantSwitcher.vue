@@ -38,7 +38,9 @@ function handleSwitch(uuid: string): void {
     <template v-if="schools.length === 0" />
 
     <div v-else-if="schools.length === 1" class="flex items-center gap-2">
-        <span class="text-sm font-medium">{{ schools[0].nome_fantasia ?? schools[0].razao_social }}</span>
+        <span class="text-sm font-medium">{{
+            schools[0].nome_fantasia ?? schools[0].razao_social
+        }}</span>
     </div>
 
     <div v-else>
@@ -57,7 +59,9 @@ function handleSwitch(uuid: string): void {
                     :value="school.uuid"
                 >
                     <span class="flex items-center gap-2">
-                        <span class="truncate">{{ school.nome_fantasia ?? school.razao_social }}</span>
+                        <span class="truncate">{{
+                            school.nome_fantasia ?? school.razao_social
+                        }}</span>
                     </span>
                 </SelectItem>
             </SelectContent>

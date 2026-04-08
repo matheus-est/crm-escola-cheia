@@ -72,7 +72,8 @@ function handleStudentCpfInput(event: Event): void {
     let m = d;
     if (d.length > 3) m = `${d.slice(0, 3)}.${d.slice(3)}`;
     if (d.length > 6) m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
-    if (d.length > 9) m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+    if (d.length > 9)
+        m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
     input.value = m;
     lookupStudent(m);
 }
@@ -100,7 +101,8 @@ function handleGuardianCpfInput(event: Event): void {
     let m = d;
     if (d.length > 3) m = `${d.slice(0, 3)}.${d.slice(3)}`;
     if (d.length > 6) m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
-    if (d.length > 9) m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+    if (d.length > 9)
+        m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
     input.value = m;
     lookupGuardian(m);
 }
@@ -145,509 +147,548 @@ function handleError(): void {
                             <TabsList
                                 class="w-full justify-start rounded-none border-b bg-transparent px-2 pt-2"
                             >
-                                <TabsTrigger value="cadastro"
+                                <TabsTrigger
+                                    value="cadastro"
                                     class="rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
                                     >Informações do Cadastro</TabsTrigger
                                 >
-                                <TabsTrigger value="aluno"
+                                <TabsTrigger
+                                    value="aluno"
                                     class="rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
                                     >Aluno / Responsável</TabsTrigger
                                 >
-                                <TabsTrigger value="complementar"
+                                <TabsTrigger
+                                    value="complementar"
                                     class="rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
                                     >Informações Complementares</TabsTrigger
                                 >
                             </TabsList>
 
                             <!-- Aba 1: Informações do Cadastro -->
-                            <TabsContent
-                                value="cadastro"
-                                class="m-0"
-                            >
+                            <TabsContent value="cadastro" class="m-0">
                                 <div class="space-y-6 p-6">
-                                <div class="grid gap-4 sm:grid-cols-2">
-                                    <!-- Tipo de Cadastro -->
-                                    <div class="space-y-2">
-                                        <Label for="registration_type"
-                                            >Tipo de Cadastro</Label
-                                        >
-                                        <Select name="registration_type">
-                                            <SelectTrigger
-                                                id="registration_type"
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <!-- Tipo de Cadastro -->
+                                        <div class="space-y-2">
+                                            <Label for="registration_type"
+                                                >Tipo de Cadastro</Label
                                             >
-                                                <SelectValue
-                                                    placeholder="Selecione..."
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="agendamento"
-                                                    >Agendamento</SelectItem
+                                            <Select name="registration_type">
+                                                <SelectTrigger
+                                                    id="registration_type"
                                                 >
-                                                <SelectItem value="evento"
-                                                    >Evento</SelectItem
-                                                >
-                                            </SelectContent>
-                                        </Select>
-                                        <InputError
-                                            :message="errors.registration_type"
-                                        />
-                                    </div>
+                                                    <SelectValue
+                                                        placeholder="Selecione..."
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem
+                                                        value="agendamento"
+                                                        >Agendamento</SelectItem
+                                                    >
+                                                    <SelectItem value="evento"
+                                                        >Evento</SelectItem
+                                                    >
+                                                </SelectContent>
+                                            </Select>
+                                            <InputError
+                                                :message="
+                                                    errors.registration_type
+                                                "
+                                            />
+                                        </div>
 
-                                    <!-- Responsável pelo atendimento -->
-                                    <div class="space-y-2">
-                                        <Label for="responsible_user_id"
-                                            >Responsável pelo Atendimento</Label
-                                        >
-                                        <Select name="responsible_user_id">
-                                            <SelectTrigger
-                                                id="responsible_user_id"
+                                        <!-- Responsável pelo atendimento -->
+                                        <div class="space-y-2">
+                                            <Label for="responsible_user_id"
+                                                >Responsável pelo
+                                                Atendimento</Label
                                             >
-                                                <SelectValue
-                                                    placeholder="Selecione..."
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem
-                                                    v-for="user in props.users"
-                                                    :key="user.uuid"
-                                                    :value="user.uuid"
+                                            <Select name="responsible_user_id">
+                                                <SelectTrigger
+                                                    id="responsible_user_id"
                                                 >
-                                                    {{ user.name }}
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <InputError
-                                            :message="
-                                                errors.responsible_user_id
-                                            "
-                                        />
-                                    </div>
+                                                    <SelectValue
+                                                        placeholder="Selecione..."
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem
+                                                        v-for="user in props.users"
+                                                        :key="user.uuid"
+                                                        :value="user.uuid"
+                                                    >
+                                                        {{ user.name }}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <InputError
+                                                :message="
+                                                    errors.responsible_user_id
+                                                "
+                                            />
+                                        </div>
 
-                                    <!-- Origem do Lead -->
-                                    <div class="space-y-2">
-                                        <Label for="lead_source_id"
-                                            >Origem do Lead</Label
-                                        >
-                                        <Select name="lead_source_id">
-                                            <SelectTrigger id="lead_source_id">
-                                                <SelectValue
-                                                    placeholder="Nenhuma"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem
-                                                    v-for="ls in props.leadSources"
-                                                    :key="ls.uuid"
-                                                    :value="ls.uuid"
-                                                >
-                                                    {{ ls.nome }}
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <InputError
-                                            :message="errors.lead_source_id"
-                                        />
-                                    </div>
-
-                                    <!-- Tarefa Vinculada (placeholder) -->
-                                    <div class="space-y-2">
-                                        <Label for="task_placeholder"
-                                            >Tarefa Vinculada</Label
-                                        >
-                                        <Select disabled>
-                                            <SelectTrigger
-                                                id="task_placeholder"
+                                        <!-- Origem do Lead -->
+                                        <div class="space-y-2">
+                                            <Label for="lead_source_id"
+                                                >Origem do Lead</Label
                                             >
-                                                <SelectValue
-                                                    placeholder="Em breve..."
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent />
-                                        </Select>
+                                            <Select name="lead_source_id">
+                                                <SelectTrigger
+                                                    id="lead_source_id"
+                                                >
+                                                    <SelectValue
+                                                        placeholder="Nenhuma"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem
+                                                        v-for="ls in props.leadSources"
+                                                        :key="ls.uuid"
+                                                        :value="ls.uuid"
+                                                    >
+                                                        {{ ls.nome }}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <InputError
+                                                :message="errors.lead_source_id"
+                                            />
+                                        </div>
+
+                                        <!-- Tarefa Vinculada (placeholder) -->
+                                        <div class="space-y-2">
+                                            <Label for="task_placeholder"
+                                                >Tarefa Vinculada</Label
+                                            >
+                                            <Select disabled>
+                                                <SelectTrigger
+                                                    id="task_placeholder"
+                                                >
+                                                    <SelectValue
+                                                        placeholder="Em breve..."
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent />
+                                            </Select>
+                                        </div>
                                     </div>
-                                </div>
                                 </div>
                             </TabsContent>
 
                             <!-- Aba 2: Aluno / Responsável -->
                             <TabsContent value="aluno" class="m-0">
                                 <div class="space-y-6 p-6">
-                                <!-- Card Aluno -->
-                                <div
-                                    class="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
-                                >
-                                    <h3 class="text-lg font-medium">Aluno</h3>
+                                    <!-- Card Aluno -->
+                                    <div
+                                        class="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
+                                    >
+                                        <h3 class="text-lg font-medium">
+                                            Aluno
+                                        </h3>
 
-                                    <div class="grid gap-4 sm:grid-cols-2">
-                                        <div class="space-y-2">
-                                            <Label for="student_name">
-                                                Nome do Aluno
-                                                <span class="text-destructive"
-                                                    >*</span
-                                                >
-                                            </Label>
-                                            <Input
-                                                id="student_name"
-                                                name="student_name"
-                                                placeholder="Nome completo do aluno"
-                                            />
-                                            <InputError
-                                                :message="errors.student_name"
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <Label for="student-cpf"
-                                                >CPF do Aluno</Label
-                                            >
-                                            <div class="relative">
+                                        <div class="grid gap-4 sm:grid-cols-2">
+                                            <div class="space-y-2">
+                                                <Label for="student_name">
+                                                    Nome do Aluno
+                                                    <span
+                                                        class="text-destructive"
+                                                        >*</span
+                                                    >
+                                                </Label>
                                                 <Input
-                                                    id="student-cpf"
-                                                    placeholder="000.000.000-00"
-                                                    class="pr-8"
-                                                    @input="handleStudentCpfInput"
+                                                    id="student_name"
+                                                    name="student_name"
+                                                    placeholder="Nome completo do aluno"
                                                 />
-                                                <span
-                                                    v-if="isLoadingStudent"
-                                                    class="absolute top-2.5 right-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
-                                                ></span>
+                                                <InputError
+                                                    :message="
+                                                        errors.student_name
+                                                    "
+                                                />
                                             </div>
-                                            <p
-                                                v-if="studentCpfError"
-                                                class="text-xs text-destructive"
-                                            >
-                                                {{ studentCpfError }}
-                                            </p>
-                                        </div>
 
-                                        <div
-                                            v-if="foundStudent"
-                                            class="col-span-full rounded-md border border-green-200 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-900/20"
-                                        >
-                                            <p
-                                                class="font-medium text-green-800 dark:text-green-300"
-                                            >
-                                                Aluno encontrado:
-                                                {{ foundStudent.nome }}
-                                            </p>
-                                            <p
-                                                class="text-green-600 dark:text-green-400"
-                                            >
-                                                CPF: {{ foundStudent.cpf }}
-                                            </p>
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <Label for="grade_id">
-                                                Série/Turma
-                                                <span class="text-destructive"
-                                                    >*</span
+                                            <div class="space-y-2">
+                                                <Label for="student-cpf"
+                                                    >CPF do Aluno</Label
                                                 >
-                                            </Label>
-                                            <Select name="grade_id">
-                                                <SelectTrigger id="grade_id">
-                                                    <SelectValue
-                                                        placeholder="Selecione..."
+                                                <div class="relative">
+                                                    <Input
+                                                        id="student-cpf"
+                                                        placeholder="000.000.000-00"
+                                                        class="pr-8"
+                                                        @input="
+                                                            handleStudentCpfInput
+                                                        "
                                                     />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem
-                                                        v-for="grade in props.grades"
-                                                        :key="grade.uuid"
-                                                        :value="grade.uuid"
-                                                    >
-                                                        {{ grade.nome }}
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <InputError
-                                                :message="errors.grade_id"
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <Label for="segment_id"
-                                                >Segmento</Label
-                                            >
-                                            <Select name="segment_id">
-                                                <SelectTrigger id="segment_id">
-                                                    <SelectValue
-                                                        placeholder="Selecione..."
-                                                    />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem
-                                                        v-for="segment in props.segments"
-                                                        :key="segment.uuid"
-                                                        :value="segment.uuid"
-                                                    >
-                                                        {{ segment.name }}
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <InputError
-                                                :message="errors.segment_id"
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <Label for="school_year_id">
-                                                Ano Letivo
-                                                <span class="text-destructive"
-                                                    >*</span
+                                                    <span
+                                                        v-if="isLoadingStudent"
+                                                        class="absolute top-2.5 right-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
+                                                    ></span>
+                                                </div>
+                                                <p
+                                                    v-if="studentCpfError"
+                                                    class="text-xs text-destructive"
                                                 >
-                                            </Label>
-                                            <Select name="school_year_id">
-                                                <SelectTrigger
-                                                    id="school_year_id"
+                                                    {{ studentCpfError }}
+                                                </p>
+                                            </div>
+
+                                            <div
+                                                v-if="foundStudent"
+                                                class="col-span-full rounded-md border border-green-200 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-900/20"
+                                            >
+                                                <p
+                                                    class="font-medium text-green-800 dark:text-green-300"
                                                 >
-                                                    <SelectValue
-                                                        placeholder="Selecione..."
-                                                    />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem
-                                                        v-for="sy in props.schoolYears"
-                                                        :key="sy.uuid"
-                                                        :value="sy.uuid"
+                                                    Aluno encontrado:
+                                                    {{ foundStudent.nome }}
+                                                </p>
+                                                <p
+                                                    class="text-green-600 dark:text-green-400"
+                                                >
+                                                    CPF: {{ foundStudent.cpf }}
+                                                </p>
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <Label for="grade_id">
+                                                    Série/Turma
+                                                    <span
+                                                        class="text-destructive"
+                                                        >*</span
                                                     >
-                                                        {{ sy.nome }}
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <InputError
-                                                :message="errors.school_year_id"
-                                            />
-                                        </div>
+                                                </Label>
+                                                <Select name="grade_id">
+                                                    <SelectTrigger
+                                                        id="grade_id"
+                                                    >
+                                                        <SelectValue
+                                                            placeholder="Selecione..."
+                                                        />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem
+                                                            v-for="grade in props.grades"
+                                                            :key="grade.uuid"
+                                                            :value="grade.uuid"
+                                                        >
+                                                            {{ grade.nome }}
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <InputError
+                                                    :message="errors.grade_id"
+                                                />
+                                            </div>
 
-                                        <div class="space-y-2">
-                                            <Label>Unidade</Label>
-                                            <Input
-                                                :value="
-                                                    props.school.razao_social
-                                                "
-                                                disabled
-                                                class="bg-muted/50"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+                                            <div class="space-y-2">
+                                                <Label for="segment_id"
+                                                    >Segmento</Label
+                                                >
+                                                <Select name="segment_id">
+                                                    <SelectTrigger
+                                                        id="segment_id"
+                                                    >
+                                                        <SelectValue
+                                                            placeholder="Selecione..."
+                                                        />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem
+                                                            v-for="segment in props.segments"
+                                                            :key="segment.uuid"
+                                                            :value="
+                                                                segment.uuid
+                                                            "
+                                                        >
+                                                            {{ segment.name }}
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <InputError
+                                                    :message="errors.segment_id"
+                                                />
+                                            </div>
 
-                                <!-- Card Responsável -->
-                                <div
-                                    class="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
-                                >
-                                    <h3 class="text-lg font-medium">
-                                        Responsável
-                                    </h3>
+                                            <div class="space-y-2">
+                                                <Label for="school_year_id">
+                                                    Ano Letivo
+                                                    <span
+                                                        class="text-destructive"
+                                                        >*</span
+                                                    >
+                                                </Label>
+                                                <Select name="school_year_id">
+                                                    <SelectTrigger
+                                                        id="school_year_id"
+                                                    >
+                                                        <SelectValue
+                                                            placeholder="Selecione..."
+                                                        />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem
+                                                            v-for="sy in props.schoolYears"
+                                                            :key="sy.uuid"
+                                                            :value="sy.uuid"
+                                                        >
+                                                            {{ sy.nome }}
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <InputError
+                                                    :message="
+                                                        errors.school_year_id
+                                                    "
+                                                />
+                                            </div>
 
-                                    <div class="grid gap-4 sm:grid-cols-2">
-                                        <div class="space-y-2">
-                                            <Label for="guardian_name"
-                                                >Nome do Responsável</Label
-                                            >
-                                            <Input
-                                                id="guardian_name"
-                                                name="guardian_name"
-                                                placeholder="Nome completo do responsável"
-                                            />
-                                            <InputError
-                                                :message="errors.guardian_name"
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <Label for="guardian-cpf"
-                                                >CPF do Responsável</Label
-                                            >
-                                            <div class="relative">
+                                            <div class="space-y-2">
+                                                <Label>Unidade</Label>
                                                 <Input
-                                                    id="guardian-cpf"
-                                                    placeholder="000.000.000-00"
-                                                    class="pr-8"
-                                                    @input="handleGuardianCpfInput"
+                                                    :value="
+                                                        props.school
+                                                            .razao_social
+                                                    "
+                                                    disabled
+                                                    class="bg-muted/50"
                                                 />
-                                                <span
-                                                    v-if="isLoadingGuardian"
-                                                    class="absolute top-2.5 right-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
-                                                ></span>
                                             </div>
-                                            <p
-                                                v-if="guardianCpfError"
-                                                class="text-xs text-destructive"
-                                            >
-                                                {{ guardianCpfError }}
-                                            </p>
-                                        </div>
-
-                                        <div
-                                            v-if="foundGuardian"
-                                            class="col-span-full rounded-md border border-green-200 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-900/20"
-                                        >
-                                            <p
-                                                class="font-medium text-green-800 dark:text-green-300"
-                                            >
-                                                Responsável encontrado:
-                                                {{ foundGuardian.nome }}
-                                            </p>
-                                            <p
-                                                class="text-green-600 dark:text-green-400"
-                                            >
-                                                CPF: {{ foundGuardian.cpf }}
-                                            </p>
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <Label for="guardian_phone"
-                                                >Telefone</Label
-                                            >
-                                            <Input
-                                                id="guardian_phone"
-                                                name="guardian_phone"
-                                                placeholder="(00) 00000-0000"
-                                            />
-                                            <InputError
-                                                :message="errors.guardian_phone"
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <Label for="guardian_email"
-                                                >E-mail</Label
-                                            >
-                                            <Input
-                                                id="guardian_email"
-                                                name="guardian_email"
-                                                type="email"
-                                                placeholder="email@exemplo.com"
-                                            />
-                                            <InputError
-                                                :message="errors.guardian_email"
-                                            />
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Card Endereço -->
-                                <div
-                                    class="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
-                                >
-                                    <h3 class="text-lg font-medium">
-                                        Endereço
-                                    </h3>
+                                    <!-- Card Responsável -->
+                                    <div
+                                        class="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
+                                    >
+                                        <h3 class="text-lg font-medium">
+                                            Responsável
+                                        </h3>
 
-                                    <div class="grid gap-4 sm:grid-cols-2">
-                                        <div class="space-y-2">
-                                            <Label for="zip_code">CEP</Label>
-                                            <Input
-                                                id="zip_code"
-                                                name="zip_code"
-                                                placeholder="00000-000"
-                                            />
-                                            <InputError
-                                                :message="errors.zip_code"
-                                            />
-                                        </div>
+                                        <div class="grid gap-4 sm:grid-cols-2">
+                                            <div class="space-y-2">
+                                                <Label for="guardian_name"
+                                                    >Nome do Responsável</Label
+                                                >
+                                                <Input
+                                                    id="guardian_name"
+                                                    name="guardian_name"
+                                                    placeholder="Nome completo do responsável"
+                                                />
+                                                <InputError
+                                                    :message="
+                                                        errors.guardian_name
+                                                    "
+                                                />
+                                            </div>
 
-                                        <div class="space-y-2">
-                                            <Label for="street"
-                                                >Logradouro</Label
+                                            <div class="space-y-2">
+                                                <Label for="guardian-cpf"
+                                                    >CPF do Responsável</Label
+                                                >
+                                                <div class="relative">
+                                                    <Input
+                                                        id="guardian-cpf"
+                                                        placeholder="000.000.000-00"
+                                                        class="pr-8"
+                                                        @input="
+                                                            handleGuardianCpfInput
+                                                        "
+                                                    />
+                                                    <span
+                                                        v-if="isLoadingGuardian"
+                                                        class="absolute top-2.5 right-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
+                                                    ></span>
+                                                </div>
+                                                <p
+                                                    v-if="guardianCpfError"
+                                                    class="text-xs text-destructive"
+                                                >
+                                                    {{ guardianCpfError }}
+                                                </p>
+                                            </div>
+
+                                            <div
+                                                v-if="foundGuardian"
+                                                class="col-span-full rounded-md border border-green-200 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-900/20"
                                             >
-                                            <Input
-                                                id="street"
-                                                name="street"
-                                                placeholder="Rua, Av., etc."
-                                            />
-                                            <InputError
-                                                :message="errors.street"
-                                            />
-                                        </div>
+                                                <p
+                                                    class="font-medium text-green-800 dark:text-green-300"
+                                                >
+                                                    Responsável encontrado:
+                                                    {{ foundGuardian.nome }}
+                                                </p>
+                                                <p
+                                                    class="text-green-600 dark:text-green-400"
+                                                >
+                                                    CPF: {{ foundGuardian.cpf }}
+                                                </p>
+                                            </div>
 
-                                        <div class="space-y-2">
-                                            <Label for="number">Número</Label>
-                                            <Input
-                                                id="number"
-                                                name="number"
-                                                placeholder="Número"
-                                            />
-                                            <InputError
-                                                :message="errors.number"
-                                            />
-                                        </div>
+                                            <div class="space-y-2">
+                                                <Label for="guardian_phone"
+                                                    >Telefone</Label
+                                                >
+                                                <Input
+                                                    id="guardian_phone"
+                                                    name="guardian_phone"
+                                                    placeholder="(00) 00000-0000"
+                                                />
+                                                <InputError
+                                                    :message="
+                                                        errors.guardian_phone
+                                                    "
+                                                />
+                                            </div>
 
-                                        <div class="space-y-2">
-                                            <Label for="neighborhood"
-                                                >Bairro</Label
-                                            >
-                                            <Input
-                                                id="neighborhood"
-                                                name="neighborhood"
-                                                placeholder="Bairro"
-                                            />
-                                            <InputError
-                                                :message="errors.neighborhood"
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <Label for="city">Cidade</Label>
-                                            <Input
-                                                id="city"
-                                                name="city"
-                                                placeholder="Cidade"
-                                            />
-                                            <InputError
-                                                :message="errors.city"
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <Label for="state">Estado</Label>
-                                            <Input
-                                                id="state"
-                                                name="state"
-                                                placeholder="UF"
-                                            />
-                                            <InputError
-                                                :message="errors.state"
-                                            />
+                                            <div class="space-y-2">
+                                                <Label for="guardian_email"
+                                                    >E-mail</Label
+                                                >
+                                                <Input
+                                                    id="guardian_email"
+                                                    name="guardian_email"
+                                                    type="email"
+                                                    placeholder="email@exemplo.com"
+                                                />
+                                                <InputError
+                                                    :message="
+                                                        errors.guardian_email
+                                                    "
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+
+                                    <!-- Card Endereço -->
+                                    <div
+                                        class="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
+                                    >
+                                        <h3 class="text-lg font-medium">
+                                            Endereço
+                                        </h3>
+
+                                        <div class="grid gap-4 sm:grid-cols-2">
+                                            <div class="space-y-2">
+                                                <Label for="zip_code"
+                                                    >CEP</Label
+                                                >
+                                                <Input
+                                                    id="zip_code"
+                                                    name="zip_code"
+                                                    placeholder="00000-000"
+                                                />
+                                                <InputError
+                                                    :message="errors.zip_code"
+                                                />
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <Label for="street"
+                                                    >Logradouro</Label
+                                                >
+                                                <Input
+                                                    id="street"
+                                                    name="street"
+                                                    placeholder="Rua, Av., etc."
+                                                />
+                                                <InputError
+                                                    :message="errors.street"
+                                                />
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <Label for="number"
+                                                    >Número</Label
+                                                >
+                                                <Input
+                                                    id="number"
+                                                    name="number"
+                                                    placeholder="Número"
+                                                />
+                                                <InputError
+                                                    :message="errors.number"
+                                                />
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <Label for="neighborhood"
+                                                    >Bairro</Label
+                                                >
+                                                <Input
+                                                    id="neighborhood"
+                                                    name="neighborhood"
+                                                    placeholder="Bairro"
+                                                />
+                                                <InputError
+                                                    :message="
+                                                        errors.neighborhood
+                                                    "
+                                                />
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <Label for="city">Cidade</Label>
+                                                <Input
+                                                    id="city"
+                                                    name="city"
+                                                    placeholder="Cidade"
+                                                />
+                                                <InputError
+                                                    :message="errors.city"
+                                                />
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <Label for="state"
+                                                    >Estado</Label
+                                                >
+                                                <Input
+                                                    id="state"
+                                                    name="state"
+                                                    placeholder="UF"
+                                                />
+                                                <InputError
+                                                    :message="errors.state"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </TabsContent>
 
                             <!-- Aba 3: Informações Complementares -->
-                            <TabsContent
-                                value="complementar"
-                                class="m-0"
-                            >
+                            <TabsContent value="complementar" class="m-0">
                                 <div class="space-y-6 p-6">
-                                <div class="space-y-2">
-                                    <Label for="history">Histórico</Label>
-                                    <textarea
-                                        id="history"
-                                        name="history"
-                                        rows="5"
-                                        placeholder="Histórico da oportunidade..."
-                                        class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                    ></textarea>
-                                    <InputError :message="errors.history" />
-                                </div>
+                                    <div class="space-y-2">
+                                        <Label for="history">Histórico</Label>
+                                        <textarea
+                                            id="history"
+                                            name="history"
+                                            rows="5"
+                                            placeholder="Histórico da oportunidade..."
+                                            class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                        ></textarea>
+                                        <InputError :message="errors.history" />
+                                    </div>
 
-                                <div class="space-y-2">
-                                    <Label for="indications"
-                                        >Indicações / Referências</Label
-                                    >
-                                    <textarea
-                                        id="indications"
-                                        name="indications"
-                                        rows="5"
-                                        placeholder="Indicações / referências..."
-                                        class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                    ></textarea>
-                                    <InputError :message="errors.indications" />
-                                </div>
+                                    <div class="space-y-2">
+                                        <Label for="indications"
+                                            >Indicações / Referências</Label
+                                        >
+                                        <textarea
+                                            id="indications"
+                                            name="indications"
+                                            rows="5"
+                                            placeholder="Indicações / referências..."
+                                            class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                        ></textarea>
+                                        <InputError
+                                            :message="errors.indications"
+                                        />
+                                    </div>
                                 </div>
                             </TabsContent>
                         </Tabs>

@@ -221,7 +221,9 @@ function detachUser(userUuid: string) {
                                                 name="cnpj"
                                                 placeholder="00.000.000/0000-00"
                                                 maxlength="18"
-                                                :default-value="props.school.cnpj"
+                                                :default-value="
+                                                    props.school.cnpj
+                                                "
                                                 @input="handleCnpjInput"
                                             />
                                             <span
@@ -265,9 +267,11 @@ function detachUser(userUuid: string) {
                                                 props.school.nome_fantasia ?? ''
                                             "
                                         />
-                                        <p class="text-xs text-muted-foreground">
-                                            Quando preenchido, é exibido no
-                                            menu de seleção de escola.
+                                        <p
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            Quando preenchido, é exibido no menu
+                                            de seleção de escola.
                                         </p>
                                         <InputError
                                             :message="errors.nome_fantasia"

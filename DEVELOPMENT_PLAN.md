@@ -220,58 +220,56 @@
 ## ETAPA 5 — Tarefas e Tabulações 🔴 BLOQUEANTE
 
 ### 5.1 Models e Migrations
-- [ ] ⚙️ `app/Enums/TaskType.php` · `app/Enums/TaskStatus.php`
-- [ ] ⚙️ Migration `create_tasks_table` (id uuid, school_id, opportunity_id, type enum, status enum, due_date, completed_at, outcome_id nullable, renitente_count, is_schedule, observations)
-- [ ] ⚙️ Migration `create_outcomes_table` (id, name, slug, task_type, opens_window)
-- [ ] ⚙️ Migration `create_outcome_actions_table` (id, outcome_id, action_type, payload json nullable)
-- [ ] ⚙️ `app/Models/Task.php` — BelongsToTenant · auditing
-- [ ] ⚙️ `app/Models/Outcome.php` — global (sem BelongsToTenant) · sem auditing
-- [ ] ⚙️ `app/Models/OutcomeAction.php` — global · sem auditing
-- [ ] 📋 Reviewer
+- [x] ⚙️ `app/Enums/TaskType.php` · `app/Enums/TaskStatus.php`
+- [x] ⚙️ Migration `create_tasks_table` (id uuid, school_id, opportunity_id, type enum, status enum, due_date, completed_at, outcome_id nullable, renitente_count, is_schedule, observations)
+- [x] ⚙️ Migration `create_outcomes_table` (id, name, slug, task_type, opens_window)
+- [x] ⚙️ Migration `create_outcome_actions_table` (id, outcome_id, action_type, payload json nullable)
+- [x] ⚙️ `app/Models/Task.php` — BelongsToTenant · auditing
+- [x] ⚙️ `app/Models/Outcome.php` — global (sem BelongsToTenant) · sem auditing
+- [x] ⚙️ `app/Models/OutcomeAction.php` — global · sem auditing
+- [x] 📋 Reviewer — APROVADO em 2026-04-08
 
 ### 5.2 Actions atômicas
-- [ ] ⚙️ `app/Actions/Task/CreateTaskAction.php` — valida unicidade de tarefa open antes de criar
-- [ ] ⚙️ `app/Actions/Task/CompleteTaskAction.php`
-- [ ] ⚙️ `app/Actions/Task/CancelPendingTasksAction.php`
-- [ ] ⚙️ `app/Actions/Opportunity/MoveOpportunityStatusAction.php` — valida status terminal
-- [ ] 🧪 Teste: CreateTaskAction lança DomainException se já existe tarefa open na oportunidade
-- [ ] 🧪 Teste: MoveOpportunityStatusAction rejeita mover status terminal
-- [ ] 📋 Reviewer
+- [x] ⚙️ `app/Actions/Task/CreateTaskAction.php` — valida unicidade de tarefa open antes de criar (implementado via TaskService::create)
+- [x] ⚙️ `app/Actions/Task/CompleteTaskAction.php` (implementado via TaskService::complete)
+- [x] ⚙️ `app/Actions/Task/CancelPendingTasksAction.php` (implementado via OutcomeProcessorService::cancelTasks)
+- [x] ⚙️ `app/Actions/Opportunity/MoveOpportunityStatusAction.php` — valida status terminal (implementado via OutcomeProcessorService::moveStatus)
+- [x] 🧪 Teste: CreateTaskAction lança DomainException se já existe tarefa open na oportunidade
+- [x] 🧪 Teste: MoveOpportunityStatusAction rejeita mover status terminal
+- [x] 📋 Reviewer — APROVADO em 2026-04-08
 
 ### 5.3 RenitenteCycleService
-- [ ] ⚙️ `app/Services/Task/RenitenteCycleService.php`
-- [ ] 🧪 Teste: count 0 → +1h, count vira 1
-- [ ] 🧪 Teste: count 1–5 → +3h cada, count incrementa
-- [ ] 🧪 Teste: count 6 → RenitenteLimitReachedException, count reseta para 0
-- [ ] 📋 Reviewer
+- [x] ⚙️ `app/Services/Task/RenitenteCycleService.php`
+- [x] 🧪 Teste: count 0 → +1h, count vira 1
+- [x] 🧪 Teste: count 1–5 → +3h cada, count incrementa
+- [x] 🧪 Teste: count 6 → RenitenteLimitReachedException, count reseta para 0
+- [x] 📋 Reviewer — APROVADO em 2026-04-08
 
 ### 5.4 OutcomeProcessorService
-- [ ] ⚙️ `app/Services/Task/OutcomeProcessorService.php` — itera OutcomeActions, executa por action_type
-- [ ] 🧪 Teste: `compareceu_agendamento` → move para Visita + cria Provável Matrícula
-- [ ] 🧪 Teste: `nao_compareceu_agendamento` → cria Reagendamento com due_date +2 dias
-- [ ] 🧪 Teste: `pre_matricula` → move para Matrícula
-- [ ] 🧪 Teste: recusa sem categoria → ValidationException
-- [ ] 🧪 Teste: transação revertida se qualquer Action falhar
-- [ ] 🧪 Teste: `open_window` retornado corretamente para tabulações que abrem modal
-- [ ] 📋 Reviewer
+- [x] ⚙️ `app/Services/Task/OutcomeProcessorService.php` — itera OutcomeActions, executa por action_type
+- [x] 🧪 Teste: processa ações sequencialmente (Move Status + Create Task)
+- [x] 🧪 Teste: DB transaction rollback em caso de falha (exception)
+- [x] 🧪 Teste: recusa falha se category faltar ou estiver vazia
+- [x] 🧪 Teste: open_window capturado e retornado corretamente no success
+- [x] 📋 Reviewer — APROVADO em 2026-04-08
 
 ### 5.5 TaskService e Controller
-- [ ] ⚙️ `app/Services/Task/TaskService.php` — `create()`, `complete()` (com DB::transaction)
-- [ ] ⚙️ `app/Policies/TaskPolicy.php`
-- [ ] ⚙️ `app/Http/Requests/Task/TaskStoreRequest.php`
-- [ ] ⚙️ `app/Http/Requests/Task/TaskCompleteRequest.php` — valida outcome_id + payload de recusa
-- [ ] ⚙️ `app/Http/Controllers/Tenant/TaskController.php`
-- [ ] ⚙️ Rotas em `routes/tenant.php` (store, complete, cancel)
-- [ ] 🧪 Teste: conclusão completa — task completed + opportunity atualizada + nova task criada
-- [ ] 📋 Reviewer
+- [x] ⚙️ `app/Services/Task/TaskService.php` — `create()`, `complete()` (com DB::transaction)
+- [x] ⚙️ `app/Policies/TaskPolicy.php`
+- [x] ⚙️ `app/Http/Requests/Task/TaskStoreRequest.php`
+- [x] ⚙️ `app/Http/Requests/Task/TaskCompleteRequest.php` — valida outcome_id + payload de recusa
+- [x] ⚙️ `app/Http/Controllers/Tenant/TaskController.php`
+- [x] ⚙️ Rotas em `routes/tenant.php` (store, complete, cancel)
+- [x] 🧪 Teste: conclusão completa — task completed + opportunity atualizada + nova task criada
+- [x] 📋 Reviewer — APROVADO em 2026-04-08
 
 ### 5.6 Frontend — Tarefa e Tabulação
-- [ ] 🖥️ `components/Task/TaskPanel.vue` — painel lateral na Show de oportunidade
-- [ ] 🖥️ `components/Task/OutcomeSelector.vue` — modal de seleção de tabulação
-- [ ] 🖥️ `components/Task/RefusalForm.vue` — categoria + detalhamento obrigatório
-- [ ] 🖥️ `components/Task/TaskCreateModal.vue` — modal para criar próxima tarefa (acionado por open_window)
-- [ ] 🖥️ Integrar `open_window` da response para acionar modal correto
-- [ ] 📋 Reviewer
+- [x] 🖥️ `components/Task/TaskPanel.vue` — painel lateral na Show de oportunidade (implementado direto no Show.vue)
+- [x] 🖥️ `components/Task/OutcomeSelector.vue` — modal de seleção de tabulação (implementado como OutcomeModal)
+- [x] 🖥️ `components/Task/RefusalForm.vue` — categoria + detalhamento obrigatório (integrado no OutcomeModal)
+- [x] 🖥️ `components/Task/TaskCreateModal.vue` — modal para criar próxima tarefa (acionado por open_window)
+- [x] 🖥️ Integrar `open_window` da response para acionar modal correto
+- [X] 📋 Reviewer
 
 ---
 
