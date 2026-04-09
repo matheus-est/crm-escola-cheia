@@ -92,4 +92,9 @@ class Opportunity extends Model implements Auditable
     {
         return $this->belongsTo(Segment::class);
     }
+
+    public function events(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_opportunity');
+    }
 }

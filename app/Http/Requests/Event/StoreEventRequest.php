@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests\Event;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreEventRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'title' => ['required', 'string', 'max:255'],
+            'event_type' => ['nullable', 'string', 'max:60'],
+            'has_no_date' => ['sometimes', 'boolean'],
+            'grade_uuid' => ['nullable', 'exists:grades,uuid'],
+            'event_date' => ['required_unless:has_no_date,true', 'nullable', 'date'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'max_capacity' => ['nullable', 'integer', 'min:1'],
+            'room_uuids' => ['nullable', 'array'],
+            'room_uuids.*' => ['exists:rooms,uuid'],
+        ];
+    }
+}

@@ -933,7 +933,11 @@ function handleError(): void {
                         <Button
                             v-if="!isTerminal"
                             type="submit"
-                            :disabled="processing || !!guardianCpfInvalidError || isValidatingGuardianCpf"
+                            :disabled="
+                                processing ||
+                                !!guardianCpfInvalidError ||
+                                isValidatingGuardianCpf
+                            "
                             class="bg-green-600 text-sm text-white hover:bg-green-700"
                         >
                             {{

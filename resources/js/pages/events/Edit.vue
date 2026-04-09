@@ -1,0 +1,640 @@
+<script setup lang="ts">
+import { Form, Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Plus, Search, Trash2, UserPlus } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import Heading from '@/components/Heading.vue';
+import InputError from '@/components/InputError.vue';
+import RoomFormDialog from '@/components/RoomFormDialog.vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/composables/useToast';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { index, update } from '@/routes/tenant/events/index';
+import { attach, detach } from '@/routes/tenant/events/opportunities/index';
+import type { BreadcrumbItem } from '@/types';
+import type {
+    Event,
+    Grade,
+    Opportunity,
+    OpportunityStatus,
+    Room,
+} from '@/types/crm';
+
+const props = defineProps<{
+    event: Event & {
+        opportunities: (Opportunity & { student?: { nome: string } | null })[];
+    };
+    grades: Grade[];
+    rooms: Room[];
+    school_name: string;
+}>();
+
+const breadcrumbItems: BreadcrumbItem[] = [
+    { title: 'Eventos', href: index().url },
+    { title: 'Editar Evento', href: '#' },
+];
+
+const toast = useToast();
+
+type Tab = 'sobre' | 'salas' | 'oportunidades';
+const activeTab = ref<Tab>('sobre');
+
+const tabs = [
+    { value: 'sobre' as Tab, label: 'Sobre o Evento' },
+    { value: 'salas' as Tab, label: 'Salas' },
+    { value: 'oportunidades' as Tab, label: 'Oportunidades' },
+];
+
+// has_no_date checkbox
+const hasNoDate = ref(props.event.has_no_date);
+
+// Rooms selection — pre-select rooms from event
+const selectedRoomUuids = ref<string[]>(
+    props.event.rooms?.map((r) => r.uuid) ?? [],
+);
+const roomSearch = ref('');
+
+const filteredRooms = computed(() =>
+    props.rooms.filter((r) =>
+        r.name.toLowerCase().includes(roomSearch.value.toLowerCase()),
+    ),
+);
+
+function toggleRoom(uuid: string): void {
+    const idx = selectedRoomUuids.value.indexOf(uuid);
+    if (idx === -1) {
+        selectedRoomUuids.value.push(uuid);
+    } else {
+        selectedRoomUuids.value.splice(idx, 1);
+    }
+}
+
+function isRoomSelected(uuid: string): boolean {
+    return selectedRoomUuids.value.includes(uuid);
+}
+
+// RoomFormDialog
+const showRoomDialog = ref(false);
+
+function handleRoomCreated(): void {
+    router.reload({ preserveUrl: true });
+}
+
+function formatDatetimeLocal(dateStr: string | null): string {
+    if (!dateStr) return '';
+    return dateStr.slice(0, 16);
+}
+
+function handleSuccess(): void {
+    toast.success('Evento atualizado com sucesso.');
+}
+
+function handleError(): void {
+    toast.error('Erro ao atualizar evento. Verifique os campos.');
+}
+
+// Opportunity status labels/classes
+const statusLabels: Record<OpportunityStatus, string> = {
+    cadastro_inicial: 'Cadastro Inicial',
+    agendamento: 'Agendamento',
+    visita: 'Visita',
+    matricula: 'Matrícula',
+    recusado: 'Recusado',
+};
+
+const statusClasses: Record<OpportunityStatus, string> = {
+    cadastro_inicial:
+        'bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-400/10 dark:text-blue-400 dark:ring-blue-400/20',
+    agendamento:
+        'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-400 dark:ring-yellow-400/20',
+    visita: 'bg-purple-50 text-purple-700 ring-purple-600/20 dark:bg-purple-400/10 dark:text-purple-400 dark:ring-purple-400/20',
+    matricula:
+        'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-400/10 dark:text-green-400 dark:ring-green-400/20',
+    recusado:
+        'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-400/10 dark:text-red-400 dark:ring-red-400/20',
+};
+
+// Attach opportunity
+const attachForm = useForm({
+    opportunity_uuid: '',
+});
+
+function submitAttach(): void {
+    attachForm.post(attach({ event: props.event.uuid }).url, {
+        preserveScroll: false,
+        onSuccess: () => {
+            attachForm.reset();
+            toast.success('Oportunidade vinculada com sucesso.');
+        },
+        onError: () => {
+            toast.error(
+                attachForm.errors.opportunity_uuid ??
+                    'Erro ao vincular oportunidade.',
+            );
+        },
+    });
+}
+
+// Detach opportunity
+const detachingUuid = ref<string | null>(null);
+
+function handleDetach(opportunityUuid: string): void {
+    detachingUuid.value = opportunityUuid;
+    router.delete(
+        detach({ event: props.event.uuid, opportunity: opportunityUuid }).url,
+        {
+            onSuccess: () => {
+                toast.success('Oportunidade desvinculada.');
+                detachingUuid.value = null;
+                router.reload({ preserveUrl: true });
+            },
+            onError: () => {
+                toast.error('Erro ao desvincular oportunidade.');
+                detachingUuid.value = null;
+            },
+        },
+    );
+}
+</script>
+
+<template>
+    <AppLayout :breadcrumbs="breadcrumbItems">
+        <Head title="Editar Evento" />
+
+        <div class="space-y-4">
+            <div class="flex items-center gap-4">
+                <Link :href="index().url" class="rounded-md p-2 hover:bg-muted">
+                    <ArrowLeft class="h-5 w-5" />
+                </Link>
+                <Heading title="Editar Evento" class="pt-8" />
+            </div>
+
+            <div class="rounded-md border">
+                <Form
+                    method="put"
+                    :action="update({ event: props.event.uuid }).url"
+                    class="space-y-6"
+                    v-slot="{ errors, processing }"
+                    @success="handleSuccess"
+                    @error="handleError"
+                >
+                    <div class="p-6">
+                        <!-- Tabs nav -->
+                        <div class="flex border-b">
+                            <button
+                                v-for="tab in tabs"
+                                :key="tab.value"
+                                type="button"
+                                class="px-4 py-3 text-sm font-medium transition-colors"
+                                :class="
+                                    activeTab === tab.value
+                                        ? 'border-b-2 border-primary text-primary'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                "
+                                @click="activeTab = tab.value"
+                            >
+                                {{ tab.label }}
+                            </button>
+                        </div>
+
+                        <!-- Tab 1: Sobre o Evento -->
+                        <div
+                            v-show="activeTab === 'sobre'"
+                            class="space-y-6 p-6"
+                        >
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div class="space-y-2 sm:col-span-2">
+                                    <Label for="title">
+                                        Título do Evento
+                                        <span class="text-destructive">*</span>
+                                    </Label>
+                                    <Input
+                                        id="title"
+                                        name="title"
+                                        :default-value="props.event.title"
+                                        placeholder="Título do evento"
+                                        required
+                                    />
+                                    <InputError :message="errors.title" />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="event_type"
+                                        >Tipo do Evento</Label
+                                    >
+                                    <Select
+                                        name="event_type"
+                                        :default-value="
+                                            props.event.event_type ?? undefined
+                                        "
+                                    >
+                                        <SelectTrigger id="event_type">
+                                            <SelectValue
+                                                placeholder="Selecione..."
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="palestra"
+                                                >Palestra</SelectItem
+                                            >
+                                            <SelectItem value="workshop"
+                                                >Workshop</SelectItem
+                                            >
+                                            <SelectItem value="visita"
+                                                >Visita</SelectItem
+                                            >
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError :message="errors.event_type" />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="grade_uuid">Série</Label>
+                                    <Select
+                                        name="grade_uuid"
+                                        :default-value="
+                                            props.event.grade?.uuid ?? undefined
+                                        "
+                                    >
+                                        <SelectTrigger id="grade_uuid">
+                                            <SelectValue
+                                                placeholder="Selecione..."
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="grade in props.grades"
+                                                :key="grade.uuid"
+                                                :value="grade.uuid"
+                                            >
+                                                {{ grade.nome }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError :message="errors.grade_uuid" />
+                                </div>
+
+                                <div
+                                    class="flex items-center gap-2 sm:col-span-2"
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="has_no_date"
+                                        value="0"
+                                    />
+                                    <Checkbox
+                                        id="has_no_date"
+                                        name="has_no_date"
+                                        :checked="hasNoDate"
+                                        @update:checked="
+                                            (val: boolean) => {
+                                                hasNoDate = val;
+                                            }
+                                        "
+                                    />
+                                    <Label
+                                        for="has_no_date"
+                                        class="cursor-pointer"
+                                    >
+                                        Este evento não possui Data
+                                    </Label>
+                                </div>
+
+                                <div v-if="!hasNoDate" class="space-y-2">
+                                    <Label for="event_date"
+                                        >Data do Evento</Label
+                                    >
+                                    <Input
+                                        id="event_date"
+                                        type="datetime-local"
+                                        name="event_date"
+                                        :default-value="
+                                            formatDatetimeLocal(
+                                                props.event.event_date,
+                                            )
+                                        "
+                                    />
+                                    <InputError :message="errors.event_date" />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="location">Local</Label>
+                                    <Input
+                                        id="location"
+                                        name="location"
+                                        :default-value="
+                                            props.event.location ?? ''
+                                        "
+                                        placeholder="Local do evento"
+                                    />
+                                    <InputError :message="errors.location" />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="max_capacity"
+                                        >Número Máximo De Inscritos</Label
+                                    >
+                                    <Input
+                                        id="max_capacity"
+                                        type="number"
+                                        name="max_capacity"
+                                        min="1"
+                                        :default-value="
+                                            props.event.max_capacity !== null
+                                                ? String(
+                                                      props.event.max_capacity,
+                                                  )
+                                                : ''
+                                        "
+                                        placeholder="Ex: 50"
+                                    />
+                                    <InputError
+                                        :message="errors.max_capacity"
+                                    />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label>Unidade</Label>
+                                    <Input
+                                        :value="props.school_name"
+                                        disabled
+                                        class="bg-muted/50"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Salas -->
+                        <div
+                            v-show="activeTab === 'salas'"
+                            class="space-y-4 p-6"
+                        >
+                            <!-- Hidden inputs for selected rooms -->
+                            <input
+                                v-for="uuid in selectedRoomUuids"
+                                :key="uuid"
+                                type="hidden"
+                                name="room_uuids[]"
+                                :value="uuid"
+                            />
+
+                            <div
+                                class="flex items-center justify-between gap-4"
+                            >
+                                <div class="relative flex-1">
+                                    <Search
+                                        class="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground"
+                                    />
+                                    <Input
+                                        v-model="roomSearch"
+                                        placeholder="Buscar sala..."
+                                        class="pl-9"
+                                    />
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    class="shrink-0"
+                                    @click="showRoomDialog = true"
+                                >
+                                    <Plus class="mr-2 h-4 w-4" />
+                                    Adicionar Sala
+                                </Button>
+                            </div>
+
+                            <div
+                                v-if="filteredRooms.length > 0"
+                                class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+                            >
+                                <Card
+                                    v-for="room in filteredRooms"
+                                    :key="room.uuid"
+                                    class="cursor-pointer transition-all"
+                                    :class="
+                                        isRoomSelected(room.uuid)
+                                            ? 'ring-2 ring-primary'
+                                            : 'hover:bg-muted/30'
+                                    "
+                                    @click="toggleRoom(room.uuid)"
+                                >
+                                    <CardContent class="p-4">
+                                        <div
+                                            class="flex items-start justify-between gap-2"
+                                        >
+                                            <div class="min-w-0">
+                                                <p
+                                                    class="truncate font-medium text-foreground"
+                                                >
+                                                    {{ room.name }}
+                                                </p>
+                                                <p
+                                                    class="text-xs text-muted-foreground"
+                                                >
+                                                    {{
+                                                        room.capacity
+                                                            ? `máx. ${room.capacity} pessoas`
+                                                            : 'Sem capacidade definida'
+                                                    }}
+                                                </p>
+                                            </div>
+                                            <span
+                                                v-if="room.is_external"
+                                                class="inline-flex shrink-0 items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-600/20 ring-inset dark:bg-amber-400/10 dark:text-amber-400 dark:ring-amber-400/20"
+                                            >
+                                                Externa
+                                            </span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            <div
+                                v-else
+                                class="py-8 text-center text-sm text-muted-foreground"
+                            >
+                                {{
+                                    roomSearch
+                                        ? 'Nenhuma sala encontrada para a busca.'
+                                        : 'Nenhuma sala cadastrada.'
+                                }}
+                            </div>
+                        </div>
+
+                        <!-- Tab 3: Oportunidades -->
+                        <div
+                            v-show="activeTab === 'oportunidades'"
+                            class="space-y-6 p-6"
+                        >
+                            <!-- Opportunities table -->
+                            <div v-if="props.event.opportunities.length > 0">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b">
+                                            <th
+                                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                                            >
+                                                Aluno
+                                            </th>
+                                            <th
+                                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                                            >
+                                                Status
+                                            </th>
+                                            <th
+                                                class="px-3 pb-3 text-right font-medium text-muted-foreground"
+                                            >
+                                                Ações
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-border/50">
+                                        <tr
+                                            v-for="opp in props.event
+                                                .opportunities"
+                                            :key="opp.uuid"
+                                            class="transition-colors hover:bg-muted/30"
+                                        >
+                                            <td
+                                                class="px-3 py-3 font-medium text-foreground"
+                                            >
+                                                {{ opp.student?.nome ?? '—' }}
+                                            </td>
+                                            <td class="px-3 py-3">
+                                                <span
+                                                    class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset"
+                                                    :class="
+                                                        statusClasses[
+                                                            opp.status
+                                                        ]
+                                                    "
+                                                >
+                                                    {{
+                                                        statusLabels[opp.status]
+                                                    }}
+                                                </span>
+                                            </td>
+                                            <td class="px-3 py-3 text-right">
+                                                <button
+                                                    type="button"
+                                                    class="inline-flex items-center gap-1.5 rounded p-1 text-destructive hover:bg-muted"
+                                                    title="Desvincular"
+                                                    :disabled="
+                                                        detachingUuid ===
+                                                        opp.uuid
+                                                    "
+                                                    @click="
+                                                        handleDetach(opp.uuid)
+                                                    "
+                                                >
+                                                    <Trash2 class="h-4 w-4" />
+                                                    <span class="text-xs"
+                                                        >Desvincular</span
+                                                    >
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div
+                                v-else
+                                class="py-8 text-center text-sm text-muted-foreground"
+                            >
+                                Nenhuma oportunidade vinculada a este evento.
+                            </div>
+
+                            <!-- Attach opportunity form -->
+                            <div class="rounded-md border bg-muted/20 p-4">
+                                <h3
+                                    class="mb-3 flex items-center gap-2 text-sm font-medium"
+                                >
+                                    <UserPlus class="h-4 w-4" />
+                                    Vincular Oportunidade
+                                </h3>
+                                <form
+                                    class="flex items-end gap-3"
+                                    @submit.prevent="submitAttach"
+                                >
+                                    <div class="grid flex-1 gap-1.5">
+                                        <Label
+                                            for="opportunity_uuid"
+                                            class="text-xs"
+                                        >
+                                            UUID da Oportunidade
+                                        </Label>
+                                        <Input
+                                            id="opportunity_uuid"
+                                            v-model="
+                                                attachForm.opportunity_uuid
+                                            "
+                                            placeholder="Cole o UUID da oportunidade..."
+                                            class="h-9"
+                                        />
+                                        <InputError
+                                            :message="
+                                                attachForm.errors
+                                                    .opportunity_uuid
+                                            "
+                                        />
+                                    </div>
+                                    <Button
+                                        type="submit"
+                                        size="sm"
+                                        :disabled="
+                                            attachForm.processing ||
+                                            !attachForm.opportunity_uuid
+                                        "
+                                        class="h-9"
+                                    >
+                                        Vincular
+                                    </Button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex items-center justify-between gap-4 border-t bg-muted/20 px-6 py-4"
+                    >
+                        <Button
+                            type="button"
+                            variant="outline"
+                            :disabled="processing"
+                            class="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                            @click="() => router.visit(index().url)"
+                        >
+                            Cancelar
+                        </Button>
+
+                        <Button
+                            type="submit"
+                            :disabled="processing"
+                            class="bg-green-600 text-sm text-white hover:bg-green-700"
+                        >
+                            {{
+                                processing ? 'Salvando...' : 'Salvar Alterações'
+                            }}
+                        </Button>
+                    </div>
+                </Form>
+            </div>
+        </div>
+
+        <RoomFormDialog
+            v-model:open="showRoomDialog"
+            mode="create"
+            @success="handleRoomCreated"
+        />
+    </AppLayout>
+</template>

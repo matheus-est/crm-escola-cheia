@@ -84,6 +84,26 @@ class CrmPermissionSeeder extends Seeder
             'show_in_menu' => true,
             'is_active' => true,
         ],
+        [
+            'slug' => 'eventos',
+            'name' => 'Eventos',
+            'icon' => 'CalendarCheck',
+            'url' => '/tenant/events',
+            'description' => 'Gestão de eventos escolares',
+            'order' => 14,
+            'show_in_menu' => true,
+            'is_active' => true,
+        ],
+        [
+            'slug' => 'salas',
+            'name' => 'Salas',
+            'icon' => 'DoorOpen',
+            'url' => '/tenant/tenant-settings/rooms',
+            'description' => 'Gestão de salas do tenant',
+            'order' => 23,
+            'show_in_menu' => true,
+            'is_active' => true,
+        ],
     ];
 
     /**
@@ -99,6 +119,8 @@ class CrmPermissionSeeder extends Seeder
         'school_years' => ['view', 'list', 'add', 'edit', 'delete'],
         'lead_sources' => ['view', 'list', 'add', 'edit', 'delete'],
         'grades' => ['view', 'list', 'add', 'edit', 'delete'],
+        'eventos' => ['view', 'list', 'add', 'edit', 'delete'],
+        'salas' => ['view', 'list', 'add', 'edit', 'delete'],
     ];
 
     public function run(): void
@@ -195,6 +217,10 @@ class CrmPermissionSeeder extends Seeder
                     'lead_sources_list',
                     'grades_view',
                     'grades_list',
+                    'eventos_view',
+                    'eventos_list',
+                    'salas_view',
+                    'salas_list',
                 ], strict: true))
                 ->pluck('id')
                 ->toArray(),

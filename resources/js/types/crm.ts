@@ -271,3 +271,47 @@ export interface PaginatedTasks {
     total: number;
     links: Array<{ url: string | null; label: string; active: boolean }>;
 }
+
+export interface Event {
+    uuid: string;
+    title: string;
+    event_type: string | null;
+    has_no_date: boolean;
+    event_date: string | null;
+    location: string | null;
+    max_capacity: number | null;
+    grade_id: number | null;
+    grade?: Grade | null;
+    rooms?: Room[];
+    opportunities_count?: number;
+    opportunities?: Opportunity[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PaginatedEvents {
+    data: Event[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+}
+
+export interface Room {
+    uuid: string;
+    name: string;
+    capacity: number | null;
+    is_external: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PaginatedRooms {
+    data: Room[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+}

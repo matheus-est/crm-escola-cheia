@@ -7,8 +7,8 @@
 
 ## CURRENT STATE
 
-**Last session:** 2026-04-08
-**Next task:** Stage 5.4 — Reviewer pass on Stage 5 (Tasks + Outcomes full module)
+**Last session:** 2026-04-09
+**Next task:** 7.R — Reviewer pass on Stage 7 (Events frontend rewrite)
 
 ### Completed
 
@@ -40,6 +40,13 @@
 - [x] 5.2 — OpportunityController::show · OutcomeResource · TaskResource is_schedule · opportunities.show route · OpportunityShowTest (5 tests) — 148 tests — 2026-04-08
 - [x] 5.3 — Show.vue (opportunity detail + active task panel + task history) · OutcomeModal.vue (fetch-based tabulation) · TaskCreateModal.vue (useForm) · Index.vue Eye link + fixed Wayfinder calls · task.ts lib · Task/Outcome/TaskType types in crm.ts — 2026-04-08
 - [x] 4.8 — CpfRule (mod-11) · GuardianController::validateCpf · tenant route guardians.validate_cpf · CpfRule in Store/UpdateOpportunityRequest · OpportunityService::create() phone→telefone + address fields + segment_id + null-cpf guard · guardians.cpf nullable migration — 180 tests — 2026-04-08
+- [x] 7.1 — Frontend Events (Index · Create · Edit with opportunities section) — 2026-04-09
+- [x] ADJ.1 — ActiveSchoolService: `school_current_id` salvo incondicionalmente (removido guard `count > 1`) — 2026-04-09
+- [x] ADJ.2 — Room: migration remove `description`/`is_active` + add `is_external` · model/requests/service/factory/tests/TS updated — 2026-04-09
+- [x] ADJ.3 — Room frontend: inline form → shadcn Dialog modal · checkbox "sala externa" · coluna "Externa" na tabela · filtro is_active removido — 2026-04-09
+- [x] 7.2B — Events backend refactor: migrations 005/006 (title/event_type/has_no_date/grade_id + event_room pivot) · Event model (rooms/grade relations) · StoreEventRequest · UpdateEventRequest · EventService (room_ids attach/detach, listAvailable no is_active) · EventController (grades/rooms/school_name props) · EventFactory · crm.ts Event interface · EventTest updated + 6 new tests — 2026-04-09
+- [x] 7.3F — Events frontend rewrite: RoomFormDialog.vue component · Rooms.vue refactored · events/Create.vue with 2 tabs · events/Edit.vue with 3 tabs · events/Index.vue title+has_no_date — 2026-04-09
+- [x] 7.4F — Reviewer fixes: inline delete (Index.vue) · has_no_date hidden input (Create+Edit) · attachOpportunity→to_route() + useForm.post() (controller+Edit.vue) · room_uuids/grade_uuid UUID-based validation · school_id removed from Event $fillable · migration dropColumn separated · Limpar filtros button · breadcrumb href:#
 - [ ] **5.4 — Reviewer pass on Stage 5 🔴**
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
 
@@ -67,6 +74,8 @@
 | 2026-04-07 | `BelongsToTenant` auto-sets `school_id` via `creating` event — controllers and services never set it manually; `LeadSource` (no BelongsToTenant) still uses `app('tenant.school_id')` explicitly |
 | 2026-04-07 | `useCpfLookup` no longer needs `schoolUuid` — lookup routes are `/t/students/lookup/{cpf}` |
 | 2026-04-08 | `guardians.cpf` is nullable — guardian can be created without CPF from opportunity form |
+| 2026-04-09 | Event requests use `room_uuids`/`grade_uuid` (UUID-based) — service resolves to IDs before `attach()`; controller passes only `uuid` (not `id`) in Room/Grade props |
+| 2026-04-09 | `event_type` column is `string(60)` — values provisórios (palestra/workshop/visita) — aguardando confirmação do cliente |
 
 ---
 
@@ -88,6 +97,8 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-05 | `*.vue` (ui) | No `Textarea` component in `ui/` — use plain `<textarea>` with inline Tailwind classes matching shadcn Input style |
 | 2026-04-08 | `OpportunityService::create()` | Pass guardian fields through `array_filter` removing nulls/empty before `findOrCreate()` — guardian `cpf` is nullable but not all guardians arrive with CPF |
 | 2026-04-08 | `opportunities/Create.vue` | `Guardian` interface uses Portuguese field names (`telefone`, `cep`, `logradouro`, `numero`, `bairro`, `cidade`, `estado`) — never English aliases in `fillGuardianFields()` |
+| 2026-04-09 | `EventTest.php` | 419 CSRF failures on POST/PUT/DELETE are pre-existing throughout the test suite — GET tests pass; the 419 pattern is systemic, not module-specific |
+| 2026-04-09 | `*.vue` (forms) | Boolean checkbox in Inertia `<Form>`: add `<input type="hidden" name="field" value="0" />` BEFORE the Checkbox — unchecked sends 0, checked overrides with 1 |
 
 ---
 

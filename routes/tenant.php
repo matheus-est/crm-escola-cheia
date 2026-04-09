@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Tenant\EventController;
 use App\Http\Controllers\Tenant\GuardianController;
 use App\Http\Controllers\Tenant\OpportunityController;
 use App\Http\Controllers\Tenant\Settings\GradeController;
 use App\Http\Controllers\Tenant\Settings\LeadSourceController;
+use App\Http\Controllers\Tenant\Settings\RoomController;
 use App\Http\Controllers\Tenant\Settings\SchoolYearController;
 use App\Http\Controllers\Tenant\StudentController;
 use App\Http\Controllers\Tenant\TaskController;
@@ -48,6 +50,17 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
             ->name('grades.update');
         Route::delete('/tenant-settings/grades/{grade}', [GradeController::class, 'destroy'])
             ->name('grades.destroy');
+
+        // Tenant Settings — Salas
+        // Salas
+        Route::match(['get', 'post'], '/tenant-settings/rooms', [RoomController::class, 'index'])
+            ->name('settings.rooms.index');
+        Route::post('/tenant-settings/rooms', [RoomController::class, 'store'])
+            ->name('settings.rooms.store');
+        Route::put('/tenant-settings/rooms/{room}', [RoomController::class, 'update'])
+            ->name('settings.rooms.update');
+        Route::delete('/tenant-settings/rooms/{room}', [RoomController::class, 'destroy'])
+            ->name('settings.rooms.destroy');
 
         // Alunos
         Route::match(['get', 'post'], '/students', [StudentController::class, 'index'])
@@ -96,4 +109,15 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
         Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
         Route::post('/tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
         Route::post('/tasks/{task}/cancel', [TaskController::class, 'cancel'])->name('tasks.cancel');
+
+        // Eventos
+        Route::get('/events/available', [EventController::class, 'available'])->name('events.available');
+        Route::match(['get', 'post'], '/events', [EventController::class, 'index'])->name('events.index');
+        Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
+        Route::post('/events', [EventController::class, 'store'])->name('events.store');
+        Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('events.edit');
+        Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
+        Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
+        Route::post('/events/{event}/opportunities', [EventController::class, 'attachOpportunity'])->name('events.opportunities.attach');
+        Route::delete('/events/{event}/opportunities/{opportunity}', [EventController::class, 'detachOpportunity'])->name('events.opportunities.detach');
     });

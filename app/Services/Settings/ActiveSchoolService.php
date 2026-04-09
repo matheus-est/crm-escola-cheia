@@ -29,9 +29,7 @@ class ActiveSchoolService
         }
 
         session(['active_school_uuid' => $school->uuid]);
-        
-        if ($user->schools()->count() > 1) {
-            $user->updateQuietly(['school_current_id' => $school->id]);
-        }
+
+        $user->updateQuietly(['school_current_id' => $school->id]);
     }
 }

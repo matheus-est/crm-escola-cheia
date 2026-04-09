@@ -138,6 +138,17 @@ class ModuleSeeder extends Seeder
                 'is_active' => true,
                 'menu_group_id' => $tenantSettingsGroup?->id,
             ],
+            [
+                'name' => 'Salas',
+                'slug' => 'salas',
+                'icon' => 'DoorOpen',
+                'url' => '/tenant/tenant-settings/rooms',
+                'description' => 'Gestão de salas do tenant',
+                'order' => 4,
+                'show_in_menu' => true,
+                'is_active' => true,
+                'menu_group_id' => $tenantSettingsGroup?->id,
+            ],
         ];
 
         foreach ($modules as $module) {
