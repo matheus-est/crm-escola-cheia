@@ -8,10 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Guardian\GuardianStoreRequest;
 use App\Http\Requests\Guardian\GuardianUpdateRequest;
 use App\Models\Guardian;
+use App\Rules\CpfRule;
 use App\Services\Guardian\GuardianService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -73,5 +75,43 @@ class GuardianController extends Controller
         }
 
         return response()->json($guardian);
+    }
+
+    public function validateCpf(string $cpf): JsonResponse
+    {
+        Gate::authorize('viewAny', Guardian::class);
+
+        $validator = Validator::make(
+            ['cpf' => $cpf],
+            ['cpf' => [new CpfRule]],
+        );
+
+        $valid = ! $validator->fails();
+
+        if (! $valid) {
+            return response()->json(['valid' => false, 'exists' => false]);
+        }
+
+        $guardian = $this->guardianService->lookup($cpf);
+
+        if ($guardian === null) {
+            return response()->json(['valid' => true, 'exists' => false]);
+        }
+
+        return response()->json([
+            'valid' => true,
+            'exists' => true,
+            'guardian' => [
+                'nome' => $guardian->nome,
+                'telefone' => $guardian->telefone,
+                'email' => $guardian->email,
+                'cep' => $guardian->cep,
+                'logradouro' => $guardian->logradouro,
+                'numero' => $guardian->numero,
+                'bairro' => $guardian->bairro,
+                'cidade' => $guardian->cidade,
+                'estado' => $guardian->estado,
+            ],
+        ]);
     }
 }

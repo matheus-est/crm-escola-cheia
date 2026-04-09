@@ -364,7 +364,7 @@ function detachUser(userUuid: string) {
 
                                 <Button
                                     type="submit"
-                                    :disabled="processing"
+                                    :disabled="processing || !!cnpjError || isLoadingCnpj"
                                     class="bg-green-600 text-sm text-white hover:bg-green-700"
                                 >
                                     {{

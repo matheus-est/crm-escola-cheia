@@ -68,6 +68,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
             ->name('guardians.store');
         Route::get('/guardians/lookup/{cpf}', [GuardianController::class, 'lookup'])
             ->name('guardians.lookup');
+        Route::get('/guardians/validate-cpf/{cpf}', [GuardianController::class, 'validateCpf'])
+            ->name('guardians.validate_cpf');
         Route::put('/guardians/{guardian}', [GuardianController::class, 'update'])
             ->name('guardians.update');
         Route::delete('/guardians/{guardian}', [GuardianController::class, 'destroy'])

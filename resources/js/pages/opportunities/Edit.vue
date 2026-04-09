@@ -16,9 +16,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCepLookup } from '@/composables/useCepLookup';
 import { useCpfLookup } from '@/composables/useCpfLookup';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { validate_cpf } from '@/routes/tenant/guardians';
 import { index, update } from '@/routes/tenant/opportunities';
 import type { BreadcrumbItem } from '@/types';
 import type {
@@ -87,22 +89,14 @@ function handleStudentCpfInput(event: Event): void {
     lookupStudent(m);
 }
 
-// Guardian CPF lookup
-const foundGuardian = ref<Guardian | null>(props.opportunity.guardian ?? null);
+// Guardian CPF validate-cpf
+const guardianCpfInvalidError = ref<string | null>(null);
+const isValidatingGuardianCpf = ref(false);
 
-const {
-    isLoading: isLoadingGuardian,
-    error: guardianCpfError,
-    triggerLookup: lookupGuardian,
-} = useCpfLookup({
-    type: 'guardian',
-    onFound: (data) => {
-        foundGuardian.value = data as Guardian;
-    },
-    onNotFound: () => {
-        foundGuardian.value = null;
-    },
-});
+function fillInput(id: string, value: string): void {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    if (el) el.value = value;
+}
 
 function handleGuardianCpfInput(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -113,7 +107,91 @@ function handleGuardianCpfInput(event: Event): void {
     if (d.length > 9)
         m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
     input.value = m;
-    lookupGuardian(m);
+    guardianCpfInvalidError.value = null;
+}
+
+async function handleGuardianCpfBlur(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const cpf = input.value.replace(/\D/g, '');
+
+    if (cpf.length !== 11) {
+        if (cpf.length > 0) {
+            guardianCpfInvalidError.value = 'CPF inválido';
+        }
+        return;
+    }
+
+    isValidatingGuardianCpf.value = true;
+    guardianCpfInvalidError.value = null;
+
+    try {
+        const response = await fetch(validate_cpf(cpf).url, {
+            headers: { Accept: 'application/json' },
+        });
+
+        if (response.ok) {
+            const data = (await response.json()) as {
+                valid: boolean;
+                exists: boolean;
+                guardian?: Guardian;
+            };
+
+            if (!data.valid) {
+                guardianCpfInvalidError.value = 'CPF inválido';
+            } else if (data.exists && data.guardian) {
+                guardianCpfInvalidError.value = null;
+                const g = data.guardian;
+                fillInput('guardian_name', g.nome ?? '');
+                fillInput('guardian_phone', g.telefone ?? '');
+                fillInput('guardian_email', g.email ?? '');
+                fillInput('zip_code', g.cep ?? '');
+                fillInput('street', g.logradouro ?? '');
+                fillInput('number', g.numero ?? '');
+                fillInput('neighborhood', g.bairro ?? '');
+                fillInput('city', g.cidade ?? '');
+                fillInput('state', g.estado ?? '');
+            } else {
+                guardianCpfInvalidError.value = null;
+            }
+        }
+    } catch {
+        // silent — network errors do not block submission
+    } finally {
+        isValidatingGuardianCpf.value = false;
+    }
+}
+
+function handleGuardianPhoneInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const d = input.value.replace(/\D/g, '').slice(0, 11);
+    let m = d;
+    if (d.length > 2) m = `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length > 7) m = `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+    if (d.length <= 10 && d.length > 6)
+        m = `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    input.value = m;
+}
+
+const {
+    lookup: cepLookup,
+    isLoading: isLoadingCep,
+    error: cepError,
+} = useCepLookup();
+
+function handleZipCodeInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const d = input.value.replace(/\D/g, '').slice(0, 8);
+    input.value = d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+}
+
+function handleZipCodeBlur(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    void cepLookup(input.value, ({ logradouro, bairro, cidade, estado }) => {
+        fillInput('street', logradouro);
+        fillInput('neighborhood', bairro);
+        fillInput('city', cidade);
+        fillInput('state', estado);
+    });
 }
 
 const historyValue = ref(props.opportunity.history ?? '');
@@ -373,8 +451,14 @@ function handleError(): void {
                                                         placeholder="000.000.000-00"
                                                         class="pr-8"
                                                         :disabled="isTerminal"
-                                                        :default-value="props.opportunity.student?.cpf ?? ''"
-                                                        @input="handleStudentCpfInput"
+                                                        :default-value="
+                                                            props.opportunity
+                                                                .student?.cpf ??
+                                                            ''
+                                                        "
+                                                        @input="
+                                                            handleStudentCpfInput
+                                                        "
                                                     />
                                                     <span
                                                         v-if="isLoadingStudent"
@@ -561,19 +645,34 @@ function handleError(): void {
                                                         placeholder="000.000.000-00"
                                                         class="pr-8"
                                                         :disabled="isTerminal"
-                                                        :default-value="props.opportunity.guardian?.cpf ?? ''"
-                                                        @input="handleGuardianCpfInput"
+                                                        :default-value="
+                                                            props.opportunity
+                                                                .guardian
+                                                                ?.cpf ?? ''
+                                                        "
+                                                        @input="
+                                                            handleGuardianCpfInput
+                                                        "
+                                                        @blur="
+                                                            handleGuardianCpfBlur
+                                                        "
                                                     />
                                                     <span
-                                                        v-if="isLoadingGuardian"
+                                                        v-if="
+                                                            isValidatingGuardianCpf
+                                                        "
                                                         class="absolute top-2.5 right-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
                                                     ></span>
                                                 </div>
                                                 <p
-                                                    v-if="guardianCpfError"
+                                                    v-if="
+                                                        guardianCpfInvalidError
+                                                    "
                                                     class="text-xs text-destructive"
                                                 >
-                                                    {{ guardianCpfError }}
+                                                    {{
+                                                        guardianCpfInvalidError
+                                                    }}
                                                 </p>
                                             </div>
 
@@ -591,6 +690,9 @@ function handleError(): void {
                                                             ?.telefone ?? ''
                                                     "
                                                     :disabled="isTerminal"
+                                                    @input="
+                                                        handleGuardianPhoneInput
+                                                    "
                                                 />
                                                 <InputError
                                                     :message="
@@ -637,16 +739,36 @@ function handleError(): void {
                                                 <Label for="zip_code"
                                                     >CEP</Label
                                                 >
-                                                <Input
-                                                    id="zip_code"
-                                                    name="zip_code"
-                                                    placeholder="00000-000"
-                                                    :default-value="
-                                                        props.opportunity
-                                                            .guardian?.cep ?? ''
-                                                    "
-                                                    :disabled="isTerminal"
-                                                />
+                                                <div class="relative">
+                                                    <Input
+                                                        id="zip_code"
+                                                        name="zip_code"
+                                                        placeholder="00000-000"
+                                                        class="pr-8"
+                                                        :default-value="
+                                                            props.opportunity
+                                                                .guardian
+                                                                ?.cep ?? ''
+                                                        "
+                                                        :disabled="isTerminal"
+                                                        @input="
+                                                            handleZipCodeInput
+                                                        "
+                                                        @blur="
+                                                            handleZipCodeBlur
+                                                        "
+                                                    />
+                                                    <span
+                                                        v-if="isLoadingCep"
+                                                        class="absolute top-2.5 right-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
+                                                    ></span>
+                                                </div>
+                                                <p
+                                                    v-if="cepError"
+                                                    class="text-xs text-destructive"
+                                                >
+                                                    {{ cepError }}
+                                                </p>
                                                 <InputError
                                                     :message="errors.zip_code"
                                                 />
@@ -811,7 +933,7 @@ function handleError(): void {
                         <Button
                             v-if="!isTerminal"
                             type="submit"
-                            :disabled="processing"
+                            :disabled="processing || !!guardianCpfInvalidError || isValidatingGuardianCpf"
                             class="bg-green-600 text-sm text-white hover:bg-green-700"
                         >
                             {{

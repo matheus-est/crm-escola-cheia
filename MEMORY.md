@@ -39,6 +39,7 @@
 - [x] 5.1 — TaskType · TaskStatus · OutcomeActionType enums · Task model + observer + factory · TaskPolicy · TaskService (list/create/complete/cancel) · OutcomeProcessorService stub · RenitenteCycleService stub · StoreTaskRequest · CompleteTaskRequest · TaskController · TaskResource · routes · renitente_count on opportunities — 18 tests — 2026-04-08
 - [x] 5.2 — OpportunityController::show · OutcomeResource · TaskResource is_schedule · opportunities.show route · OpportunityShowTest (5 tests) — 148 tests — 2026-04-08
 - [x] 5.3 — Show.vue (opportunity detail + active task panel + task history) · OutcomeModal.vue (fetch-based tabulation) · TaskCreateModal.vue (useForm) · Index.vue Eye link + fixed Wayfinder calls · task.ts lib · Task/Outcome/TaskType types in crm.ts — 2026-04-08
+- [x] 4.8 — CpfRule (mod-11) · GuardianController::validateCpf · tenant route guardians.validate_cpf · CpfRule in Store/UpdateOpportunityRequest · OpportunityService::create() phone→telefone + address fields + segment_id + null-cpf guard · guardians.cpf nullable migration — 180 tests — 2026-04-08
 - [ ] **5.4 — Reviewer pass on Stage 5 🔴**
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
 
@@ -65,6 +66,7 @@
 | 2026-04-07 | Tenant routes use prefix `/t` — no `{school_uuid}` in URL; tenant resolved from session via `SetActiveTenant` → `currentSchool()` |
 | 2026-04-07 | `BelongsToTenant` auto-sets `school_id` via `creating` event — controllers and services never set it manually; `LeadSource` (no BelongsToTenant) still uses `app('tenant.school_id')` explicitly |
 | 2026-04-07 | `useCpfLookup` no longer needs `schoolUuid` — lookup routes are `/t/students/lookup/{cpf}` |
+| 2026-04-08 | `guardians.cpf` is nullable — guardian can be created without CPF from opportunity form |
 
 ---
 
@@ -82,7 +84,10 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-07 | `*Service.php` | `list()` relies on `TenantScope` — no `$school` parameter; `LeadSource` list uses explicit `app('tenant.school_id')` in where clause |
 | 2026-04-03 | `OpportunityModelTest.php` | Pest 4: `toThrow(\Throwable::class)` fails — use manual try/catch with boolean flag |
 | 2026-04-07 | `*.vue` (tenant) | Wayfinder functions for tenant routes take NO school_uuid — `index()`, `store()`, `update({ opportunity })` — school is in session |
-| 2026-04-05 | \`*Service.php\` | Non-blocking warnings: add \`hasClosed*\` helper on service; controller checks after \`create()\` and flashes \`warning\` vs \`success\` — never block creation |\n| 2026-04-05 | \`*.vue\` (ui) | No \`Textarea\` component in \`ui/\` — use plain \`<textarea>\` with inline Tailwind classes matching shadcn Input style |
+| 2026-04-05 | `*Service.php` | Non-blocking warnings: add `hasClosed*` helper on service; controller checks after `create()` and flashes `warning` vs `success` — never block creation |
+| 2026-04-05 | `*.vue` (ui) | No `Textarea` component in `ui/` — use plain `<textarea>` with inline Tailwind classes matching shadcn Input style |
+| 2026-04-08 | `OpportunityService::create()` | Pass guardian fields through `array_filter` removing nulls/empty before `findOrCreate()` — guardian `cpf` is nullable but not all guardians arrive with CPF |
+| 2026-04-08 | `opportunities/Create.vue` | `Guardian` interface uses Portuguese field names (`telefone`, `cep`, `logradouro`, `numero`, `bairro`, `cidade`, `estado`) — never English aliases in `fillGuardianFields()` |
 
 ---
 

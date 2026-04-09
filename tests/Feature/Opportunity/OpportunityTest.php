@@ -137,6 +137,7 @@ it('POST store cria uma Oportunidade e redireciona', function (): void {
         ->post(route('tenant.opportunities.store'), [
             'grade_id' => $grade->id,
             'school_year_id' => $schoolYear->id,
+            'student_name' => 'Aluno Teste',
             'observations' => 'Observação de teste.',
         ])
         ->assertRedirect(route('tenant.opportunities.index'));
@@ -259,6 +260,7 @@ it('POST store com school_year encerrado cria oportunidade e redireciona com war
         ->post(route('tenant.opportunities.store'), [
             'grade_id' => $grade->id,
             'school_year_id' => $schoolYear->id,
+            'student_name' => 'Aluno Ano Encerrado',
         ])
         ->assertRedirect(route('tenant.opportunities.index'))
         ->assertSessionHas('warning');
@@ -286,6 +288,7 @@ it('POST store com registration_type, segment_id, history e indications persiste
         ->post(route('tenant.opportunities.store'), [
             'grade_id' => $grade->id,
             'school_year_id' => $schoolYear->id,
+            'student_name' => 'Aluno Complementar',
             'registration_type' => 'agendamento',
             'segment_id' => $segment->id,
             'history' => 'Histórico do aluno.',

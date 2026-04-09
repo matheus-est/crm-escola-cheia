@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Opportunity;
 
+use App\Rules\CpfRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreOpportunityRequest extends FormRequest
@@ -27,18 +28,18 @@ class StoreOpportunityRequest extends FormRequest
             'indications' => ['nullable', 'string', 'max:2000'],
             'registration_type' => ['nullable', 'string', 'in:agendamento,evento'],
             'segment_id' => ['nullable', 'exists:segments,id'],
-            'student_name'        => ['required', 'string', 'max:255'],
-            'student_cpf'         => ['nullable', 'string', 'size:14'],
-            'guardian_name'       => ['nullable', 'string', 'max:255'],
-            'guardian_cpf'        => ['nullable', 'string', 'size:14'],
-            'guardian_phone'      => ['nullable', 'string', 'max:20'],
-            'guardian_email'      => ['nullable', 'email', 'max:255'],
-            'zip_code'            => ['nullable', 'string', 'max:9'],
-            'street'              => ['nullable', 'string', 'max:255'],
-            'number'              => ['nullable', 'string', 'max:20'],
-            'neighborhood'        => ['nullable', 'string', 'max:255'],
-            'city'                => ['nullable', 'string', 'max:255'],
-            'state'               => ['nullable', 'string', 'size:2'],
+            'student_name' => ['required', 'string', 'max:255'],
+            'student_cpf' => ['nullable', 'string', 'size:14', new CpfRule],
+            'guardian_name' => ['nullable', 'string', 'max:255'],
+            'guardian_cpf' => ['nullable', 'string', 'size:14', new CpfRule],
+            'guardian_phone' => ['nullable', 'string', 'max:20'],
+            'guardian_email' => ['nullable', 'email', 'max:255'],
+            'zip_code' => ['nullable', 'string', 'max:9'],
+            'street' => ['nullable', 'string', 'max:255'],
+            'number' => ['nullable', 'string', 'max:20'],
+            'neighborhood' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'size:2'],
         ];
     }
 }

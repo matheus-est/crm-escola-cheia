@@ -1,0 +1,143 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Models\Grade;
+use App\Models\Guardian;
+use App\Models\Role;
+use App\Models\School;
+use App\Models\SchoolYear;
+use App\Models\Segment;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+afterEach(function (): void {
+    app()->forgetInstance('tenant.school_id');
+});
+
+function addressMasterUser(): User
+{
+    $role = Role::firstOrCreate(
+        ['name' => 'Master'],
+        ['description' => 'Master', 'is_default' => false],
+    );
+
+    $user = User::factory()->create();
+    $user->role()->associate($role)->save();
+
+    return $user;
+}
+
+function makeSchoolForAddressTests(): School
+{
+    static $counter = 0;
+    $counter++;
+
+    return School::create([
+        'cnpj' => str_pad((string) ($counter + 6000), 14, '0', STR_PAD_LEFT),
+        'razao_social' => 'Escola Address '.$counter,
+    ]);
+}
+
+function makeGradeForAddressTests(School $school): Grade
+{
+    $segment = Segment::firstOrCreate(['name' => 'Ensino Fundamental']);
+
+    return Grade::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'segment_id' => $segment->id,
+        'nome' => '3º Ano',
+    ]);
+}
+
+function makeSchoolYearForAddressTests(School $school): SchoolYear
+{
+    return SchoolYear::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'nome' => '2025',
+        'inicio' => '2025-01-01',
+        'fim' => '2025-12-31',
+        'status' => 'planejamento',
+    ]);
+}
+
+it('POST store persiste campos de endereço do guardian', function (): void {
+    $user = addressMasterUser();
+    $school = makeSchoolForAddressTests();
+    $grade = makeGradeForAddressTests($school);
+    $schoolYear = makeSchoolYearForAddressTests($school);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->actingAs($user)
+        ->post(route('tenant.opportunities.store'), [
+            'grade_id' => $grade->id,
+            'school_year_id' => $schoolYear->id,
+            'student_name' => 'Aluno Endereço',
+            'guardian_name' => 'Responsável Endereço',
+            'guardian_phone' => '(11) 98765-4321',
+            'zip_code' => '01310-100',
+            'street' => 'Av. Paulista',
+            'number' => '1000',
+            'neighborhood' => 'Bela Vista',
+            'city' => 'São Paulo',
+            'state' => 'SP',
+        ])
+        ->assertRedirect(route('tenant.opportunities.index'));
+
+    $guardian = Guardian::withoutTenantScope()
+        ->where('school_id', $school->id)
+        ->where('nome', 'Responsável Endereço')
+        ->first();
+
+    expect($guardian)->not->toBeNull()
+        ->and($guardian->telefone)->toBe('(11) 98765-4321')
+        ->and($guardian->cep)->toBe('01310-100')
+        ->and($guardian->logradouro)->toBe('Av. Paulista')
+        ->and($guardian->numero)->toBe('1000')
+        ->and($guardian->bairro)->toBe('Bela Vista')
+        ->and($guardian->cidade)->toBe('São Paulo')
+        ->and($guardian->estado)->toBe('SP');
+});
+
+it('POST store com guardian_cpf inválido retorna 422', function (): void {
+    $user = addressMasterUser();
+    $school = makeSchoolForAddressTests();
+    $grade = makeGradeForAddressTests($school);
+    $schoolYear = makeSchoolYearForAddressTests($school);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->actingAs($user)
+        ->withHeader('Accept', 'application/json')
+        ->post(route('tenant.opportunities.store'), [
+            'grade_id' => $grade->id,
+            'school_year_id' => $schoolYear->id,
+            'student_name' => 'Aluno CPF Inválido',
+            'guardian_cpf' => '111.111.111-11',
+        ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['guardian_cpf']);
+});
+
+it('POST store com student_cpf inválido retorna 422', function (): void {
+    $user = addressMasterUser();
+    $school = makeSchoolForAddressTests();
+    $grade = makeGradeForAddressTests($school);
+    $schoolYear = makeSchoolYearForAddressTests($school);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->actingAs($user)
+        ->withHeader('Accept', 'application/json')
+        ->post(route('tenant.opportunities.store'), [
+            'grade_id' => $grade->id,
+            'school_year_id' => $schoolYear->id,
+            'student_name' => 'Aluno CPF Inválido',
+            'student_cpf' => '000.000.000-00',
+        ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['student_cpf']);
+});

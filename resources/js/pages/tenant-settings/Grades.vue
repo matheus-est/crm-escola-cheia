@@ -167,7 +167,9 @@ function handleFormSuccess(): void {
 
 function handleFormError(errors: any): void {
     if (errors.segment_uuid) {
-        toast.error('Por favor, selecione um segmento oblíquo e tente novamente.');
+        toast.error(
+            'Por favor, selecione um segmento oblíquo e tente novamente.',
+        );
     } else {
         toast.error('Verifique os campos e tente novamente.');
     }
@@ -207,7 +209,6 @@ function confirmDelete(): void {
         },
     );
 }
-
 </script>
 
 <template>
@@ -478,7 +479,13 @@ function confirmDelete(): void {
                             <Label for="edit-segment_uuid">Segmento</Label>
                             <Select
                                 name="segment_uuid"
-                                :default-value="props.segments.find(s => s.uuid === editingGrade?.segment?.uuid)?.uuid"
+                                :default-value="
+                                    props.segments.find(
+                                        (s) =>
+                                            s.uuid ===
+                                            editingGrade?.segment?.uuid,
+                                    )?.uuid
+                                "
                                 required
                             >
                                 <SelectTrigger id="edit-segment_uuid">
@@ -572,7 +579,7 @@ function confirmDelete(): void {
                             >
                                 <button
                                     type="button"
-                                    class="inline-flex items-center justify-center gap-1 transition-colors hover:text-foreground mx-auto"
+                                    class="mx-auto inline-flex items-center justify-center gap-1 transition-colors hover:text-foreground"
                                     @click="toggleSort('order')"
                                 >
                                     Ordem
@@ -609,12 +616,21 @@ function confirmDelete(): void {
                                 {{ grade.nome }}
                             </td>
                             <td class="px-3 py-3 text-muted-foreground">
-                                <span v-if="grade.segment" class="rounded bg-muted px-2 py-1 text-xs font-semibold">
+                                <span
+                                    v-if="grade.segment"
+                                    class="rounded bg-muted px-2 py-1 text-xs font-semibold"
+                                >
                                     {{ grade.segment.name }}
                                 </span>
-                                <span v-else class="text-muted-foreground opacity-50">—</span>
+                                <span
+                                    v-else
+                                    class="text-muted-foreground opacity-50"
+                                    >—</span
+                                >
                             </td>
-                            <td class="px-3 py-3 text-center text-muted-foreground">
+                            <td
+                                class="px-3 py-3 text-center text-muted-foreground"
+                            >
                                 {{ grade.order ?? 0 }}
                             </td>
                             <td class="px-3 py-3 text-right">
