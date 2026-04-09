@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->unsignedBigInteger('school_id')->nullable();
             $table->foreign('school_id')->references('id')->on('schools')->nullOnDelete();
-            $table->string('nome');
+            $table->string('name');
             $table->boolean('is_system')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();

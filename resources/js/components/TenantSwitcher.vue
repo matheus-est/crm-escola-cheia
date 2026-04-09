@@ -39,7 +39,7 @@ function handleSwitch(uuid: string): void {
 
     <div v-else-if="schools.length === 1" class="flex items-center gap-2">
         <span class="text-sm font-medium">{{
-            schools[0].nome_fantasia ?? schools[0].razao_social
+            schools[0].trade_name ?? schools[0].legal_name
         }}</span>
     </div>
 
@@ -60,7 +60,7 @@ function handleSwitch(uuid: string): void {
                 >
                     <span class="flex items-center gap-2">
                         <span class="truncate">{{
-                            school.nome_fantasia ?? school.razao_social
+                            school.trade_name ?? school.legal_name
                         }}</span>
                     </span>
                 </SelectItem>

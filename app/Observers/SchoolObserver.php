@@ -15,7 +15,7 @@ class SchoolObserver
             $school->uuid = (string) Str::uuid();
         }
 
-        $base = Str::slug($school->razao_social);
+        $base = Str::slug($school->legal_name);
         $slug = $base;
         $suffix = 1;
 

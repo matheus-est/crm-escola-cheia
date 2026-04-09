@@ -15,8 +15,8 @@ export type Auth = {
 
 export type AuthSchool = {
     uuid: string;
-    razao_social: string;
-    nome_fantasia: string | null;
+    legal_name: string;
+    trade_name: string | null;
 };
 
 export type TwoFactorConfigContent = {

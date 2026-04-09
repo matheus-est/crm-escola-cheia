@@ -21,21 +21,19 @@ class SchoolUnit extends Model implements Auditable
     protected $fillable = [
         'uuid',
         'school_id',
-        'nome',
-        'cep',
-        'logradouro',
-        'numero',
-        'complemento',
-        'bairro',
-        'cidade',
-        'estado',
+        'name',
+        'zip_code',
+        'street',
+        'number',
+        'complement',
+        'neighborhood',
+        'city',
+        'state',
     ];
 
-    protected function casts(): array
+    public function getRouteKeyName(): string
     {
-        return [
-            'id' => 'string',
-        ];
+        return 'uuid';
     }
 
     public function school(): BelongsTo

@@ -43,7 +43,7 @@ import type {
 
 const props = defineProps<{
     event: Event & {
-        opportunities: (Opportunity & { student?: { nome: string } | null })[];
+        opportunities: (Opportunity & { student?: { name: string } | null })[];
     };
     grades: Grade[];
     rooms: Room[];
@@ -320,7 +320,7 @@ function handleDetach(opportunityUuid: string): void {
                                                 :key="grade.uuid"
                                                 :value="grade.uuid"
                                             >
-                                                {{ grade.nome }}
+                                                {{ grade.name }}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -551,7 +551,7 @@ function handleDetach(opportunityUuid: string): void {
                                             <td
                                                 class="px-3 py-3 font-medium text-foreground"
                                             >
-                                                {{ opp.student?.nome ?? '—' }}
+                                                {{ opp.student?.name ?? '—' }}
                                             </td>
                                             <td class="px-3 py-3">
                                                 <span

@@ -16,7 +16,7 @@ class LeadSourceStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => ['required', 'string', 'max:100'],
+            'name' => ['required', 'string', 'max:100'],
             'is_active' => ['boolean'],
         ];
     }

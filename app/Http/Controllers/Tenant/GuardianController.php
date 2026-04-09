@@ -102,15 +102,15 @@ class GuardianController extends Controller
             'valid' => true,
             'exists' => true,
             'guardian' => [
-                'nome' => $guardian->nome,
-                'telefone' => $guardian->telefone,
+                'name' => $guardian->name,
+                'phone' => $guardian->phone,
                 'email' => $guardian->email,
-                'cep' => $guardian->cep,
-                'logradouro' => $guardian->logradouro,
-                'numero' => $guardian->numero,
-                'bairro' => $guardian->bairro,
-                'cidade' => $guardian->cidade,
-                'estado' => $guardian->estado,
+                'zip_code' => $guardian->zip_code,
+                'street' => $guardian->street,
+                'number' => $guardian->number,
+                'neighborhood' => $guardian->neighborhood,
+                'city' => $guardian->city,
+                'state' => $guardian->state,
             ],
         ]);
     }

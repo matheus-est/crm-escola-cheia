@@ -71,16 +71,16 @@ class OpportunityService
 
         if (! empty($data['guardian_name'])) {
             $guardianData = array_filter([
-                'nome' => $data['guardian_name'],
+                'name' => $data['guardian_name'],
                 'cpf' => $data['guardian_cpf'] ?? null,
-                'telefone' => $data['guardian_phone'] ?? null,
+                'phone' => $data['guardian_phone'] ?? null,
                 'email' => $data['guardian_email'] ?? null,
-                'cep' => $data['zip_code'] ?? null,
-                'logradouro' => $data['street'] ?? null,
-                'numero' => $data['number'] ?? null,
-                'bairro' => $data['neighborhood'] ?? null,
-                'cidade' => $data['city'] ?? null,
-                'estado' => $data['state'] ?? null,
+                'zip_code' => ($data['zip_code'] ?? null) ?: null,
+                'street' => $data['street'] ?? null,
+                'number' => $data['number'] ?? null,
+                'neighborhood' => $data['neighborhood'] ?? null,
+                'city' => $data['city'] ?? null,
+                'state' => $data['state'] ?? null,
             ], fn ($v) => $v !== null && $v !== '');
 
             $guardian = $this->guardianService->findOrCreate($guardianData);
@@ -88,7 +88,7 @@ class OpportunityService
         }
 
         $student = $this->studentService->findOrCreate(array_filter([
-            'nome' => $data['student_name'],
+            'name' => $data['student_name'],
             'cpf' => $data['student_cpf'] ?? null,
         ], fn ($v) => $v !== null && $v !== ''));
 

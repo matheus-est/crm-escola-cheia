@@ -22,8 +22,8 @@ class School extends Model implements Auditable
     protected $fillable = [
         'uuid',
         'cnpj',
-        'razao_social',
-        'nome_fantasia',
+        'legal_name',
+        'trade_name',
         'slug',
         'logo_path',
         'address_json',

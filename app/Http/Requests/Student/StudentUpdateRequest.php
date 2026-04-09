@@ -16,7 +16,7 @@ class StudentUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => ['required', 'string', 'max:150'],
+            'name' => ['required', 'string', 'max:150'],
             'cpf' => ['nullable', 'string', 'regex:/^\d{3}\.\d{3}\.\d{3}-\d{2}$/'],
             'data_nascimento' => ['nullable', 'date'],
         ];

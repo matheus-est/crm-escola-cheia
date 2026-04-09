@@ -11,6 +11,7 @@ use App\Models\SchoolYear;
 use App\Services\SchoolYear\SchoolYearService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,9 +27,9 @@ class SchoolYearController extends Controller
         Gate::authorize('viewAny', SchoolYear::class);
 
         $filters = [
-            'nome' => $request->input('nome', ''),
+            'name' => $request->input('name', ''),
             'status' => $request->input('status', ''),
-            'sort_by' => $request->input('sort_by', 'nome'),
+            'sort_by' => $request->input('sort_by', 'name'),
             'sort_dir' => $request->input('sort_dir', 'asc'),
             'per_page' => $request->input('per_page', 10),
         ];
@@ -36,7 +37,7 @@ class SchoolYearController extends Controller
         $schoolYears = $this->schoolYearService->list($filters);
 
         return Inertia::render('tenant-settings/SchoolYears', [
-            'school' => auth()->user()->currentSchool(),
+            'school' => Auth::user()->currentSchool(),
             'schoolYears' => $schoolYears,
             'filters' => $filters,
         ]);

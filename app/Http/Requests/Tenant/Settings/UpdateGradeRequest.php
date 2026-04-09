@@ -21,7 +21,7 @@ class UpdateGradeRequest extends FormRequest
         $gradeId = $gradeClass->id ?? null;
 
         return [
-            'nome' => [
+            'name' => [
                 'required',
                 'string',
                 'max:255',

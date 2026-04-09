@@ -49,7 +49,7 @@ function makeSchoolForStudentTests(): School
 
     return School::create([
         'cnpj' => str_pad((string) ($counter + 5000), 14, '0', STR_PAD_LEFT),
-        'razao_social' => 'Escola Student '.$counter,
+        'legal_name' => 'Escola Student '.$counter,
     ]);
 }
 
@@ -57,7 +57,7 @@ function makeStudent(School $school, string $cpf = '123.456.789-00'): Student
 {
     return Student::withoutTenantScope()->create([
         'school_id' => $school->id,
-        'nome' => 'Aluno Teste',
+        'name' => 'Aluno Teste',
         'cpf' => $cpf,
     ]);
 }
@@ -89,7 +89,7 @@ it('POST store cria um Student e redireciona', function (): void {
 
     $this->actingAs($user)
         ->post(route('tenant.students.store'), [
-            'nome' => 'João da Silva',
+            'name' => 'João da Silva',
             'cpf' => '123.456.789-00',
             'data_nascimento' => '2010-05-15',
         ])
@@ -97,7 +97,7 @@ it('POST store cria um Student e redireciona', function (): void {
 
     $this->assertDatabaseHas('students', [
         'school_id' => $school->id,
-        'nome' => 'João da Silva',
+        'name' => 'João da Silva',
         'cpf' => '123.456.789-00',
     ]);
 });
@@ -112,7 +112,7 @@ it('CPF duplicado no mesmo tenant retorna 422', function (): void {
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
         ->post(route('tenant.students.store'), [
-            'nome' => 'Outro Aluno',
+            'name' => 'Outro Aluno',
             'cpf' => '123.456.789-00',
         ])
         ->assertStatus(422)
@@ -129,14 +129,14 @@ it('CPF igual em tenant diferente é aceito', function (): void {
 
     $this->actingAs($user)
         ->post(route('tenant.students.store'), [
-            'nome' => 'Aluno Outro Tenant',
+            'name' => 'Aluno Outro Tenant',
             'cpf' => '123.456.789-00',
         ])
         ->assertRedirect(route('tenant.students.index'));
 
     $this->assertDatabaseHas('students', [
         'school_id' => $school2->id,
-        'nome' => 'Aluno Outro Tenant',
+        'name' => 'Aluno Outro Tenant',
         'cpf' => '123.456.789-00',
     ]);
 });
@@ -174,14 +174,14 @@ it('PUT update atualiza o Student e redireciona', function (): void {
 
     $this->actingAs($user)
         ->put(route('tenant.students.update', [$student]), [
-            'nome' => 'João Atualizado',
+            'name' => 'João Atualizado',
             'cpf' => '123.456.789-00',
         ])
         ->assertRedirect(route('tenant.students.index'));
 
     $this->assertDatabaseHas('students', [
         'id' => $student->id,
-        'nome' => 'João Atualizado',
+        'name' => 'João Atualizado',
     ]);
 });
 
@@ -209,7 +209,7 @@ it('findOrCreate retorna existente se CPF já cadastrado', function (): void {
 
     $service = app(StudentService::class);
     $result = $service->findOrCreate([
-        'nome' => 'Outro Nome',
+        'name' => 'Outro Nome',
         'cpf' => '123.456.789-00',
     ]);
 

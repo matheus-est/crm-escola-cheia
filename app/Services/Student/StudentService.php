@@ -36,7 +36,7 @@ class StudentService
     public function list(): LengthAwarePaginator
     {
         return Student::query()
-            ->orderBy('nome')
+            ->orderBy('name')
             ->paginate(15);
     }
 

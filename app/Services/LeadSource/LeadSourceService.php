@@ -20,12 +20,12 @@ class LeadSourceService
                     ->orWhere('is_system', true);
             });
 
-        if (($filters['nome'] ?? '') !== '') {
-            $query->where('nome', 'LIKE', '%'.$filters['nome'].'%');
+        if (($filters['name'] ?? '') !== '') {
+            $query->where('name', 'LIKE', '%'.$filters['name'].'%');
         }
 
-        $allowedSort = ['nome'];
-        $sortBy = in_array($filters['sort_by'] ?? '', $allowedSort, strict: true) ? $filters['sort_by'] : 'nome';
+        $allowedSort = ['name'];
+        $sortBy = in_array($filters['sort_by'] ?? '', $allowedSort, strict: true) ? $filters['sort_by'] : 'name';
         $sortDir = ($filters['sort_dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         $query->orderBy('is_system', 'desc')->orderBy($sortBy, $sortDir);
 

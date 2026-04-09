@@ -14,10 +14,17 @@ return new class extends Migration
             $table->id();
             $table->uuid()->unique();
             $table->foreignId('school_id')->constrained('schools')->cascadeOnDelete();
-            $table->string('nome');
-            $table->string('cpf', 14);
-            $table->string('telefone', 20)->nullable();
+            $table->string('name');
+            $table->string('cpf');
+            $table->string('phone', 20)->nullable();
             $table->string('email')->nullable();
+            $table->string('zip_code', 9)->nullable();
+            $table->string('street')->nullable();
+            $table->string('number')->nullable();
+            $table->string('neighborhood')->nullable();
+            $table->string('complement')->nullable();
+            $table->string('state', 2)->nullable();
+            $table->string('city')->nullable();
             $table->timestamps();
 
             $table->index(['school_id', 'cpf']);

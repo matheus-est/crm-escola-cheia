@@ -19,7 +19,7 @@ class SchoolFactory extends Factory
     {
         return [
             'cnpj' => fake()->numerify('##############'),
-            'razao_social' => fake()->company(),
+            'legal_name' => fake()->company(),
             'status' => SchoolStatus::Active->value,
         ];
     }

@@ -34,7 +34,7 @@ function makeSchoolForValidateCpfTests(): School
 
     return School::create([
         'cnpj' => str_pad((string) ($counter + 7000), 14, '0', STR_PAD_LEFT),
-        'razao_social' => 'Escola ValidateCpf '.$counter,
+        'legal_name' => 'Escola ValidateCpf '.$counter,
     ]);
 }
 
@@ -73,9 +73,9 @@ it('retorna valid=true e exists=true quando CPF válido e já cadastrado', funct
 
     Guardian::withoutTenantScope()->create([
         'school_id' => $school->id,
-        'nome' => 'Maria Responsável',
+        'name' => 'Maria Responsável',
         'cpf' => '529.982.247-25',
-        'telefone' => '(11) 91111-2222',
+        'phone' => '(11) 91111-2222',
     ]);
 
     $response = $this->actingAs($user)
@@ -86,8 +86,8 @@ it('retorna valid=true e exists=true quando CPF válido e já cadastrado', funct
             'valid' => true,
             'exists' => true,
         ])
-        ->assertJsonPath('guardian.nome', 'Maria Responsável')
-        ->assertJsonPath('guardian.telefone', '(11) 91111-2222');
+        ->assertJsonPath('guardian.name', 'Maria Responsável')
+        ->assertJsonPath('guardian.phone', '(11) 91111-2222');
 });
 
 it('retorna 302 para usuário não autenticado', function (): void {

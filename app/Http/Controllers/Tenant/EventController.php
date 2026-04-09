@@ -47,9 +47,9 @@ class EventController extends Controller
         $school = Auth::user()->currentSchool();
 
         return Inertia::render('events/Create', [
-            'grades' => Grade::query()->orderBy('order')->get(['uuid', 'nome', 'segment_id']),
+            'grades' => Grade::query()->orderBy('order')->get(['uuid', 'name', 'segment_id']),
             'rooms' => Room::query()->orderBy('name')->get(['uuid', 'name', 'capacity', 'is_external']),
-            'school_name' => $school->nome_fantasia ?? $school->razao_social,
+            'school_name' => $school->trade_name ?? $school->legal_name,
         ]);
     }
 
@@ -72,9 +72,9 @@ class EventController extends Controller
 
         return Inertia::render('events/Edit', [
             'event' => $event,
-            'grades' => Grade::query()->orderBy('order')->get(['uuid', 'nome', 'segment_id']),
+            'grades' => Grade::query()->orderBy('order')->get(['uuid', 'name', 'segment_id']),
             'rooms' => Room::query()->orderBy('name')->get(['uuid', 'name', 'capacity', 'is_external']),
-            'school_name' => $school->nome_fantasia ?? $school->razao_social,
+            'school_name' => $school->trade_name ?? $school->legal_name,
         ]);
     }
 
@@ -115,27 +115,31 @@ class EventController extends Controller
             $opportunities->map(fn (Opportunity $opp) => [
                 'uuid' => $opp->uuid,
                 'created_at' => $opp->created_at,
-                'guardian_name' => $opp->guardian?->nome,
-                'student_name' => $opp->student?->nome,
+                'guardian_name' => $opp->guardian?->name,
+                'student_name' => $opp->student?->name,
                 'status' => $opp->status?->value,
-                'school_year_name' => $opp->schoolYear?->nome,
+                'school_year_name' => $opp->schoolYear?->name,
                 'registration_type' => $opp->registration_type,
             ])
         );
     }
 
-    public function attachOpportunity(AttachOpportunityRequest $request, Event $event): RedirectResponse
+    public function attachOpportunity(AttachOpportunityRequest $request, Event $event): RedirectResponse|JsonResponse
     {
         Gate::authorize('update', $event);
 
         $opportunity = Opportunity::where('uuid', $request->validated('opportunity_uuid'))->firstOrFail();
 
         try {
-            $this->eventService->attachOpportunity($event, $opportunity);
+            $task = $this->eventService->attachOpportunity($event, $opportunity);
         } catch (\DomainException $e) {
             throw ValidationException::withMessages([
                 'opportunity_uuid' => [$e->getMessage()],
             ]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['task_uuid' => $task->uuid ?? null]);
         }
 
         return to_route('tenant.events.edit', ['event' => $event->uuid])->with('success', 'Oportunidade vinculada com sucesso.');

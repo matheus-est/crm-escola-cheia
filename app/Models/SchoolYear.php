@@ -22,17 +22,17 @@ class SchoolYear extends Model implements Auditable
     protected $fillable = [
         'uuid',
         'school_id',
-        'nome',
-        'inicio',
-        'fim',
+        'name',
+        'start',
+        'end',
         'status',
     ];
 
     protected function casts(): array
     {
         return [
-            'inicio' => 'date',
-            'fim' => 'date',
+            'start' => 'date',
+            'end' => 'date',
             'status' => SchoolYearStatus::class,
         ];
     }

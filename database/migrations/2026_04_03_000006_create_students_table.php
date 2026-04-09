@@ -14,9 +14,9 @@ return new class extends Migration
             $table->id();
             $table->uuid()->unique();
             $table->foreignId('school_id')->constrained('schools')->cascadeOnDelete();
-            $table->string('nome');
-            $table->string('cpf', 14)->nullable();
-            $table->date('data_nascimento')->nullable();
+            $table->string('name');
+            $table->string('cpf')->nullable();
+            $table->date('date_of_birth')->nullable();
             $table->timestamps();
 
             $table->index(['school_id', 'cpf']);

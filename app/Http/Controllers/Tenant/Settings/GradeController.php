@@ -27,9 +27,9 @@ class GradeController extends Controller
         Gate::authorize('viewAny', Grade::class);
 
         $filters = [
-            'nome' => $request->input('nome', ''),
+            'name' => $request->input('name', ''),
             'segment_id' => $request->input('segment_id', ''),
-            'sort_by' => $request->input('sort_by', 'nome'),
+            'sort_by' => $request->input('sort_by', 'name'),
             'sort_dir' => $request->input('sort_dir', 'asc'),
             'per_page' => $request->input('per_page', 10),
         ];

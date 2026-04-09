@@ -44,9 +44,9 @@ import type {
 } from '@/types/crm';
 
 interface Filters {
-    nome: string;
+    name: string;
     status: SchoolYearStatus | '';
-    sort_by: 'nome' | 'inicio' | 'fim' | 'status' | '';
+    sort_by: 'name' | 'start' | 'end' | 'status' | '';
     sort_dir: 'asc' | 'desc';
     per_page: number;
 }
@@ -66,15 +66,15 @@ const breadcrumbItems: BreadcrumbItem[] = [
 const filters = computed(() => props.filters);
 
 const localFilters = ref<Filters>({
-    nome: filters.value.nome || '',
+    name: filters.value.name || '',
     status: (filters.value.status as SchoolYearStatus) || '',
-    sort_by: (filters.value.sort_by as Filters['sort_by']) || 'nome',
+    sort_by: (filters.value.sort_by as Filters['sort_by']) || 'name',
     sort_dir: filters.value.sort_dir || 'asc',
     per_page: Number(filters.value.per_page ?? 10),
 });
 
 const filterCount = computed(() =>
-    [filters.value.nome ? 1 : 0, filters.value.status ? 1 : 0].reduce(
+    [filters.value.name ? 1 : 0, filters.value.status ? 1 : 0].reduce(
         (a, b) => a + b,
         0,
     ),
@@ -82,7 +82,7 @@ const filterCount = computed(() =>
 
 const hasActiveFilter = computed(() => filterCount.value > 0);
 
-function toggleSort(column: 'nome' | 'inicio' | 'fim' | 'status'): void {
+function toggleSort(column: 'name' | 'start' | 'end' | 'status'): void {
     const newDir =
         localFilters.value.sort_by === column &&
         localFilters.value.sort_dir === 'asc'
@@ -94,7 +94,7 @@ function toggleSort(column: 'nome' | 'inicio' | 'fim' | 'status'): void {
 }
 
 function getSortIcon(
-    column: 'nome' | 'inicio' | 'fim' | 'status',
+    column: 'name' | 'start' | 'end' | 'status',
 ): 'asc' | 'desc' | 'none' {
     if (localFilters.value.sort_by !== column) return 'none';
     return localFilters.value.sort_dir === 'asc' ? 'asc' : 'desc';
@@ -113,7 +113,7 @@ function applyFilters(): void {
     router.post(
         index.post().url,
         {
-            nome: localFilters.value.nome,
+            name: localFilters.value.name,
             status: localFilters.value.status,
             sort_by: localFilters.value.sort_by,
             sort_dir: localFilters.value.sort_dir,
@@ -270,14 +270,14 @@ function formatDate(dateStr: string): string {
                                 >
                                     <div class="space-y-1.5">
                                         <Label
-                                            for="filter-nome"
+                                            for="filter-name"
                                             class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                         >
                                             Nome
                                         </Label>
                                         <Input
-                                            id="filter-nome"
-                                            v-model="localFilters.nome"
+                                            id="filter-name"
+                                            v-model="localFilters.name"
                                             placeholder="Buscar por nome..."
                                             class="h-8"
                                         />
@@ -401,31 +401,31 @@ function formatDate(dateStr: string): string {
                 >
                     <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-4">
                         <div class="grid gap-2">
-                            <Label for="nome">Nome</Label>
+                            <Label for="name">Nome</Label>
                             <Input
-                                id="nome"
-                                name="nome"
+                                id="name"
+                                name="name"
                                 placeholder="Ex: 2025"
                                 required
                             />
-                            <InputError :message="errors.nome" />
+                            <InputError :message="errors.name" />
                         </div>
 
                         <div class="grid gap-2">
-                            <Label for="inicio">Início</Label>
+                            <Label for="start">Início</Label>
                             <Input
-                                id="inicio"
+                                id="start"
                                 type="date"
-                                name="inicio"
+                                name="start"
                                 required
                             />
-                            <InputError :message="errors.inicio" />
+                            <InputError :message="errors.start" />
                         </div>
 
                         <div class="grid gap-2">
-                            <Label for="fim">Fim</Label>
-                            <Input id="fim" type="date" name="fim" required />
-                            <InputError :message="errors.fim" />
+                            <Label for="end">Fim</Label>
+                            <Input id="end" type="date" name="end" required />
+                            <InputError :message="errors.end" />
                         </div>
 
                         <div class="grid gap-2">
@@ -487,39 +487,39 @@ function formatDate(dateStr: string): string {
                 >
                     <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-4">
                         <div class="grid gap-2">
-                            <Label for="edit-nome">Nome</Label>
+                            <Label for="edit-name">Nome</Label>
                             <Input
-                                id="edit-nome"
-                                name="nome"
-                                :default-value="editingSchoolYear.nome"
+                                id="edit-name"
+                                name="name"
+                                :default-value="editingSchoolYear.name"
                                 placeholder="Ex: 2025"
                                 required
                             />
-                            <InputError :message="errors.nome" />
+                            <InputError :message="errors.name" />
                         </div>
 
                         <div class="grid gap-2">
-                            <Label for="edit-inicio">Início</Label>
+                            <Label for="edit-start">Início</Label>
                             <Input
-                                id="edit-inicio"
+                                id="edit-start"
                                 type="date"
-                                name="inicio"
-                                :default-value="editingSchoolYear.inicio"
+                                name="start"
+                                :default-value="editingSchoolYear.start"
                                 required
                             />
-                            <InputError :message="errors.inicio" />
+                            <InputError :message="errors.start" />
                         </div>
 
                         <div class="grid gap-2">
-                            <Label for="edit-fim">Fim</Label>
+                            <Label for="edit-end">Fim</Label>
                             <Input
-                                id="edit-fim"
+                                id="edit-end"
                                 type="date"
-                                name="fim"
-                                :default-value="editingSchoolYear.fim"
+                                name="end"
+                                :default-value="editingSchoolYear.end"
                                 required
                             />
-                            <InputError :message="errors.fim" />
+                            <InputError :message="errors.end" />
                         </div>
 
                         <div class="grid gap-2">
@@ -579,16 +579,16 @@ function formatDate(dateStr: string): string {
                                 <button
                                     type="button"
                                     class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
-                                    @click="toggleSort('nome')"
+                                    @click="toggleSort('name')"
                                 >
                                     Nome
                                     <ChevronUp
-                                        v-if="getSortIcon('nome') === 'asc'"
+                                        v-if="getSortIcon('name') === 'asc'"
                                         class="h-3.5 w-3.5 text-primary"
                                     />
                                     <ChevronDown
                                         v-else-if="
-                                            getSortIcon('nome') === 'desc'
+                                            getSortIcon('name') === 'desc'
                                         "
                                         class="h-3.5 w-3.5 text-primary"
                                     />
@@ -604,16 +604,16 @@ function formatDate(dateStr: string): string {
                                 <button
                                     type="button"
                                     class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
-                                    @click="toggleSort('inicio')"
+                                    @click="toggleSort('start')"
                                 >
                                     Início
                                     <ChevronUp
-                                        v-if="getSortIcon('inicio') === 'asc'"
+                                        v-if="getSortIcon('start') === 'asc'"
                                         class="h-3.5 w-3.5 text-primary"
                                     />
                                     <ChevronDown
                                         v-else-if="
-                                            getSortIcon('inicio') === 'desc'
+                                            getSortIcon('start') === 'desc'
                                         "
                                         class="h-3.5 w-3.5 text-primary"
                                     />
@@ -629,16 +629,16 @@ function formatDate(dateStr: string): string {
                                 <button
                                     type="button"
                                     class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
-                                    @click="toggleSort('fim')"
+                                    @click="toggleSort('end')"
                                 >
                                     Fim
                                     <ChevronUp
-                                        v-if="getSortIcon('fim') === 'asc'"
+                                        v-if="getSortIcon('end') === 'asc'"
                                         class="h-3.5 w-3.5 text-primary"
                                     />
                                     <ChevronDown
                                         v-else-if="
-                                            getSortIcon('fim') === 'desc'
+                                            getSortIcon('end') === 'desc'
                                         "
                                         class="h-3.5 w-3.5 text-primary"
                                     />
@@ -687,13 +687,13 @@ function formatDate(dateStr: string): string {
                             class="transition-colors hover:bg-muted/30"
                         >
                             <td class="px-3 py-3 font-medium text-foreground">
-                                {{ schoolYear.nome }}
+                                {{ schoolYear.name }}
                             </td>
                             <td class="px-3 py-3 text-muted-foreground">
-                                {{ formatDate(schoolYear.inicio) }}
+                                {{ formatDate(schoolYear.start) }}
                             </td>
                             <td class="px-3 py-3 text-muted-foreground">
-                                {{ formatDate(schoolYear.fim) }}
+                                {{ formatDate(schoolYear.end) }}
                             </td>
                             <td class="px-3 py-3">
                                 <span
@@ -773,7 +773,7 @@ function formatDate(dateStr: string): string {
                 <p class="mt-2 text-sm text-muted-foreground">
                     Tem certeza que deseja excluir o ano letivo
                     <span class="font-medium text-foreground">{{
-                        schoolYearToDelete.nome
+                        schoolYearToDelete.name
                     }}</span
                     >? Esta ação não pode ser desfeita.
                 </p>

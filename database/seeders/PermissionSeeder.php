@@ -54,7 +54,70 @@ class PermissionSeeder extends Seeder
         ],
         'settings' => [
             ['name' => 'list',   'label' => 'Listar',      'order' => 1, 'description' => 'Listar configurações do sistema'],
-            ['name' => 'manage', 'label' => 'Gerenciar',   'order' => 1, 'description' => 'Gerenciar configurações do sistema'],
+            ['name' => 'manage', 'label' => 'Gerenciar',   'order' => 2, 'description' => 'Gerenciar configurações do sistema'],
+        ],
+        'schools' => [
+            ['name' => 'view',   'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar escola'],
+            ['name' => 'list',   'label' => 'Listar',     'order' => 2, 'description' => 'Listar escolas'],
+            ['name' => 'add',    'label' => 'Adicionar',  'order' => 3, 'description' => 'Cadastrar escola'],
+            ['name' => 'edit',   'label' => 'Editar',     'order' => 4, 'description' => 'Editar escola'],
+            ['name' => 'delete', 'label' => 'Excluir',    'order' => 5, 'description' => 'Remover escola'],
+        ],
+
+        'opportunities' => [
+            ['name' => 'view',   'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar oportunidade'],
+            ['name' => 'list',   'label' => 'Listar',     'order' => 2, 'description' => 'Listar oportunidades'],
+            ['name' => 'add',    'label' => 'Adicionar',  'order' => 3, 'description' => 'Cadastrar oportunidade'],
+            ['name' => 'edit',   'label' => 'Editar',     'order' => 4, 'description' => 'Editar oportunidade'],
+            ['name' => 'delete', 'label' => 'Excluir',    'order' => 5, 'description' => 'Remover oportunidade'],
+        ],
+
+        'tasks' => [
+            ['name' => 'view',     'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar tarefa'],
+            ['name' => 'list',     'label' => 'Listar',     'order' => 2, 'description' => 'Listar tarefas'],
+            ['name' => 'add',      'label' => 'Adicionar',  'order' => 3, 'description' => 'Cadastrar tarefa'],
+            ['name' => 'edit',     'label' => 'Editar',     'order' => 4, 'description' => 'Editar tarefa'],
+            ['name' => 'complete', 'label' => 'Concluir',   'order' => 5, 'description' => 'Marcar tarefa como concluída'],
+        ],
+
+        'school_years' => [
+            ['name' => 'view',   'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar ano letivo'],
+            ['name' => 'list',   'label' => 'Listar',     'order' => 2, 'description' => 'Listar anos letivos'],
+            ['name' => 'add',    'label' => 'Adicionar',  'order' => 3, 'description' => 'Cadastrar ano letivo'],
+            ['name' => 'edit',   'label' => 'Editar',     'order' => 4, 'description' => 'Editar ano letivo'],
+            ['name' => 'delete', 'label' => 'Excluir',    'order' => 5, 'description' => 'Remover ano letivo'],
+        ],
+
+        'lead_sources' => [
+            ['name' => 'view',   'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar origem do lead'],
+            ['name' => 'list',   'label' => 'Listar',     'order' => 2, 'description' => 'Listar origens de lead'],
+            ['name' => 'add',    'label' => 'Adicionar',  'order' => 3, 'description' => 'Cadastrar origem de lead'],
+            ['name' => 'edit',   'label' => 'Editar',     'order' => 4, 'description' => 'Editar origem de lead'],
+            ['name' => 'delete', 'label' => 'Excluir',    'order' => 5, 'description' => 'Remover origem de lead'],
+        ],
+
+        'grades' => [
+            ['name' => 'view',   'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar série'],
+            ['name' => 'list',   'label' => 'Listar',     'order' => 2, 'description' => 'Listar séries'],
+            ['name' => 'add',    'label' => 'Adicionar',  'order' => 3, 'description' => 'Cadastrar série'],
+            ['name' => 'edit',   'label' => 'Editar',     'order' => 4, 'description' => 'Editar série'],
+            ['name' => 'delete', 'label' => 'Excluir',    'order' => 5, 'description' => 'Remover série'],
+        ],
+
+        'events' => [
+            ['name' => 'view',   'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar evento'],
+            ['name' => 'list',   'label' => 'Listar',     'order' => 2, 'description' => 'Listar eventos'],
+            ['name' => 'add',    'label' => 'Adicionar',  'order' => 3, 'description' => 'Cadastrar evento'],
+            ['name' => 'edit',   'label' => 'Editar',     'order' => 4, 'description' => 'Editar evento'],
+            ['name' => 'delete', 'label' => 'Excluir',    'order' => 5, 'description' => 'Remover evento'],
+        ],
+
+        'rooms' => [
+            ['name' => 'view',   'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar sala'],
+            ['name' => 'list',   'label' => 'Listar',     'order' => 2, 'description' => 'Listar salas'],
+            ['name' => 'add',    'label' => 'Adicionar',  'order' => 3, 'description' => 'Cadastrar sala'],
+            ['name' => 'edit',   'label' => 'Editar',     'order' => 4, 'description' => 'Editar sala'],
+            ['name' => 'delete', 'label' => 'Excluir',    'order' => 5, 'description' => 'Remover sala'],
         ],
     ];
 

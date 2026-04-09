@@ -52,7 +52,7 @@ function makeSchoolForOpportunityTests(): School
 
     return School::create([
         'cnpj' => str_pad((string) ($counter + 8000), 14, '0', STR_PAD_LEFT),
-        'razao_social' => 'Escola Oportunidade '.$counter,
+        'legal_name' => 'Escola Oportunidade '.$counter,
     ]);
 }
 
@@ -66,7 +66,7 @@ function makeGradeForOpportunity(School $school): Grade
     return Grade::withoutTenantScope()->create([
         'school_id' => $school->id,
         'segment_id' => $segment->id,
-        'nome' => '1º Ano',
+        'name' => '1º Ano',
     ]);
 }
 
@@ -74,9 +74,9 @@ function makeSchoolYearForOpportunity(School $school): SchoolYear
 {
     return SchoolYear::withoutTenantScope()->create([
         'school_id' => $school->id,
-        'nome' => '2025',
-        'inicio' => '2025-01-01',
-        'fim' => '2025-12-31',
+        'name' => '2025',
+        'start' => '2025-01-01',
+        'end' => '2025-12-31',
         'status' => 'planejamento',
     ]);
 }
@@ -248,9 +248,9 @@ it('POST store com school_year encerrado cria oportunidade e redireciona com war
 
     $schoolYear = SchoolYear::withoutTenantScope()->create([
         'school_id' => $school->id,
-        'nome' => '2023',
-        'inicio' => '2023-01-01',
-        'fim' => '2023-12-31',
+        'name' => '2023',
+        'start' => '2023-01-01',
+        'end' => '2023-12-31',
         'status' => 'encerrado',
     ]);
 

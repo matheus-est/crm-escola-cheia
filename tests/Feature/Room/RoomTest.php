@@ -53,7 +53,7 @@ function makeSchoolForRoomTests(): School
 
     return School::create([
         'cnpj' => str_pad((string) ($counter + 500), 14, '0', STR_PAD_LEFT),
-        'razao_social' => 'Escola Room '.$counter,
+        'legal_name' => 'Escola Room '.$counter,
     ]);
 }
 
@@ -92,6 +92,7 @@ it('store cria sala e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
+        ->withHeaders(['HTTP_REFERER' => route('tenant.settings.rooms.index')])
         ->post(route('tenant.settings.rooms.store'), [
             'name' => 'Sala 101',
             'capacity' => 30,
@@ -138,6 +139,7 @@ it('update atualiza sala e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
+        ->withHeaders(['HTTP_REFERER' => route('tenant.settings.rooms.index')])
         ->put(route('tenant.settings.rooms.update', $room), [
             'name' => 'Sala Atualizada',
             'capacity' => 25,
@@ -165,6 +167,7 @@ it('destroy faz soft-delete da sala e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
+        ->withHeaders(['HTTP_REFERER' => route('tenant.settings.rooms.index')])
         ->delete(route('tenant.settings.rooms.destroy', $room))
         ->assertRedirect(route('tenant.settings.rooms.index'));
 

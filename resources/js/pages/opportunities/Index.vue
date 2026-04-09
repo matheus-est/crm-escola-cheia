@@ -280,7 +280,7 @@ function handleDeleteSuccess(): void {
                                                     :key="grade.uuid"
                                                     :value="grade.uuid"
                                                 >
-                                                    {{ grade.nome }}
+                                                    {{ grade.name }}
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -319,7 +319,7 @@ function handleDeleteSuccess(): void {
                                                     :key="sy.uuid"
                                                     :value="sy.uuid"
                                                 >
-                                                    {{ sy.nome }}
+                                                    {{ sy.name }}
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -447,16 +447,16 @@ function handleDeleteSuccess(): void {
                             class="transition-colors hover:bg-muted/30"
                         >
                             <td class="px-3 py-3 font-medium text-foreground">
-                                {{ opportunity.student?.nome ?? '—' }}
+                                {{ opportunity.student?.name ?? '—' }}
                             </td>
                             <td class="px-3 py-3 text-muted-foreground">
-                                {{ opportunity.guardian?.nome ?? '—' }}
+                                {{ opportunity.guardian?.name ?? '—' }}
                             </td>
                             <td class="px-3 py-3 text-muted-foreground">
-                                {{ opportunity.grade?.nome ?? '—' }}
+                                {{ opportunity.grade?.name ?? '—' }}
                             </td>
                             <td class="px-3 py-3 text-muted-foreground">
-                                {{ opportunity.school_year?.nome ?? '—' }}
+                                {{ opportunity.school_year?.name ?? '—' }}
                             </td>
                             <td class="px-3 py-3">
                                 <span
@@ -555,7 +555,7 @@ function handleDeleteSuccess(): void {
             v-if="opportunityToDelete"
             v-model:open="showDeleteModal"
             title="Confirmar Exclusão"
-            :message="`Tem certeza que deseja excluir a oportunidade de ${opportunityToDelete.student?.nome ?? 'este aluno'}?`"
+            :message="`Tem certeza que deseja excluir a oportunidade de ${opportunityToDelete.student?.name ?? 'este aluno'}?`"
             :action="
                 destroy({
                     school_uuid: props.school.uuid,

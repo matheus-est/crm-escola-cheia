@@ -48,9 +48,9 @@ class OpportunityController extends Controller
             'responsibleUser',
         ]);
 
-        $grades = Grade::query()->orderBy('nome')->get();
-        $schoolYears = SchoolYear::query()->orderBy('nome')->get();
-        $leadSources = LeadSource::query()->orderBy('nome')->get();
+        $grades = Grade::query()->orderBy('name')->get();
+        $schoolYears = SchoolYear::query()->orderBy('name')->get();
+        $leadSources = LeadSource::query()->orderBy('name')->get();
         $responsibleUsers = $school->users()->orderBy('name')->get();
         $segments = Segment::query()->orderBy('name')->get();
 
@@ -70,10 +70,10 @@ class OpportunityController extends Controller
         Gate::authorize('create', Opportunity::class);
 
         $school = Auth::user()->currentSchool();
-        
-        $grades = Grade::query()->orderBy('nome')->get();
-        $schoolYears = SchoolYear::query()->orderBy('nome')->get();
-        $leadSources = LeadSource::query()->orderBy('nome')->get();
+
+        $grades = Grade::query()->orderBy('name')->get();
+        $schoolYears = SchoolYear::query()->orderBy('name')->get();
+        $leadSources = LeadSource::query()->orderBy('name')->get();
         $users = $school->users()->orderBy('name')->get();
         $segments = Segment::query()->orderBy('name')->get();
 
@@ -90,9 +90,9 @@ class OpportunityController extends Controller
     public function store(StoreOpportunityRequest $request): RedirectResponse
     {
         Gate::authorize('create', Opportunity::class);
-        
+
         $validated = $request->validated();
-        
+
         $this->opportunityService->create($validated);
 
         $flashKey = $this->opportunityService->hasClosedSchoolYear($validated)
@@ -149,11 +149,11 @@ class OpportunityController extends Controller
             'segment',
         ]);
 
-        $students = Student::query()->orderBy('nome')->get();
-        $guardians = Guardian::query()->orderBy('nome')->get();
-        $grades = Grade::query()->orderBy('nome')->get();
-        $schoolYears = SchoolYear::query()->orderBy('nome')->get();
-        $leadSources = LeadSource::query()->orderBy('nome')->get();
+        $students = Student::query()->orderBy('name')->get();
+        $guardians = Guardian::query()->orderBy('name')->get();
+        $grades = Grade::query()->orderBy('name')->get();
+        $schoolYears = SchoolYear::query()->orderBy('name')->get();
+        $leadSources = LeadSource::query()->orderBy('name')->get();
         $users = $school->users()->orderBy('name')->get();
         $segments = Segment::query()->orderBy('name')->get();
 

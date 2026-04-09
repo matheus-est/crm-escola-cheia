@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\SchoolStatus;
+use App\Http\Middleware\SetActiveTenant;
 use App\Models\Role;
 use App\Models\School;
 use App\Models\User;
@@ -27,7 +28,7 @@ function makeActiveSchool(): School
 {
     return School::query()->create([
         'cnpj' => fake()->numerify('##############'),
-        'razao_social' => fake()->company(),
+        'legal_name' => fake()->company(),
         'status' => SchoolStatus::Active->value,
     ]);
 }
@@ -36,7 +37,7 @@ function makeInactiveSchool(): School
 {
     return School::query()->create([
         'cnpj' => fake()->numerify('##############'),
-        'razao_social' => fake()->company(),
+        'legal_name' => fake()->company(),
         'status' => SchoolStatus::Inactive->value,
     ]);
 }
@@ -97,7 +98,8 @@ it('não-cross-tenant não pode acessar escola sem vínculo no pivot', function 
     $user = activeSchoolUser('Gestor');
     $school = makeActiveSchool();
 
-    $this->actingAs($user)
+    $this->withoutMiddleware(SetActiveTenant::class)
+        ->actingAs($user)
         ->withHeader('Accept', 'application/json')
         ->post(route('active-school.store'), ['school_uuid' => $school->uuid])
         ->assertStatus(422)
@@ -110,7 +112,8 @@ it('não-cross-tenant não pode acessar escola com vínculo inativo', function (
 
     $school->users()->attach($user->id, ['is_active' => false]);
 
-    $this->actingAs($user)
+    $this->withoutMiddleware(SetActiveTenant::class)
+        ->actingAs($user)
         ->withHeader('Accept', 'application/json')
         ->post(route('active-school.store'), ['school_uuid' => $school->uuid])
         ->assertStatus(422)

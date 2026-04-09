@@ -40,7 +40,7 @@ function showMakeSchool(): School
 
     return School::create([
         'cnpj' => str_pad((string) ($counter + 80000), 14, '0', STR_PAD_LEFT),
-        'razao_social' => "Escola Show {$counter}",
+        'legal_name' => "Escola Show {$counter}",
     ]);
 }
 
@@ -67,14 +67,14 @@ function showMakeOpportunity(School $school): Opportunity
     $grade = Grade::withoutTenantScope()->firstOrCreate([
         'school_id' => $school->id,
         'segment_id' => $segment->id,
-        'nome' => '1º Ano',
+        'name' => '1º Ano',
     ]);
 
     $schoolYear = SchoolYear::withoutTenantScope()->firstOrCreate(
-        ['school_id' => $school->id, 'nome' => '2025'],
+        ['school_id' => $school->id, 'name' => '2025'],
         [
-            'inicio' => '2025-01-01',
-            'fim' => '2025-12-31',
+            'start' => '2025-01-01',
+            'end' => '2025-12-31',
             'status' => 'planejamento',
         ]
     );

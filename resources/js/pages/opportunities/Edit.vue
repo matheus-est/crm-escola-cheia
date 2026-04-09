@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
-import {
-    AlertCircle,
-    ArrowLeft,
-    ClipboardList,
-    FileText,
-    User,
-} from 'lucide-vue-next';
+import { AlertCircle, ArrowLeft, ClipboardList, User } from 'lucide-vue-next';
 import { type Component, computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -65,7 +59,7 @@ const isTerminal = computed(
         props.opportunity.status === 'recusado',
 );
 
-type Tab = 'cadastro' | 'aluno' | 'complementar';
+type Tab = 'cadastro' | 'aluno';
 const activeTab = ref<Tab>('cadastro');
 
 const tabs: { value: Tab; label: string; icon: Component }[] = [
@@ -75,11 +69,6 @@ const tabs: { value: Tab; label: string; icon: Component }[] = [
         icon: ClipboardList,
     },
     { value: 'aluno', label: 'Aluno / Responsável', icon: User },
-    {
-        value: 'complementar',
-        label: 'Informações Complementares',
-        icon: FileText,
-    },
 ];
 
 // Student CPF lookup
@@ -163,15 +152,15 @@ async function handleGuardianCpfBlur(event: Event): Promise<void> {
             } else if (data.exists && data.guardian) {
                 guardianCpfInvalidError.value = null;
                 const g = data.guardian;
-                fillInput('guardian_name', g.nome ?? '');
-                fillInput('guardian_phone', g.telefone ?? '');
+                fillInput('guardian_name', g.name ?? '');
+                fillInput('guardian_phone', g.phone ?? '');
                 fillInput('guardian_email', g.email ?? '');
-                fillInput('zip_code', g.cep ?? '');
-                fillInput('street', g.logradouro ?? '');
-                fillInput('number', g.numero ?? '');
-                fillInput('neighborhood', g.bairro ?? '');
-                fillInput('city', g.cidade ?? '');
-                fillInput('state', g.estado ?? '');
+                fillInput('zip_code', g.zip_code ?? '');
+                fillInput('street', g.street ?? '');
+                fillInput('number', g.number ?? '');
+                fillInput('neighborhood', g.neighborhood ?? '');
+                fillInput('city', g.city ?? '');
+                fillInput('state', g.state ?? '');
             } else {
                 guardianCpfInvalidError.value = null;
             }
@@ -208,11 +197,11 @@ function handleZipCodeInput(event: Event): void {
 
 function handleZipCodeBlur(event: Event): void {
     const input = event.target as HTMLInputElement;
-    void cepLookup(input.value, ({ logradouro, bairro, cidade, estado }) => {
-        fillInput('street', logradouro);
-        fillInput('neighborhood', bairro);
-        fillInput('city', cidade);
-        fillInput('state', estado);
+    void cepLookup(input.value, ({ street, neighborhood, city, state }) => {
+        fillInput('street', street);
+        fillInput('neighborhood', neighborhood);
+        fillInput('city', city);
+        fillInput('state', state);
     });
 }
 
@@ -294,7 +283,7 @@ function handleError(): void {
                             v-show="activeTab === 'cadastro'"
                             class="space-y-6"
                         >
-                            <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="grid gap-4 sm:grid-cols-4">
                                 <!-- Tipo de Cadastro -->
                                 <div class="space-y-2">
                                     <Label for="registration_type"
@@ -384,7 +373,7 @@ function handleError(): void {
                                                 :key="ls.uuid"
                                                 :value="ls.uuid"
                                             >
-                                                {{ ls.nome }}
+                                                {{ ls.name }}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -448,6 +437,38 @@ function handleError(): void {
                                     <InputError :message="errors.task_type" />
                                 </div>
                             </div>
+
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div class="space-y-2">
+                                    <Label for="history">Histórico</Label>
+                                    <textarea
+                                        id="history"
+                                        name="history"
+                                        rows="5"
+                                        placeholder="Histórico da oportunidade..."
+                                        :disabled="isTerminal"
+                                        v-model="historyValue"
+                                        class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    ></textarea>
+                                    <InputError :message="errors.history" />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="indications"
+                                        >Indicações / Referências</Label
+                                    >
+                                    <textarea
+                                        id="indications"
+                                        name="indications"
+                                        rows="5"
+                                        placeholder="Indicações / referências..."
+                                        :disabled="isTerminal"
+                                        v-model="indicationsValue"
+                                        class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    ></textarea>
+                                    <InputError :message="errors.indications" />
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Aba 2: Aluno / Responsável -->
@@ -472,7 +493,7 @@ function handleError(): void {
                                             placeholder="Nome completo do aluno"
                                             :default-value="
                                                 props.opportunity.student
-                                                    ?.nome ?? ''
+                                                    ?.name ?? ''
                                             "
                                             :disabled="isTerminal"
                                         />
@@ -510,7 +531,9 @@ function handleError(): void {
                                             {{ studentCpfError }}
                                         </p>
                                     </div>
+                                </div>
 
+                                <div class="grid gap-4 sm:grid-cols-4">
                                     <div class="space-y-2">
                                         <Label for="grade_id">
                                             Série/Turma
@@ -537,7 +560,7 @@ function handleError(): void {
                                                     :key="grade.uuid"
                                                     :value="grade.uuid"
                                                 >
-                                                    {{ grade.nome }}
+                                                    {{ grade.name }}
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -602,7 +625,7 @@ function handleError(): void {
                                                     :key="sy.uuid"
                                                     :value="sy.uuid"
                                                 >
-                                                    {{ sy.nome }}
+                                                    {{ sy.name }}
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -614,12 +637,12 @@ function handleError(): void {
                                     <div class="space-y-2">
                                         <Label>Unidade</Label>
                                         <Input
-                                            :value="
-                                                props.school.nome_fantasia ??
-                                                props.school.razao_social
+                                            :default-value="
+                                                props.school.trade_name ??
+                                                props.school.legal_name
                                             "
-                                            disabled
-                                            class="bg-muted/50"
+                                            readonly
+                                            class="cursor-not-allowed bg-muted"
                                         />
                                     </div>
                                 </div>
@@ -642,7 +665,7 @@ function handleError(): void {
                                             placeholder="Nome completo do responsável"
                                             :default-value="
                                                 props.opportunity.guardian
-                                                    ?.nome ?? ''
+                                                    ?.name ?? ''
                                             "
                                             :disabled="isTerminal"
                                         />
@@ -692,7 +715,7 @@ function handleError(): void {
                                             placeholder="(00) 00000-0000"
                                             :default-value="
                                                 props.opportunity.guardian
-                                                    ?.telefone ?? ''
+                                                    ?.phone ?? ''
                                             "
                                             :disabled="isTerminal"
                                             @input="handleGuardianPhoneInput"
@@ -730,8 +753,8 @@ function handleError(): void {
                             >
                                 <h3 class="text-lg font-medium">Endereço</h3>
 
-                                <div class="grid gap-4 sm:grid-cols-2">
-                                    <div class="space-y-2">
+                                <div class="grid gap-4 sm:grid-cols-12">
+                                    <div class="space-y-2 sm:col-span-2">
                                         <Label for="zip_code">CEP</Label>
                                         <div class="relative">
                                             <Input
@@ -741,7 +764,7 @@ function handleError(): void {
                                                 class="pr-8"
                                                 :default-value="
                                                     props.opportunity.guardian
-                                                        ?.cep ?? ''
+                                                        ?.zip_code ?? ''
                                                 "
                                                 :disabled="isTerminal"
                                                 @input="handleZipCodeInput"
@@ -763,7 +786,7 @@ function handleError(): void {
                                         />
                                     </div>
 
-                                    <div class="space-y-2">
+                                    <div class="space-y-2 sm:col-span-6">
                                         <Label for="street">Logradouro</Label>
                                         <Input
                                             id="street"
@@ -771,14 +794,14 @@ function handleError(): void {
                                             placeholder="Rua, Av., etc."
                                             :default-value="
                                                 props.opportunity.guardian
-                                                    ?.logradouro ?? ''
+                                                    ?.street ?? ''
                                             "
                                             :disabled="isTerminal"
                                         />
                                         <InputError :message="errors.street" />
                                     </div>
 
-                                    <div class="space-y-2">
+                                    <div class="space-y-2 sm:col-span-2">
                                         <Label for="number">Número</Label>
                                         <Input
                                             id="number"
@@ -786,14 +809,14 @@ function handleError(): void {
                                             placeholder="Número"
                                             :default-value="
                                                 props.opportunity.guardian
-                                                    ?.numero ?? ''
+                                                    ?.number ?? ''
                                             "
                                             :disabled="isTerminal"
                                         />
                                         <InputError :message="errors.number" />
                                     </div>
 
-                                    <div class="space-y-2">
+                                    <div class="space-y-2 sm:col-span-2">
                                         <Label for="neighborhood">Bairro</Label>
                                         <Input
                                             id="neighborhood"
@@ -801,7 +824,7 @@ function handleError(): void {
                                             placeholder="Bairro"
                                             :default-value="
                                                 props.opportunity.guardian
-                                                    ?.bairro ?? ''
+                                                    ?.neighborhood ?? ''
                                             "
                                             :disabled="isTerminal"
                                         />
@@ -810,7 +833,23 @@ function handleError(): void {
                                         />
                                     </div>
 
-                                    <div class="space-y-2">
+                                    <div class="space-y-2 sm:col-span-2">
+                                        <Label for="state">UF</Label>
+                                        <Input
+                                            id="state"
+                                            name="state"
+                                            placeholder="UF"
+                                            maxlength="2"
+                                            :default-value="
+                                                props.opportunity.guardian
+                                                    ?.state ?? ''
+                                            "
+                                            :disabled="isTerminal"
+                                        />
+                                        <InputError :message="errors.state" />
+                                    </div>
+
+                                    <div class="space-y-2 sm:col-span-10">
                                         <Label for="city">Cidade</Label>
                                         <Input
                                             id="city"
@@ -818,64 +857,13 @@ function handleError(): void {
                                             placeholder="Cidade"
                                             :default-value="
                                                 props.opportunity.guardian
-                                                    ?.cidade ?? ''
+                                                    ?.city ?? ''
                                             "
                                             :disabled="isTerminal"
                                         />
                                         <InputError :message="errors.city" />
                                     </div>
-
-                                    <div class="space-y-2">
-                                        <Label for="state">Estado</Label>
-                                        <Input
-                                            id="state"
-                                            name="state"
-                                            placeholder="UF"
-                                            :default-value="
-                                                props.opportunity.guardian
-                                                    ?.estado ?? ''
-                                            "
-                                            :disabled="isTerminal"
-                                        />
-                                        <InputError :message="errors.state" />
-                                    </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Aba 3: Informações Complementares -->
-                        <div
-                            v-show="activeTab === 'complementar'"
-                            class="space-y-6"
-                        >
-                            <div class="space-y-2">
-                                <Label for="history">Histórico</Label>
-                                <textarea
-                                    id="history"
-                                    name="history"
-                                    rows="5"
-                                    placeholder="Histórico da oportunidade..."
-                                    :disabled="isTerminal"
-                                    v-model="historyValue"
-                                    class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                ></textarea>
-                                <InputError :message="errors.history" />
-                            </div>
-
-                            <div class="space-y-2">
-                                <Label for="indications"
-                                    >Indicações / Referências</Label
-                                >
-                                <textarea
-                                    id="indications"
-                                    name="indications"
-                                    rows="5"
-                                    placeholder="Indicações / referências..."
-                                    :disabled="isTerminal"
-                                    v-model="indicationsValue"
-                                    class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                ></textarea>
-                                <InputError :message="errors.indications" />
                             </div>
                         </div>
                     </div>

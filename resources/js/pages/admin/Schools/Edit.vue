@@ -23,6 +23,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCepLookup } from '@/composables/useCepLookup';
 import { useCnpjLookup, maskCnpj } from '@/composables/useCnpjLookup';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -70,6 +71,13 @@ const handleError = () => {
     toast.error('Erro ao atualizar escola. Verifique os campos.');
 };
 
+// CEP lookup
+const {
+    isLoading: isLoadingCep,
+    error: cepError,
+    lookup: lookupCep,
+} = useCepLookup();
+
 // CNPJ mask + lookup — DOM-only mask, no reactive ref (avoids re-render delay)
 const {
     isLoading: isLoadingCnpj,
@@ -77,7 +85,28 @@ const {
     lookup: lookupCnpj,
 } = useCnpjLookup();
 
-const razaoSocialValue = ref(props.school.razao_social ?? '');
+const legalNameValue = ref(props.school.legal_name ?? '');
+
+function fillInput(id: string, value: string): void {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    if (el) el.value = value;
+}
+
+function handleCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const d = input.value.replace(/\D/g, '').slice(0, 8);
+    input.value = d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+}
+
+function handleCepBlur(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    void lookupCep(input.value, ({ street, neighborhood, city, state }) => {
+        fillInput('unit-street', street);
+        fillInput('unit-neighborhood', neighborhood);
+        fillInput('unit-city', city);
+        fillInput('unit-state', state);
+    });
+}
 
 function handleCnpjInput(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -85,7 +114,34 @@ function handleCnpjInput(e: Event) {
     input.value = masked; // DOM only — Vue never re-renders this input
     if (masked.replace(/\D/g, '').length === 14) {
         lookupCnpj(masked, (data) => {
-            razaoSocialValue.value = data.razao_social;
+            legalNameValue.value = data.legal_name;
+            fillInput('trade_name', data.trade_name);
+            if (data.zip_code) {
+                const d = data.zip_code.replace(/\D/g, '');
+                fillInput(
+                    'unit-zip_code',
+                    d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d,
+                );
+                // Trigger CEP lookup to auto-fill full address
+                const zipInput = document.getElementById(
+                    'unit-zip_code',
+                ) as HTMLInputElement | null;
+                if (zipInput)
+                    void lookupCep(
+                        zipInput.value,
+                        ({ street, neighborhood, city, state }) => {
+                            fillInput('unit-street', street);
+                            fillInput('unit-neighborhood', neighborhood);
+                            fillInput('unit-city', city);
+                            fillInput('unit-state', state);
+                        },
+                    );
+            }
+            if (data.street) fillInput('unit-street', data.street);
+            if (data.neighborhood)
+                fillInput('unit-neighborhood', data.neighborhood);
+            if (data.city) fillInput('unit-city', data.city);
+            if (data.state) fillInput('unit-state', data.state);
         });
     }
 }
@@ -241,30 +297,30 @@ function detachUser(userUuid: string) {
                                     </div>
 
                                     <div class="space-y-2">
-                                        <Label for="razao_social"
+                                        <Label for="legal_name"
                                             >Razão Social</Label
                                         >
                                         <Input
-                                            id="razao_social"
-                                            name="razao_social"
+                                            id="legal_name"
+                                            name="legal_name"
                                             placeholder="Escola Exemplo"
-                                            v-model="razaoSocialValue"
+                                            v-model="legalNameValue"
                                         />
                                         <InputError
-                                            :message="errors.razao_social"
+                                            :message="errors.legal_name"
                                         />
                                     </div>
 
-                                    <div class="space-y-2 sm:col-span-2">
-                                        <Label for="nome_fantasia"
+                                    <div class="space-y-2">
+                                        <Label for="trade_name"
                                             >Nome Fantasia</Label
                                         >
                                         <Input
-                                            id="nome_fantasia"
-                                            name="nome_fantasia"
+                                            id="trade_name"
+                                            name="trade_name"
                                             placeholder="Nome exibido no sistema (opcional)"
                                             :default-value="
-                                                props.school.nome_fantasia ?? ''
+                                                props.school.trade_name ?? ''
                                             "
                                         />
                                         <p
@@ -274,7 +330,7 @@ function detachUser(userUuid: string) {
                                             de seleção de escola.
                                         </p>
                                         <InputError
-                                            :message="errors.nome_fantasia"
+                                            :message="errors.trade_name"
                                         />
                                     </div>
 
@@ -324,7 +380,7 @@ function detachUser(userUuid: string) {
                                         <InputError :message="errors.slug" />
                                     </div>
 
-                                    <div class="space-y-2">
+                                    <div class="space-y-2 sm:col-span-2">
                                         <Label for="status">Status</Label>
                                         <Select
                                             name="status"
@@ -345,6 +401,183 @@ function detachUser(userUuid: string) {
                                             </SelectContent>
                                         </Select>
                                         <InputError :message="errors.status" />
+                                    </div>
+                                </div>
+
+                                <!-- Endereço da Unidade Matriz -->
+                                <div class="border-t pt-4">
+                                    <h3
+                                        class="mb-4 text-base font-medium text-muted-foreground"
+                                    >
+                                        Endereço da Unidade Matriz
+                                    </h3>
+
+                                    <!-- hidden field: units[0][name] required by backend -->
+                                    <input
+                                        type="hidden"
+                                        name="units[0][name]"
+                                        :value="
+                                            props.school.units?.[0]?.name ??
+                                            props.school.legal_name
+                                        "
+                                    />
+
+                                    <div class="grid gap-4 sm:grid-cols-12">
+                                        <div class="space-y-2 sm:col-span-2">
+                                            <Label for="unit-zip_code"
+                                                >CEP</Label
+                                            >
+                                            <div class="relative">
+                                                <Input
+                                                    id="unit-zip_code"
+                                                    name="units[0][zip_code]"
+                                                    placeholder="00000-000"
+                                                    maxlength="9"
+                                                    :default-value="
+                                                        props.school.units?.[0]
+                                                            ?.zip_code ?? ''
+                                                    "
+                                                    @input="handleCepInput"
+                                                    @blur="handleCepBlur"
+                                                />
+                                                <span
+                                                    v-if="isLoadingCep"
+                                                    class="absolute top-2.5 right-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
+                                                />
+                                            </div>
+                                            <p
+                                                v-if="cepError"
+                                                class="text-xs text-destructive"
+                                            >
+                                                {{ cepError }}
+                                            </p>
+                                            <InputError
+                                                :message="
+                                                    errors['units.0.zip_code']
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-6">
+                                            <Label for="unit-street"
+                                                >Logradouro</Label
+                                            >
+                                            <Input
+                                                id="unit-street"
+                                                name="units[0][street]"
+                                                placeholder="Rua, Avenida, etc."
+                                                :default-value="
+                                                    props.school.units?.[0]
+                                                        ?.street ?? ''
+                                                "
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors['units.0.street']
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-2">
+                                            <Label for="unit-number"
+                                                >Número</Label
+                                            >
+                                            <Input
+                                                id="unit-number"
+                                                name="units[0][number]"
+                                                placeholder="123"
+                                                :default-value="
+                                                    props.school.units?.[0]
+                                                        ?.number ?? ''
+                                                "
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors['units.0.number']
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-2">
+                                            <Label for="unit-complement"
+                                                >Complemento</Label
+                                            >
+                                            <Input
+                                                id="unit-complement"
+                                                name="units[0][complement]"
+                                                placeholder="Sala, Andar, etc."
+                                                :default-value="
+                                                    props.school.units?.[0]
+                                                        ?.complement ?? ''
+                                                "
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors['units.0.complement']
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-2">
+                                            <Label for="unit-neighborhood"
+                                                >Bairro</Label
+                                            >
+                                            <Input
+                                                id="unit-neighborhood"
+                                                name="units[0][neighborhood]"
+                                                placeholder="Bairro"
+                                                :default-value="
+                                                    props.school.units?.[0]
+                                                        ?.neighborhood ?? ''
+                                                "
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors[
+                                                        'units.0.neighborhood'
+                                                    ]
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-2">
+                                            <Label for="unit-state">UF</Label>
+                                            <Input
+                                                id="unit-state"
+                                                name="units[0][state]"
+                                                placeholder="UF"
+                                                maxlength="2"
+                                                :default-value="
+                                                    props.school.units?.[0]
+                                                        ?.state ?? ''
+                                                "
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors['units.0.state']
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-10">
+                                            <Label for="unit-city"
+                                                >Cidade</Label
+                                            >
+                                            <Input
+                                                id="unit-city"
+                                                name="units[0][city]"
+                                                placeholder="Cidade"
+                                                :default-value="
+                                                    props.school.units?.[0]
+                                                        ?.city ?? ''
+                                                "
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors['units.0.city']
+                                                "
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -40,7 +40,7 @@ import type { LeadSource, PaginatedLeadSources, School } from '@/types/crm';
 
 interface Filters {
     nome: string;
-    sort_by: 'nome' | '';
+    sort_by: 'name' | '';
     sort_dir: 'asc' | 'desc';
     per_page: number;
 }
@@ -60,17 +60,17 @@ const breadcrumbItems: BreadcrumbItem[] = [
 const filters = computed(() => props.filters);
 
 const localFilters = ref<Filters>({
-    nome: filters.value.nome || '',
-    sort_by: (filters.value.sort_by as Filters['sort_by']) || 'nome',
+    name: filters.value.name || '',
+    sort_by: (filters.value.sort_by as Filters['sort_by']) || 'name',
     sort_dir: filters.value.sort_dir || 'asc',
     per_page: Number(filters.value.per_page ?? 10),
 });
 
-const filterCount = computed(() => (filters.value.nome ? 1 : 0));
+const filterCount = computed(() => (filters.value.name ? 1 : 0));
 
 const hasActiveFilter = computed(() => filterCount.value > 0);
 
-function toggleSort(column: 'nome'): void {
+function toggleSort(column: 'name'): void {
     const newDir =
         localFilters.value.sort_by === column &&
         localFilters.value.sort_dir === 'asc'
@@ -81,7 +81,7 @@ function toggleSort(column: 'nome'): void {
     applyFilters();
 }
 
-function getSortIcon(column: 'nome'): 'asc' | 'desc' | 'none' {
+function getSortIcon(column: 'name'): 'asc' | 'desc' | 'none' {
     if (localFilters.value.sort_by !== column) return 'none';
     return localFilters.value.sort_dir === 'asc' ? 'asc' : 'desc';
 }
@@ -95,7 +95,7 @@ function applyFilters(): void {
     router.post(
         index.post().url,
         {
-            nome: localFilters.value.nome,
+            name: localFilters.value.name,
             sort_by: localFilters.value.sort_by,
             sort_dir: localFilters.value.sort_dir,
             per_page: localFilters.value.per_page,
@@ -233,7 +233,7 @@ function confirmDelete(): void {
                                         </Label>
                                         <Input
                                             id="filter-nome"
-                                            v-model="localFilters.nome"
+                                            v-model="localFilters.name"
                                             placeholder="Buscar por nome..."
                                             class="h-8"
                                         />
@@ -317,14 +317,14 @@ function confirmDelete(): void {
                 >
                     <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-3">
                         <div class="grid gap-2">
-                            <Label for="nome">Nome</Label>
+                            <Label for="name">Nome</Label>
                             <Input
-                                id="nome"
-                                name="nome"
+                                id="name"
+                                name="name"
                                 placeholder="Ex: Google Ads"
                                 required
                             />
-                            <InputError :message="errors.nome" />
+                            <InputError :message="errors.name" />
                         </div>
 
                         <div class="grid gap-2">
@@ -379,15 +379,15 @@ function confirmDelete(): void {
                 >
                     <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-3">
                         <div class="grid gap-2">
-                            <Label for="edit-nome">Nome</Label>
+                            <Label for="edit-name">Nome</Label>
                             <Input
-                                id="edit-nome"
-                                name="nome"
-                                :default-value="editingLeadSource.nome"
+                                id="edit-name"
+                                name="name"
+                                :default-value="editingLeadSource.name"
                                 placeholder="Ex: Google Ads"
                                 required
                             />
-                            <InputError :message="errors.nome" />
+                            <InputError :message="errors.name" />
                         </div>
 
                         <div class="grid gap-2">
@@ -443,16 +443,16 @@ function confirmDelete(): void {
                                 <button
                                     type="button"
                                     class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
-                                    @click="toggleSort('nome')"
+                                    @click="toggleSort('name')"
                                 >
                                     Nome
                                     <ChevronUp
-                                        v-if="getSortIcon('nome') === 'asc'"
+                                        v-if="getSortIcon('name') === 'asc'"
                                         class="h-3.5 w-3.5 text-primary"
                                     />
                                     <ChevronDown
                                         v-else-if="
-                                            getSortIcon('nome') === 'desc'
+                                            getSortIcon('name') === 'desc'
                                         "
                                         class="h-3.5 w-3.5 text-primary"
                                     />
@@ -486,7 +486,7 @@ function confirmDelete(): void {
                             class="transition-colors hover:bg-muted/30"
                         >
                             <td class="px-3 py-3 font-medium text-foreground">
-                                {{ leadSource.nome }}
+                                {{ leadSource.name }}
                             </td>
                             <td class="px-3 py-3">
                                 <span
@@ -595,7 +595,7 @@ function confirmDelete(): void {
                 <p class="mt-2 text-sm text-muted-foreground">
                     Tem certeza que deseja excluir a origem
                     <span class="font-medium text-foreground">{{
-                        leadSourceToDelete.nome
+                        leadSourceToDelete.name
                     }}</span
                     >? Esta ação não pode ser desfeita.
                 </p>

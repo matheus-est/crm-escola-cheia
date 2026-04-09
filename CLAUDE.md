@@ -41,6 +41,15 @@ Wait for confirmation before continuing.
 - Migrations: `->string()` never `->enum()` — cast to PHP backed enum on model
 - `owen-it/laravel-auditing` on every domain model
 
+## Database safety — inviolable
+
+- **Never** run `php artisan migrate:fresh`, `migrate:refresh`, `migrate:reset`, or `db:wipe` without explicit written confirmation from the developer — these commands destroy real data
+- **Never** run `php artisan db:seed` or `php artisan migrate --seed` on the development database without explicit written confirmation
+- Tests use SQLite `:memory:` (see `phpunit.xml`) — `RefreshDatabase` is correct and **must not** be replaced with `DatabaseTransactions`
+- `phpunit.xml` `DB_CONNECTION=sqlite` / `DB_DATABASE=:memory:` must never be changed to point at the real MySQL database
+- When a new migration is needed during development, run only `php artisan migrate` (forward-only) — never reset and replay
+- Masked fields (CEP, CNPJ, CPF, telefone/celular) are **always stored with their display mask** — never strip non-digits before persisting; strip only when needed for API calls or mod-11 validation logic
+
 ## Vue/TS conventions — inviolable
 
 - `<script setup lang="ts">` · TypeScript strict, no `any`

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->foreignId('school_id')->nullable()->constrained('schools')->nullOnDelete();
             $table->foreignId('segment_id')->constrained('segments')->cascadeOnDelete();
-            $table->string('nome');
+            $table->string('name');
             $table->unsignedSmallInteger('order')->default(0);
             $table->timestamps();
 

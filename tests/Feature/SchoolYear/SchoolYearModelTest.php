@@ -14,14 +14,14 @@ uses(RefreshDatabase::class);
 it('gera uuid automaticamente via observer ao criar school year', function () {
     $school = School::create([
         'cnpj' => '12345678000195',
-        'razao_social' => 'Escola Teste',
+        'legal_name' => 'Escola Teste',
     ]);
 
     $schoolYear = SchoolYear::withoutTenantScope()->create([
         'school_id' => $school->id,
-        'nome' => '2025',
-        'inicio' => '2025-01-01',
-        'fim' => '2025-12-31',
+        'name' => '2025',
+        'start' => '2025-01-01',
+        'end' => '2025-12-31',
         'status' => SchoolYearStatus::Planejamento,
     ]);
 
@@ -32,24 +32,24 @@ it('gera uuid automaticamente via observer ao criar school year', function () {
 it('falha na validacao quando fim e anterior a inicio', function () {
     $validator = Validator::make(
         [
-            'nome' => 'Ano Letivo 2025',
-            'inicio' => '2025-12-31',
-            'fim' => '2025-01-01',
+            'name' => 'Ano Letivo 2025',
+            'start' => '2025-12-31',
+            'end' => '2025-01-01',
             'status' => 'planejamento',
         ],
         (new SchoolYearStoreRequest)->rules()
     );
 
     expect($validator->fails())->toBeTrue();
-    expect($validator->errors()->has('fim'))->toBeTrue();
+    expect($validator->errors()->has('end'))->toBeTrue();
 });
 
 it('passa na validacao quando fim e igual a inicio', function () {
     $validator = Validator::make(
         [
-            'nome' => 'Ano Letivo 2025',
-            'inicio' => '2025-06-01',
-            'fim' => '2025-06-01',
+            'name' => 'Ano Letivo 2025',
+            'start' => '2025-06-01',
+            'end' => '2025-06-01',
             'status' => 'ativo',
         ],
         (new SchoolYearStoreRequest)->rules()
@@ -61,9 +61,9 @@ it('passa na validacao quando fim e igual a inicio', function () {
 it('falha na validacao com status invalido', function () {
     $validator = Validator::make(
         [
-            'nome' => 'Ano Letivo 2025',
-            'inicio' => '2025-01-01',
-            'fim' => '2025-12-31',
+            'name' => 'Ano Letivo 2025',
+            'start' => '2025-01-01',
+            'end' => '2025-12-31',
             'status' => 'invalido',
         ],
         (new SchoolYearStoreRequest)->rules()

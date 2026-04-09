@@ -16,7 +16,12 @@ class SchoolStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->has('cnpj')) {
-            $this->merge(['cnpj' => preg_replace('/\D/', '', (string) $this->input('cnpj'))]);
+            $raw = preg_replace('/\D/', '', (string) $this->input('cnpj'));
+            if (strlen($raw) === 14) {
+                $masked = substr($raw, 0, 2).'.'.substr($raw, 2, 3).'.'.substr($raw, 5, 3)
+                        .'/'.substr($raw, 8, 4).'-'.substr($raw, 12, 2);
+                $this->merge(['cnpj' => $masked]);
+            }
         }
     }
 
@@ -24,22 +29,22 @@ class SchoolStoreRequest extends FormRequest
     {
         return [
             'cnpj' => 'required|string|unique:schools,cnpj',
-            'razao_social' => 'required|string|max:255',
-            'nome_fantasia' => 'nullable|string|max:255',
+            'legal_name' => 'required|string|max:255',
+            'trade_name' => 'nullable|string|max:255',
             'logo_path' => 'nullable|string',
             'address_json' => 'nullable|array',
             'status' => 'nullable|string|in:active,inactive',
             'observations' => 'nullable|string',
             'unassigned_lead_alert_days' => 'nullable|integer|min:1',
             'units' => 'nullable|array',
-            'units.*.nome' => 'required_with:units|string|max:255',
-            'units.*.cep' => 'nullable|string',
-            'units.*.logradouro' => 'nullable|string',
-            'units.*.numero' => 'nullable|string',
-            'units.*.complemento' => 'nullable|string',
-            'units.*.bairro' => 'nullable|string',
-            'units.*.cidade' => 'nullable|string',
-            'units.*.estado' => 'nullable|string|max:2',
+            'units.*.name' => 'required_with:units|string|max:255',
+            'units.*.zip_code' => 'nullable|string',
+            'units.*.street' => 'nullable|string',
+            'units.*.number' => 'nullable|string',
+            'units.*.complement' => 'nullable|string',
+            'units.*.neighborhood' => 'nullable|string',
+            'units.*.city' => 'nullable|string',
+            'units.*.state' => 'nullable|string|max:2',
         ];
     }
 }

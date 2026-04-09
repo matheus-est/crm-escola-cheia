@@ -49,7 +49,7 @@ function makeSchoolForGuardianTests(): School
 
     return School::create([
         'cnpj' => str_pad((string) ($counter + 9000), 14, '0', STR_PAD_LEFT),
-        'razao_social' => 'Escola Guardian '.$counter,
+        'legal_name' => 'Escola Guardian '.$counter,
     ]);
 }
 
@@ -57,9 +57,9 @@ function makeGuardian(School $school, string $cpf = '987.654.321-00'): Guardian
 {
     return Guardian::withoutTenantScope()->create([
         'school_id' => $school->id,
-        'nome' => 'Responsável Teste',
+        'name' => 'Responsável Teste',
         'cpf' => $cpf,
-        'telefone' => '(11) 99999-9999',
+        'phone' => '(11) 99999-9999',
         'email' => 'responsavel@teste.com',
     ]);
 }
@@ -91,16 +91,16 @@ it('POST store cria um Guardian e redireciona', function (): void {
 
     $this->actingAs($user)
         ->post(route('tenant.guardians.store'), [
-            'nome' => 'Maria da Silva',
+            'name' => 'Maria da Silva',
             'cpf' => '987.654.321-00',
-            'telefone' => '(11) 99999-9999',
+            'phone' => '(11) 99999-9999',
             'email' => 'maria@escola.com',
         ])
         ->assertRedirect(route('tenant.guardians.index'));
 
     $this->assertDatabaseHas('guardians', [
         'school_id' => $school->id,
-        'nome' => 'Maria da Silva',
+        'name' => 'Maria da Silva',
         'cpf' => '987.654.321-00',
     ]);
 });
@@ -115,7 +115,7 @@ it('CPF duplicado no mesmo tenant retorna 422', function (): void {
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
         ->post(route('tenant.guardians.store'), [
-            'nome' => 'Outro Responsável',
+            'name' => 'Outro Responsável',
             'cpf' => '987.654.321-00',
         ])
         ->assertStatus(422)
@@ -132,14 +132,14 @@ it('CPF igual em tenant diferente é aceito', function (): void {
 
     $this->actingAs($user)
         ->post(route('tenant.guardians.store'), [
-            'nome' => 'Responsável Outro Tenant',
+            'name' => 'Responsável Outro Tenant',
             'cpf' => '987.654.321-00',
         ])
         ->assertRedirect(route('tenant.guardians.index'));
 
     $this->assertDatabaseHas('guardians', [
         'school_id' => $school2->id,
-        'nome' => 'Responsável Outro Tenant',
+        'name' => 'Responsável Outro Tenant',
         'cpf' => '987.654.321-00',
     ]);
 });
@@ -177,14 +177,14 @@ it('PUT update atualiza o Guardian e redireciona', function (): void {
 
     $this->actingAs($user)
         ->put(route('tenant.guardians.update', [$guardian]), [
-            'nome' => 'Maria Atualizada',
+            'name' => 'Maria Atualizada',
             'cpf' => '987.654.321-00',
         ])
         ->assertRedirect(route('tenant.guardians.index'));
 
     $this->assertDatabaseHas('guardians', [
         'id' => $guardian->id,
-        'nome' => 'Maria Atualizada',
+        'name' => 'Maria Atualizada',
     ]);
 });
 
@@ -212,7 +212,7 @@ it('findOrCreate retorna existente se CPF já cadastrado', function (): void {
 
     $service = app(GuardianService::class);
     $result = $service->findOrCreate([
-        'nome' => 'Outro Nome',
+        'name' => 'Outro Nome',
         'cpf' => '987.654.321-00',
     ]);
 
@@ -228,21 +228,21 @@ it('POST store cria um Guardian com campos de endereço e persiste', function ()
 
     $this->actingAs($user)
         ->post(route('tenant.guardians.store'), [
-            'nome' => 'José com Endereço',
+            'name' => 'José com Endereço',
             'cpf' => '123.456.789-00',
-            'cep' => '01310100',
-            'logradouro' => 'Av. Paulista',
-            'numero' => '1000',
-            'estado' => 'SP',
-            'cidade' => 'São Paulo',
-            'bairro' => 'Bela Vista',
+            'zip_code' => '01310100',
+            'street' => 'Av. Paulista',
+            'number' => '1000',
+            'state' => 'SP',
+            'city' => 'São Paulo',
+            'neighborhood' => 'Bela Vista',
         ])
         ->assertStatus(302);
 
     $this->assertDatabaseHas('guardians', [
         'school_id' => $school->id,
-        'nome' => 'José com Endereço',
-        'cep' => '01310100',
-        'estado' => 'SP',
+        'name' => 'José com Endereço',
+        'zip_code' => '01310100',
+        'state' => 'SP',
     ]);
 });

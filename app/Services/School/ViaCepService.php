@@ -25,11 +25,11 @@ class ViaCepService
         }
 
         return [
-            'cep' => $data['cep'] ?? '',
-            'logradouro' => $data['logradouro'] ?? '',
-            'bairro' => $data['bairro'] ?? '',
-            'cidade' => $data['localidade'] ?? '',
-            'estado' => $data['uf'] ?? '',
+            'zip_code' => $data['cep'] ?? '',
+            'street' => $data['logradouro'] ?? '',
+            'neighborhood' => $data['bairro'] ?? '',
+            'city' => $data['localidade'] ?? '',
+            'state' => $data['uf'] ?? '',
         ];
     }
 }

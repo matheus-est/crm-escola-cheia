@@ -21,8 +21,8 @@ class SchoolService
     {
         $query = School::query();
 
-        if (array_key_exists('razao_social', $filters) && $filters['razao_social'] !== null && $filters['razao_social'] !== '') {
-            $query->where('razao_social', 'LIKE', '%'.$filters['razao_social'].'%');
+        if (array_key_exists('legal_name', $filters) && $filters['legal_name'] !== null && $filters['legal_name'] !== '') {
+            $query->where('legal_name', 'LIKE', '%'.$filters['legal_name'].'%');
         }
 
         if (array_key_exists('cnpj', $filters) && $filters['cnpj'] !== null && $filters['cnpj'] !== '') {
@@ -31,7 +31,7 @@ class SchoolService
 
         if (array_key_exists('unit', $filters) && $filters['unit'] !== null && $filters['unit'] !== '') {
             $query->whereHas('units', function ($q) use ($filters): void {
-                $q->where('nome', 'LIKE', '%'.$filters['unit'].'%');
+                $q->where('name', 'LIKE', '%'.$filters['unit'].'%');
             });
         }
 
@@ -45,12 +45,12 @@ class SchoolService
                 ? $filters['sort_dir']
                 : 'asc';
 
-            $allowedSortColumns = ['razao_social', 'cnpj', 'slug', 'status'];
+            $allowedSortColumns = ['legal_name', 'cnpj', 'slug', 'status'];
             if (in_array($sortBy, $allowedSortColumns, strict: true)) {
                 $query->orderBy($sortBy, $sortDir);
             }
         } else {
-            $query->orderBy('razao_social', 'asc');
+            $query->orderBy('legal_name', 'asc');
         }
 
         $perPage = array_key_exists('per_page', $filters) && $filters['per_page'] !== null
@@ -115,7 +115,19 @@ class SchoolService
             throw new \RuntimeException('CNPJ não encontrado ou API indisponível');
         }
 
-        return $response->json();
+        $data = $response->json();
+
+        return [
+            'legal_name' => $data['razao_social'] ?? '',
+            'trade_name' => $data['nome_fantasia'] ?? '',
+            'zip_code' => $data['cep'] ?? '',
+            'street' => $data['logradouro'] ?? '',
+            'number' => $data['numero'] ?? '',
+            'complement' => $data['complemento'] ?? '',
+            'neighborhood' => $data['bairro'] ?? '',
+            'city' => $data['municipio'] ?? '',
+            'state' => $data['uf'] ?? '',
+        ];
     }
 
     public function createUserForSchool(array $data, School $school, Role $role): User

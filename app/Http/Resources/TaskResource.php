@@ -26,7 +26,7 @@ class TaskResource extends JsonResource
                 'uuid' => $this->opportunity->uuid,
                 'status' => $this->opportunity->status,
                 'student' => $this->opportunity->student ? [
-                    'name' => $this->opportunity->student->nome,
+                    'name' => $this->opportunity->student->name,
                 ] : null,
             ]),
             'assigned_user' => $this->whenLoaded('assignedUser', fn () => $this->assignedUser ? [

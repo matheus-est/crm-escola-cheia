@@ -40,7 +40,7 @@ import type { PaginatedGrades, School, Segment } from '@/types/crm';
 
 interface GradeItem {
     uuid: string;
-    nome: string;
+    name: string;
     order: number;
     segment_id: number;
     segment?: Segment;
@@ -49,9 +49,9 @@ interface GradeItem {
 }
 
 interface Filters {
-    nome: string;
+    name: string;
     segment_id: string;
-    sort_by: 'nome' | 'order' | '';
+    sort_by: 'name' | 'order' | '';
     sort_dir: 'asc' | 'desc';
     per_page: number;
 }
@@ -72,7 +72,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
 const filters = computed(() => props.filters);
 
 const localFilters = ref<Filters>({
-    nome: filters.value.nome || '',
+    name: filters.value.name || '',
     segment_id: filters.value.segment_id || '',
     sort_by: (filters.value.sort_by as Filters['sort_by']) || 'order',
     sort_dir: filters.value.sort_dir || 'asc',
@@ -80,7 +80,7 @@ const localFilters = ref<Filters>({
 });
 
 const filterCount = computed(() =>
-    [filters.value.nome ? 1 : 0, filters.value.segment_id ? 1 : 0].reduce(
+    [filters.value.name ? 1 : 0, filters.value.segment_id ? 1 : 0].reduce(
         (a, b) => a + b,
         0,
     ),
@@ -88,7 +88,7 @@ const filterCount = computed(() =>
 
 const hasActiveFilter = computed(() => filterCount.value > 0);
 
-function toggleSort(column: 'nome' | 'order'): void {
+function toggleSort(column: 'name' | 'order'): void {
     const newDir =
         localFilters.value.sort_by === column &&
         localFilters.value.sort_dir === 'asc'
@@ -99,7 +99,7 @@ function toggleSort(column: 'nome' | 'order'): void {
     applyFilters();
 }
 
-function getSortIcon(column: 'nome' | 'order'): 'asc' | 'desc' | 'none' {
+function getSortIcon(column: 'name' | 'order'): 'asc' | 'desc' | 'none' {
     if (localFilters.value.sort_by !== column) return 'none';
     return localFilters.value.sort_dir === 'asc' ? 'asc' : 'desc';
 }
@@ -117,7 +117,7 @@ function applyFilters(): void {
     router.post(
         index.post().url,
         {
-            nome: localFilters.value.nome,
+            name: localFilters.value.name,
             segment_id: localFilters.value.segment_id,
             sort_by: localFilters.value.sort_by,
             sort_dir: localFilters.value.sort_dir,
@@ -255,14 +255,14 @@ function confirmDelete(): void {
                                 >
                                     <div class="space-y-1.5">
                                         <Label
-                                            for="filter-nome"
+                                            for="filter-name"
                                             class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                         >
                                             Nome da Turma
                                         </Label>
                                         <Input
-                                            id="filter-nome"
-                                            v-model="localFilters.nome"
+                                            id="filter-name"
+                                            v-model="localFilters.name"
                                             placeholder="Buscar por nome..."
                                             class="h-8"
                                         />
@@ -384,14 +384,14 @@ function confirmDelete(): void {
                 >
                     <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-3">
                         <div class="grid gap-2">
-                            <Label for="nome">Nome</Label>
+                            <Label for="grade-name">Nome</Label>
                             <Input
-                                id="nome"
-                                name="nome"
+                                id="grade-name"
+                                name="name"
                                 placeholder="Ex: 1º Ano A"
                                 required
                             />
-                            <InputError :message="errors.nome" />
+                            <InputError :message="errors.name" />
                         </div>
 
                         <div class="grid gap-2">
@@ -465,14 +465,14 @@ function confirmDelete(): void {
                 >
                     <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-3">
                         <div class="grid gap-2">
-                            <Label for="edit-nome">Nome</Label>
+                            <Label for="edit-grade-name">Nome</Label>
                             <Input
-                                id="edit-nome"
-                                name="nome"
-                                :default-value="editingGrade.nome"
+                                id="edit-grade-name"
+                                name="name"
+                                :default-value="editingGrade.name"
                                 required
                             />
-                            <InputError :message="errors.nome" />
+                            <InputError :message="errors.name" />
                         </div>
 
                         <div class="grid gap-2">
@@ -550,16 +550,16 @@ function confirmDelete(): void {
                                 <button
                                     type="button"
                                     class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
-                                    @click="toggleSort('nome')"
+                                    @click="toggleSort('name')"
                                 >
                                     Nome da Turma
                                     <ChevronUp
-                                        v-if="getSortIcon('nome') === 'asc'"
+                                        v-if="getSortIcon('name') === 'asc'"
                                         class="h-3.5 w-3.5 text-primary"
                                     />
                                     <ChevronDown
                                         v-else-if="
-                                            getSortIcon('nome') === 'desc'
+                                            getSortIcon('name') === 'desc'
                                         "
                                         class="h-3.5 w-3.5 text-primary"
                                     />
@@ -613,7 +613,7 @@ function confirmDelete(): void {
                             class="transition-colors hover:bg-muted/30"
                         >
                             <td class="px-3 py-3 font-medium text-foreground">
-                                {{ grade.nome }}
+                                {{ grade.name }}
                             </td>
                             <td class="px-3 py-3 text-muted-foreground">
                                 <span
@@ -703,7 +703,7 @@ function confirmDelete(): void {
                 <p class="mt-2 text-sm text-muted-foreground">
                     Tem certeza que deseja excluir a turma
                     <span class="font-medium text-foreground">{{
-                        gradeToDelete.nome
+                        gradeToDelete.name
                     }}</span
                     >? Esta ação não pode ser desfeita.
                 </p>

@@ -11,14 +11,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('guardians', function (Blueprint $table): void {
-            $table->string('cpf', 14)->nullable()->change();
+            $table->string('cpf')->nullable()->change();
         });
     }
 
     public function down(): void
     {
         Schema::table('guardians', function (Blueprint $table): void {
-            $table->string('cpf', 14)->nullable(false)->change();
+            $table->string('cpf')->nullable(false)->change();
         });
     }
 };

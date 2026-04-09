@@ -41,11 +41,11 @@ class SchoolController extends Controller
     public function setFilters(Request $request): array
     {
         $filters = [
-            'razao_social' => $request->input('razao_social', ''),
+            'legal_name' => $request->input('legal_name', ''),
             'unit' => $request->input('unit', ''),
             'cnpj' => $request->input('cnpj', ''),
             'status' => $request->input('status', ''),
-            'sort_by' => $request->input('sort_by', 'razao_social'),
+            'sort_by' => $request->input('sort_by', 'legal_name'),
             'sort_dir' => $request->input('sort_dir', 'asc'),
             'per_page' => $request->input('per_page', 10),
         ];

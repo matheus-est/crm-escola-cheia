@@ -23,9 +23,9 @@ class LeadSourceSeeder extends Seeder
             'Busca orgânica',
         ];
 
-        foreach ($sources as $name) {
+        foreach ($sources as $sourceName) {
             LeadSource::withoutGlobalScopes()->firstOrCreate(
-                ['nome' => $name],
+                ['name' => $sourceName],
                 [
                     'uuid' => (string) Str::uuid(),
                     'is_system' => true,

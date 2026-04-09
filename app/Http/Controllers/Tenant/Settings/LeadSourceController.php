@@ -26,8 +26,8 @@ class LeadSourceController extends Controller
         Gate::authorize('viewAny', LeadSource::class);
 
         $filters = [
-            'nome' => $request->input('nome', ''),
-            'sort_by' => $request->input('sort_by', 'nome'),
+            'name' => $request->input('name', ''),
+            'sort_by' => $request->input('sort_by', 'name'),
             'sort_dir' => $request->input('sort_dir', 'asc'),
             'per_page' => $request->input('per_page', 10),
         ];

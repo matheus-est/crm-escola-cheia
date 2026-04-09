@@ -74,12 +74,12 @@ class HandleInertiaRequests extends Middleware
                     if ($user->isCrossTenant()) {
                         return School::query()
                             ->where('status', SchoolStatus::Active->value)
-                            ->get(['uuid', 'razao_social', 'nome_fantasia']);
+                            ->get(['uuid', 'legal_name', 'trade_name']);
                     }
 
                     return $user->schools()
                         ->wherePivot('is_active', true)
-                        ->get(['schools.uuid', 'schools.razao_social', 'schools.nome_fantasia']);
+                        ->get(['schools.uuid', 'schools.legal_name', 'schools.trade_name']);
                 },
 
                 'current_school' => function () use ($request) {
@@ -91,7 +91,7 @@ class HandleInertiaRequests extends Middleware
                     if (app()->bound('tenant.school_id')) {
                         $school = School::find(app('tenant.school_id'));
                         if ($school) {
-                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social, 'nome_fantasia' => $school->nome_fantasia];
+                            return ['uuid' => $school->uuid, 'legal_name' => $school->legal_name, 'trade_name' => $school->trade_name];
                         }
                     }
 
@@ -102,14 +102,14 @@ class HandleInertiaRequests extends Middleware
                             ->where('status', SchoolStatus::Active)
                             ->first();
                         if ($school) {
-                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social, 'nome_fantasia' => $school->nome_fantasia];
+                            return ['uuid' => $school->uuid, 'legal_name' => $school->legal_name, 'trade_name' => $school->trade_name];
                         }
                     }
 
                     if ($user->school_current_id !== null) {
                         $school = School::find($user->school_current_id);
                         if ($school && $school->status === SchoolStatus::Active) {
-                            return ['uuid' => $school->uuid, 'razao_social' => $school->razao_social, 'nome_fantasia' => $school->nome_fantasia];
+                            return ['uuid' => $school->uuid, 'legal_name' => $school->legal_name, 'trade_name' => $school->trade_name];
                         }
                     }
 

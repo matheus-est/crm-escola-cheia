@@ -2,14 +2,15 @@ import { ref } from 'vue';
 import { cnpjLookup } from '@/routes/admin/schools';
 
 export interface CnpjLookupResult {
-    razao_social: string;
-    logradouro: string;
-    numero: string;
-    complemento: string;
-    bairro: string;
-    municipio: string;
-    uf: string;
-    cep: string;
+    legal_name: string;
+    trade_name: string;
+    street: string;
+    number: string;
+    complement: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    zip_code: string;
 }
 
 export function maskCnpj(value: string): string {

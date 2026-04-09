@@ -22,15 +22,15 @@ class Student extends Model implements Auditable
     protected $fillable = [
         'uuid',
         'school_id',
-        'nome',
+        'name',
         'cpf',
-        'data_nascimento',
+        'date_of_birth',
     ];
 
     protected function casts(): array
     {
         return [
-            'data_nascimento' => 'date',
+            'date_of_birth' => 'date',
         ];
     }
 

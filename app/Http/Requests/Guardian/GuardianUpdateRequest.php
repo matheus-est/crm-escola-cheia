@@ -16,16 +16,16 @@ class GuardianUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => ['required', 'string', 'max:150'],
+            'name' => ['required', 'string', 'max:150'],
             'cpf' => ['required', 'string', 'regex:/^\d{3}\.\d{3}\.\d{3}-\d{2}$/'],
-            'telefone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:150'],
-            'cep' => ['nullable', 'string', 'max:8'],
-            'logradouro' => ['nullable', 'string', 'max:150'],
-            'numero' => ['nullable', 'string', 'max:20'],
-            'estado' => ['nullable', 'string', 'max:2'],
-            'cidade' => ['nullable', 'string', 'max:100'],
-            'bairro' => ['nullable', 'string', 'max:100'],
+            'zip_code' => ['nullable', 'string', 'max:9'],
+            'street' => ['nullable', 'string', 'max:150'],
+            'number' => ['nullable', 'string', 'max:20'],
+            'state' => ['nullable', 'string', 'max:2'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'neighborhood' => ['nullable', 'string', 'max:100'],
         ];
     }
 }

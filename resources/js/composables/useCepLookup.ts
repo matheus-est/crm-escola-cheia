@@ -23,10 +23,10 @@ export function useCepLookup() {
     const lookup = async (
         cepRaw: string,
         onSuccess: (data: {
-            logradouro: string;
-            bairro: string;
-            cidade: string;
-            estado: string;
+            street: string;
+            neighborhood: string;
+            city: string;
+            state: string;
         }) => void,
     ) => {
         const cep = cepRaw.replace(/\D/g, '');
@@ -55,10 +55,10 @@ export function useCepLookup() {
                     error.value = 'CEP não encontrado';
                 } else {
                     onSuccess({
-                        logradouro: data.logradouro,
-                        bairro: data.bairro,
-                        cidade: data.localidade,
-                        estado: data.uf,
+                        street: data.logradouro,
+                        neighborhood: data.bairro,
+                        city: data.localidade,
+                        state: data.uf,
                     });
                 }
             } catch {

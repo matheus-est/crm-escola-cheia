@@ -11,8 +11,8 @@ class SchoolUnitObserver
 {
     public function creating(SchoolUnit $unit): void
     {
-        if ($unit->id === null) {
-            $unit->id = (string) Str::uuid();
+        if ($unit->uuid === null) {
+            $unit->uuid = (string) Str::uuid();
         }
     }
 }

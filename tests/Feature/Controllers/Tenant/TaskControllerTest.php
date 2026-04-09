@@ -12,12 +12,14 @@ use App\Models\Role;
 use App\Models\School;
 use App\Models\Task;
 use App\Models\User;
-use Database\Seeders\CrmPermissionSeeder;
+use Database\Seeders\ModuleSeeder;
+use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 
 it('completes a task successfully, updating opportunity and creating a new task', function () {
     $this->seed(RoleSeeder::class);
-    $this->seed(CrmPermissionSeeder::class);
+    $this->seed(ModuleSeeder::class);
+    $this->seed(PermissionSeeder::class);
 
     $school = School::factory()->create();
     $role = Role::firstOrCreate(['name' => 'Gestor']);

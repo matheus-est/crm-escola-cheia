@@ -13,11 +13,11 @@ return new class extends Migration
         Schema::create('schools', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->string('cnpj', 14)->unique();
-            $table->string('razao_social');
+            $table->string('cnpj', 18)->unique();
+            $table->string('legal_name');
+            $table->string('trade_name')->nullable();
             $table->string('slug')->unique();
             $table->string('logo_path')->nullable();
-            $table->json('address_json')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->text('observations')->nullable();
             $table->unsignedTinyInteger('unassigned_lead_alert_days')->default(3);

@@ -22,7 +22,7 @@ class LeadSource extends Model implements Auditable
     protected $fillable = [
         'uuid',
         'school_id',
-        'nome',
+        'name',
         'is_system',
         'is_active',
     ];

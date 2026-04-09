@@ -50,7 +50,7 @@ function makeSchoolForYearTests(): School
 
     return School::create([
         'cnpj' => str_pad((string) $counter, 14, '0', STR_PAD_LEFT),
-        'razao_social' => 'Escola Ano Letivo '.$counter,
+        'legal_name' => 'Escola Ano Letivo '.$counter,
     ]);
 }
 
@@ -58,9 +58,9 @@ function makeSchoolYear(School $school): SchoolYear
 {
     return SchoolYear::withoutTenantScope()->create([
         'school_id' => $school->id,
-        'nome' => '2025',
-        'inicio' => '2025-01-01',
-        'fim' => '2025-12-31',
+        'name' => '2025',
+        'start' => '2025-01-01',
+        'end' => '2025-12-31',
         'status' => SchoolYearStatus::Planejamento,
     ]);
 }
@@ -104,16 +104,16 @@ it('POST store cria um SchoolYear e redireciona', function (): void {
 
     $this->actingAs($user)
         ->post(route('tenant.school_years.store'), [
-            'nome' => 'Ano Letivo 2025',
-            'inicio' => '2025-01-01',
-            'fim' => '2025-12-31',
+            'name' => 'Ano Letivo 2025',
+            'start' => '2025-01-01',
+            'end' => '2025-12-31',
             'status' => 'planejamento',
         ])
         ->assertRedirect(route('tenant.school_years.index'));
 
     $this->assertDatabaseHas('school_years', [
         'school_id' => $school->id,
-        'nome' => 'Ano Letivo 2025',
+        'name' => 'Ano Letivo 2025',
     ]);
 });
 
@@ -126,16 +126,16 @@ it('PUT update atualiza o SchoolYear e redireciona', function (): void {
 
     $this->actingAs($user)
         ->put(route('tenant.school_years.update', [$schoolYear]), [
-            'nome' => 'Ano Letivo 2025 Atualizado',
-            'inicio' => '2025-01-01',
-            'fim' => '2025-12-31',
+            'name' => 'Ano Letivo 2025 Atualizado',
+            'start' => '2025-01-01',
+            'end' => '2025-12-31',
             'status' => 'ativo',
         ])
         ->assertRedirect(route('tenant.school_years.index'));
 
     $this->assertDatabaseHas('school_years', [
         'id' => $schoolYear->id,
-        'nome' => 'Ano Letivo 2025 Atualizado',
+        'name' => 'Ano Letivo 2025 Atualizado',
         'status' => 'ativo',
     ]);
 });
@@ -165,13 +165,13 @@ it('POST store retorna erro de validação quando fim é anterior a inicio', fun
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
         ->post(route('tenant.school_years.store'), [
-            'nome' => 'Ano Letivo Inválido',
-            'inicio' => '2025-12-31',
-            'fim' => '2025-01-01',
+            'name' => 'Ano Letivo Inválido',
+            'start' => '2025-12-31',
+            'end' => '2025-01-01',
             'status' => 'planejamento',
         ])
         ->assertStatus(422)
-        ->assertJsonValidationErrors(['fim']);
+        ->assertJsonValidationErrors(['end']);
 });
 
 it('Comercial recebe 403 ao tentar criar SchoolYear', function (): void {
@@ -190,9 +190,9 @@ it('Comercial recebe 403 ao tentar criar SchoolYear', function (): void {
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
         ->post(route('tenant.school_years.store'), [
-            'nome' => 'Ano Letivo 2025',
-            'inicio' => '2025-01-01',
-            'fim' => '2025-12-31',
+            'name' => 'Ano Letivo 2025',
+            'start' => '2025-01-01',
+            'end' => '2025-12-31',
             'status' => 'planejamento',
         ])
         ->assertStatus(403);

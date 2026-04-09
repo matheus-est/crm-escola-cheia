@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, ClipboardList, FileText, User } from 'lucide-vue-next';
+import { ArrowLeft, ClipboardList, User } from 'lucide-vue-next';
 import { type Component, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -48,7 +48,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const toast = useToast();
 
-type Tab = 'cadastro' | 'aluno' | 'complementar';
+type Tab = 'cadastro' | 'aluno';
 const activeTab = ref<Tab>('cadastro');
 
 const tabs: { value: Tab; label: string; icon: Component }[] = [
@@ -58,11 +58,6 @@ const tabs: { value: Tab; label: string; icon: Component }[] = [
         icon: ClipboardList,
     },
     { value: 'aluno', label: 'Aluno / Responsável', icon: User },
-    {
-        value: 'complementar',
-        label: 'Informações Complementares',
-        icon: FileText,
-    },
 ];
 
 const guardianFilledByStudent = ref(false);
@@ -78,16 +73,16 @@ function fillInput(id: string, value: string): void {
 }
 
 function fillGuardianFields(guardian: Guardian): void {
-    fillInput('guardian_name', guardian.nome ?? '');
+    fillInput('guardian_name', guardian.name ?? '');
     fillInput('guardian_cpf', guardian.cpf ?? '');
-    fillInput('guardian_phone', guardian.telefone ?? '');
+    fillInput('guardian_phone', guardian.phone ?? '');
     fillInput('guardian_email', guardian.email ?? '');
-    fillInput('zip_code', guardian.cep ?? '');
-    fillInput('street', guardian.logradouro ?? '');
-    fillInput('number', guardian.numero ?? '');
-    fillInput('neighborhood', guardian.bairro ?? '');
-    fillInput('city', guardian.cidade ?? '');
-    fillInput('state', guardian.estado ?? '');
+    fillInput('zip_code', guardian.zip_code ?? '');
+    fillInput('street', guardian.street ?? '');
+    fillInput('number', guardian.number ?? '');
+    fillInput('neighborhood', guardian.neighborhood ?? '');
+    fillInput('city', guardian.city ?? '');
+    fillInput('state', guardian.state ?? '');
 }
 
 const {
@@ -98,7 +93,7 @@ const {
     type: 'student',
     onFound: (data) => {
         const student = data as Student;
-        fillInput('student_name', student.nome ?? '');
+        fillInput('student_name', student.name ?? '');
         if (student.guardian) {
             guardianFilledByStudent.value = true;
             fillGuardianFields(student.guardian);
@@ -203,11 +198,11 @@ function handleZipCodeInput(event: Event): void {
 
 function handleZipCodeBlur(event: Event): void {
     const input = event.target as HTMLInputElement;
-    void cepLookup(input.value, ({ logradouro, bairro, cidade, estado }) => {
-        fillInput('street', logradouro);
-        fillInput('neighborhood', bairro);
-        fillInput('city', cidade);
-        fillInput('state', estado);
+    void cepLookup(input.value, ({ street, neighborhood, city, state }) => {
+        fillInput('street', street);
+        fillInput('neighborhood', neighborhood);
+        fillInput('city', city);
+        fillInput('state', state);
     });
 }
 
@@ -274,7 +269,7 @@ function handleError(): void {
                             v-show="activeTab === 'cadastro'"
                             class="space-y-6 p-6"
                         >
-                            <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="grid gap-4 sm:grid-cols-4">
                                 <div class="space-y-2">
                                     <Label for="registration_type"
                                         >Tipo de Cadastro</Label
@@ -340,7 +335,7 @@ function handleError(): void {
                                                 :key="ls.id"
                                                 :value="ls.id"
                                             >
-                                                {{ ls.nome }}
+                                                {{ ls.name }}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -400,6 +395,34 @@ function handleError(): void {
                                     <InputError :message="errors.task_type" />
                                 </div>
                             </div>
+
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div class="space-y-2">
+                                    <Label for="history">Histórico</Label>
+                                    <textarea
+                                        id="history"
+                                        name="history"
+                                        rows="5"
+                                        placeholder="Histórico da oportunidade..."
+                                        class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    ></textarea>
+                                    <InputError :message="errors.history" />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="indications"
+                                        >Indicações / Referências</Label
+                                    >
+                                    <textarea
+                                        id="indications"
+                                        name="indications"
+                                        rows="5"
+                                        placeholder="Indicações / referências..."
+                                        class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    ></textarea>
+                                    <InputError :message="errors.indications" />
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Aba 2: Aluno / Responsável -->
@@ -455,7 +478,9 @@ function handleError(): void {
                                             {{ studentCpfError }}
                                         </p>
                                     </div>
+                                </div>
 
+                                <div class="grid gap-4 sm:grid-cols-4">
                                     <div class="space-y-2">
                                         <Label for="grade_id">
                                             Série/Turma
@@ -475,7 +500,7 @@ function handleError(): void {
                                                     :key="grade.id"
                                                     :value="grade.id"
                                                 >
-                                                    {{ grade.nome }}
+                                                    {{ grade.name }}
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -526,7 +551,7 @@ function handleError(): void {
                                                     :key="sy.id"
                                                     :value="sy.id"
                                                 >
-                                                    {{ sy.nome }}
+                                                    {{ sy.name }}
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -538,12 +563,12 @@ function handleError(): void {
                                     <div class="space-y-2">
                                         <Label>Unidade</Label>
                                         <Input
-                                            :value="
-                                                props.school.nome_fantasia ??
-                                                props.school.razao_social
+                                            :default-value="
+                                                props.school.trade_name ??
+                                                props.school.legal_name
                                             "
-                                            disabled
-                                            class="bg-muted/50"
+                                            readonly
+                                            class="cursor-not-allowed bg-muted"
                                         />
                                     </div>
                                 </div>
@@ -634,8 +659,8 @@ function handleError(): void {
                             >
                                 <h3 class="text-lg font-medium">Endereço</h3>
 
-                                <div class="grid gap-4 sm:grid-cols-2">
-                                    <div class="space-y-2">
+                                <div class="grid gap-4 sm:grid-cols-12">
+                                    <div class="space-y-2 sm:col-span-2">
                                         <Label for="zip_code">CEP</Label>
                                         <div class="relative">
                                             <Input
@@ -662,7 +687,7 @@ function handleError(): void {
                                         />
                                     </div>
 
-                                    <div class="space-y-2">
+                                    <div class="space-y-2 sm:col-span-6">
                                         <Label for="street">Logradouro</Label>
                                         <Input
                                             id="street"
@@ -672,7 +697,7 @@ function handleError(): void {
                                         <InputError :message="errors.street" />
                                     </div>
 
-                                    <div class="space-y-2">
+                                    <div class="space-y-2 sm:col-span-2">
                                         <Label for="number">Número</Label>
                                         <Input
                                             id="number"
@@ -682,7 +707,7 @@ function handleError(): void {
                                         <InputError :message="errors.number" />
                                     </div>
 
-                                    <div class="space-y-2">
+                                    <div class="space-y-2 sm:col-span-2">
                                         <Label for="neighborhood">Bairro</Label>
                                         <Input
                                             id="neighborhood"
@@ -694,7 +719,18 @@ function handleError(): void {
                                         />
                                     </div>
 
-                                    <div class="space-y-2">
+                                    <div class="space-y-2 sm:col-span-2">
+                                        <Label for="state">UF</Label>
+                                        <Input
+                                            id="state"
+                                            name="state"
+                                            placeholder="UF"
+                                            maxlength="2"
+                                        />
+                                        <InputError :message="errors.state" />
+                                    </div>
+
+                                    <div class="space-y-2 sm:col-span-10">
                                         <Label for="city">Cidade</Label>
                                         <Input
                                             id="city"
@@ -703,49 +739,7 @@ function handleError(): void {
                                         />
                                         <InputError :message="errors.city" />
                                     </div>
-
-                                    <div class="space-y-2">
-                                        <Label for="state">Estado</Label>
-                                        <Input
-                                            id="state"
-                                            name="state"
-                                            placeholder="UF"
-                                        />
-                                        <InputError :message="errors.state" />
-                                    </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Aba 3: Informações Complementares -->
-                        <div
-                            v-show="activeTab === 'complementar'"
-                            class="space-y-6 p-6"
-                        >
-                            <div class="space-y-2">
-                                <Label for="history">Histórico</Label>
-                                <textarea
-                                    id="history"
-                                    name="history"
-                                    rows="5"
-                                    placeholder="Histórico da oportunidade..."
-                                    class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                ></textarea>
-                                <InputError :message="errors.history" />
-                            </div>
-
-                            <div class="space-y-2">
-                                <Label for="indications"
-                                    >Indicações / Referências</Label
-                                >
-                                <textarea
-                                    id="indications"
-                                    name="indications"
-                                    rows="5"
-                                    placeholder="Indicações / referências..."
-                                    class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                ></textarea>
-                                <InputError :message="errors.indications" />
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Users } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -49,29 +49,44 @@ const {
     lookup: lookupCnpj,
 } = useCnpjLookup();
 
-// CEP state
-const cepValue = ref('');
-const logradouroValue = ref('');
-const bairroValue = ref('');
-const cidadeValue = ref('');
-const estadoValue = ref('');
-
-let isAutoFillingCep = false;
-
-watch(cepValue, (newCep) => {
-    if (isAutoFillingCep) return;
-    lookupCep(newCep, (data) => {
-        isAutoFillingCep = true;
-        logradouroValue.value = data.logradouro;
-        bairroValue.value = data.bairro;
-        cidadeValue.value = data.cidade;
-        estadoValue.value = data.estado;
-        setTimeout(() => (isAutoFillingCep = false), 100);
-    });
-});
-
 // CNPJ state — DOM-only mask, no reactive ref (avoids re-render delay)
-const razaoSocialValue = ref('');
+const legalNameValue = ref('');
+
+function fillInput(id: string, value: string): void {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    if (el) el.value = value;
+}
+
+function handleCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const d = input.value.replace(/\D/g, '').slice(0, 8);
+    input.value = d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+}
+
+function handleCepBlur(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    void lookupCep(input.value, ({ street, neighborhood, city, state }) => {
+        fillInput('street', street);
+        fillInput('neighborhood', neighborhood);
+        fillInput('city', city);
+        fillInput('state', state);
+    });
+}
+
+function handleTradeNameInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value || legalNameValue.value;
+    fillInput(
+        'slug',
+        value
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-'),
+    );
+}
 
 function handleCnpjInput(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -79,12 +94,33 @@ function handleCnpjInput(e: Event) {
     input.value = masked; // DOM only — Vue never re-renders this input
     if (masked.replace(/\D/g, '').length === 14) {
         lookupCnpj(masked, (data) => {
-            razaoSocialValue.value = data.razao_social;
-            if (data.cep) cepValue.value = data.cep.replace(/\D/g, '');
-            if (data.logradouro) logradouroValue.value = data.logradouro;
-            if (data.bairro) bairroValue.value = data.bairro;
-            if (data.municipio) cidadeValue.value = data.municipio;
-            if (data.uf) estadoValue.value = data.uf;
+            legalNameValue.value = data.legal_name;
+            fillInput('trade_name', data.trade_name);
+            if (data.zip_code) {
+                const d = data.zip_code.replace(/\D/g, '');
+                fillInput(
+                    'zip_code',
+                    d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d,
+                );
+                // Trigger CEP lookup to auto-fill full address
+                const zipInput = document.getElementById(
+                    'zip_code',
+                ) as HTMLInputElement | null;
+                if (zipInput)
+                    void lookupCep(
+                        zipInput.value,
+                        ({ street, neighborhood, city, state }) => {
+                            fillInput('street', street);
+                            fillInput('neighborhood', neighborhood);
+                            fillInput('city', city);
+                            fillInput('state', state);
+                        },
+                    );
+            }
+            if (data.street) fillInput('street', data.street);
+            if (data.neighborhood) fillInput('neighborhood', data.neighborhood);
+            if (data.city) fillInput('city', data.city);
+            if (data.state) fillInput('state', data.state);
         });
     }
 }
@@ -195,28 +231,29 @@ const handleError = () => {
                                         </div>
 
                                         <div class="space-y-2">
-                                            <Label for="razao_social"
+                                            <Label for="legal_name"
                                                 >Razão Social</Label
                                             >
                                             <Input
-                                                id="razao_social"
-                                                name="razao_social"
+                                                id="legal_name"
+                                                name="legal_name"
                                                 placeholder="Escola Exemplo"
-                                                v-model="razaoSocialValue"
+                                                v-model="legalNameValue"
                                             />
                                             <InputError
-                                                :message="errors.razao_social"
+                                                :message="errors.legal_name"
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-2">
-                                            <Label for="nome_fantasia"
+                                        <div class="space-y-2">
+                                            <Label for="trade_name"
                                                 >Nome Fantasia</Label
                                             >
                                             <Input
-                                                id="nome_fantasia"
-                                                name="nome_fantasia"
+                                                id="trade_name"
+                                                name="trade_name"
                                                 placeholder="Nome exibido no sistema (opcional)"
+                                                @input="handleTradeNameInput"
                                             />
                                             <p
                                                 class="text-xs text-muted-foreground"
@@ -225,7 +262,27 @@ const handleError = () => {
                                                 menu de seleção de escola.
                                             </p>
                                             <InputError
-                                                :message="errors.nome_fantasia"
+                                                :message="errors.trade_name"
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2">
+                                            <Label for="slug"
+                                                >Slug da Instância</Label
+                                            >
+                                            <Input
+                                                id="slug"
+                                                name="slug"
+                                                placeholder="gerado-automaticamente"
+                                            />
+                                            <p
+                                                class="text-xs text-muted-foreground"
+                                            >
+                                                Gerado automaticamente a partir
+                                                do nome fantasia.
+                                            </p>
+                                            <InputError
+                                                :message="errors.slug"
                                             />
                                         </div>
                                     </div>
@@ -237,15 +294,25 @@ const handleError = () => {
                                         Endereço da Unidade Matriz
                                     </h3>
 
-                                    <div class="grid gap-4 sm:grid-cols-6">
+                                    <input
+                                        type="hidden"
+                                        name="units[0][name]"
+                                        :value="
+                                            legalNameValue || 'Unidade Matriz'
+                                        "
+                                    />
+
+                                    <div class="grid gap-4 sm:grid-cols-12">
                                         <div class="space-y-2 sm:col-span-2">
-                                            <Label for="cep">CEP</Label>
+                                            <Label for="zip_code">CEP</Label>
                                             <div class="relative">
                                                 <Input
-                                                    id="cep"
-                                                    name="unit.cep"
+                                                    id="zip_code"
+                                                    name="units[0][zip_code]"
                                                     placeholder="00000-000"
-                                                    v-model="cepValue"
+                                                    maxlength="9"
+                                                    @input="handleCepInput"
+                                                    @blur="handleCepBlur"
                                                 />
                                                 <span
                                                     v-if="isLoadingCep"
@@ -253,7 +320,9 @@ const handleError = () => {
                                                 />
                                             </div>
                                             <InputError
-                                                :message="errors['unit.cep']"
+                                                :message="
+                                                    errors['units.0.zip_code']
+                                                "
                                             />
                                             <p
                                                 v-if="cepError"
@@ -263,88 +332,96 @@ const handleError = () => {
                                             </p>
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-4">
-                                            <Label for="logradouro"
+                                        <div class="space-y-2 sm:col-span-6">
+                                            <Label for="street"
                                                 >Logradouro</Label
                                             >
                                             <Input
-                                                id="logradouro"
-                                                name="unit.logradouro"
+                                                id="street"
+                                                name="units[0][street]"
                                                 placeholder="Rua, Avenida, etc."
-                                                v-model="logradouroValue"
                                             />
                                             <InputError
                                                 :message="
-                                                    errors['unit.logradouro']
+                                                    errors['units.0.street']
                                                 "
                                             />
                                         </div>
 
                                         <div class="space-y-2 sm:col-span-2">
-                                            <Label for="numero">Número</Label>
+                                            <Label for="number">Número</Label>
                                             <Input
-                                                id="numero"
-                                                name="unit.numero"
+                                                id="number"
+                                                name="units[0][number]"
                                                 placeholder="123"
                                             />
                                             <InputError
-                                                :message="errors['unit.numero']"
+                                                :message="
+                                                    errors['units.0.number']
+                                                "
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-4">
-                                            <Label for="complemento"
+                                        <div class="space-y-2 sm:col-span-2">
+                                            <Label for="complement"
                                                 >Complemento</Label
                                             >
                                             <Input
-                                                id="complemento"
-                                                name="unit.complemento"
+                                                id="complement"
+                                                name="units[0][complement]"
                                                 placeholder="Sala, Andar, etc."
                                             />
                                             <InputError
                                                 :message="
-                                                    errors['unit.complemento']
+                                                    errors['units.0.complement']
                                                 "
                                             />
                                         </div>
 
                                         <div class="space-y-2 sm:col-span-2">
-                                            <Label for="bairro">Bairro</Label>
+                                            <Label for="neighborhood"
+                                                >Bairro</Label
+                                            >
                                             <Input
-                                                id="bairro"
-                                                name="unit.bairro"
+                                                id="neighborhood"
+                                                name="units[0][neighborhood]"
                                                 placeholder="Bairro"
-                                                v-model="bairroValue"
                                             />
                                             <InputError
-                                                :message="errors['unit.bairro']"
+                                                :message="
+                                                    errors[
+                                                        'units.0.neighborhood'
+                                                    ]
+                                                "
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-3">
-                                            <Label for="cidade">Cidade</Label>
+                                        <div class="space-y-2 sm:col-span-2">
+                                            <Label for="state">UF</Label>
                                             <Input
-                                                id="cidade"
-                                                name="unit.cidade"
-                                                placeholder="Cidade"
-                                                v-model="cidadeValue"
-                                            />
-                                            <InputError
-                                                :message="errors['unit.cidade']"
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2 sm:col-span-1">
-                                            <Label for="estado">UF</Label>
-                                            <Input
-                                                id="estado"
-                                                name="unit.estado"
+                                                id="state"
+                                                name="units[0][state]"
                                                 placeholder="UF"
                                                 maxlength="2"
-                                                v-model="estadoValue"
                                             />
                                             <InputError
-                                                :message="errors['unit.estado']"
+                                                :message="
+                                                    errors['units.0.state']
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-10">
+                                            <Label for="city">Cidade</Label>
+                                            <Input
+                                                id="city"
+                                                name="units[0][city]"
+                                                placeholder="Cidade"
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors['units.0.city']
+                                                "
                                             />
                                         </div>
                                     </div>

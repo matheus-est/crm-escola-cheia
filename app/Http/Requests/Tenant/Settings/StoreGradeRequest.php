@@ -19,7 +19,7 @@ class StoreGradeRequest extends FormRequest
         $schoolId = app('tenant.school_id') ?? $this->user()->school_current_id;
 
         return [
-            'nome' => [
+            'name' => [
                 'required',
                 'string',
                 'max:255',

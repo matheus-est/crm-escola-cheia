@@ -2,7 +2,7 @@ export type SchoolStatus = 'active' | 'inactive';
 
 export interface Student {
     uuid: string;
-    nome: string;
+    name: string;
     cpf: string;
     data_nascimento: string | null;
     created_at: string;
@@ -11,16 +11,16 @@ export interface Student {
 
 export interface Guardian {
     uuid: string;
-    nome: string;
+    name: string;
     cpf: string;
-    telefone: string | null;
+    phone: string | null;
     email: string | null;
-    cep: string | null;
-    logradouro: string | null;
-    numero: string | null;
-    estado: string | null;
-    cidade: string | null;
-    bairro: string | null;
+    zip_code: string | null;
+    street: string | null;
+    number: string | null;
+    state: string | null;
+    city: string | null;
+    neighborhood: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -46,14 +46,14 @@ export interface PaginatedGuardians {
 export interface SchoolUnit {
     id: string;
     school_id: string;
-    nome: string;
-    cep: string | null;
-    logradouro: string | null;
-    numero: string | null;
-    complemento: string | null;
-    bairro: string | null;
-    cidade: string | null;
-    estado: string | null;
+    name: string;
+    zip_code: string | null;
+    street: string | null;
+    number: string | null;
+    complement: string | null;
+    neighborhood: string | null;
+    city: string | null;
+    state: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -71,8 +71,8 @@ export interface School {
     id: string;
     uuid: string;
     cnpj: string;
-    razao_social: string;
-    nome_fantasia: string | null;
+    legal_name: string;
+    trade_name: string | null;
     slug: string;
     logo_path: string | null;
     address_json: Record<string, string> | null;
@@ -95,14 +95,14 @@ export interface PaginatedSchools {
 }
 
 export interface SchoolUnitForm {
-    nome: string;
-    cep: string;
-    logradouro: string;
-    numero: string;
-    complemento: string;
-    bairro: string;
-    cidade: string;
-    estado: string;
+    name: string;
+    zip_code: string;
+    street: string;
+    number: string;
+    complement: string;
+    neighborhood: string;
+    city: string;
+    state: string;
 }
 
 export type SchoolYearStatus = 'ativo' | 'encerrado' | 'planejamento';
@@ -110,9 +110,9 @@ export type SchoolYearStatus = 'ativo' | 'encerrado' | 'planejamento';
 export interface SchoolYear {
     id: number;
     uuid: string;
-    nome: string;
-    inicio: string;
-    fim: string;
+    name: string;
+    start: string;
+    end: string;
     status: SchoolYearStatus;
     created_at: string;
     updated_at: string;
@@ -130,7 +130,7 @@ export interface PaginatedSchoolYears {
 export interface LeadSource {
     id: number;
     uuid: string;
-    nome: string;
+    name: string;
     is_system: boolean;
     is_active: boolean;
     created_at: string;
@@ -158,7 +158,7 @@ export type RegistrationType = 'agendamento' | 'evento';
 export interface Grade {
     id: number;
     uuid: string;
-    nome: string;
+    name: string;
     segment_id: number;
 }
 

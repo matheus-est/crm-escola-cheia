@@ -43,11 +43,11 @@ import type { BreadcrumbItem } from '@/types';
 import type { PaginatedSchools, School, SchoolStatus } from '@/types/crm';
 
 interface Filters {
-    razao_social: string;
+    legal_name: string;
     unit: string;
     cnpj: string;
     status: '' | SchoolStatus;
-    sort_by: 'razao_social' | 'cnpj' | 'slug' | 'status' | '';
+    sort_by: 'legal_name' | 'cnpj' | 'slug' | 'status' | '';
     sort_dir: 'asc' | 'desc';
     per_page: number;
 }
@@ -65,18 +65,18 @@ const breadcrumbItems: BreadcrumbItem[] = [
 const filters = computed(() => props.filters);
 
 const localFilters = ref<Filters>({
-    razao_social: filters.value.razao_social || '',
+    legal_name: filters.value.legal_name || '',
     unit: filters.value.unit || '',
     cnpj: filters.value.cnpj || '',
     status: (filters.value.status as SchoolStatus) || '',
-    sort_by: (filters.value.sort_by as Filters['sort_by']) || 'razao_social',
+    sort_by: (filters.value.sort_by as Filters['sort_by']) || 'legal_name',
     sort_dir: filters.value.sort_dir || 'asc',
     per_page: Number(filters.value.per_page ?? 10),
 });
 
 const filterCount = computed(() =>
     [
-        filters.value.razao_social ? 1 : 0,
+        filters.value.legal_name ? 1 : 0,
         filters.value.unit ? 1 : 0,
         filters.value.cnpj ? 1 : 0,
         filters.value.status ? 1 : 0,
@@ -85,7 +85,7 @@ const filterCount = computed(() =>
 
 const hasActiveFilter = computed(() => filterCount.value > 0);
 
-function toggleSort(column: 'razao_social' | 'cnpj' | 'slug' | 'status'): void {
+function toggleSort(column: 'legal_name' | 'cnpj' | 'slug' | 'status'): void {
     const newDir =
         localFilters.value.sort_by === column &&
         localFilters.value.sort_dir === 'asc'
@@ -97,7 +97,7 @@ function toggleSort(column: 'razao_social' | 'cnpj' | 'slug' | 'status'): void {
 }
 
 function getSortIcon(
-    column: 'razao_social' | 'cnpj' | 'slug' | 'status',
+    column: 'legal_name' | 'cnpj' | 'slug' | 'status',
 ): 'asc' | 'desc' | 'none' {
     if (localFilters.value.sort_by !== column) return 'none';
     return localFilters.value.sort_dir === 'asc' ? 'asc' : 'desc';
@@ -116,7 +116,7 @@ function applyFilters(): void {
     router.post(
         index.post().url,
         {
-            razao_social: localFilters.value.razao_social,
+            legal_name: localFilters.value.legal_name,
             unit: localFilters.value.unit,
             cnpj: localFilters.value.cnpj,
             status: localFilters.value.status,
@@ -199,7 +199,7 @@ function statusLabel(status: SchoolStatus): string {
                                         </Label>
                                         <Input
                                             id="filter-razao-social"
-                                            v-model="localFilters.razao_social"
+                                            v-model="localFilters.legal_name"
                                             placeholder="Buscar por razão social..."
                                             class="h-8"
                                         />
@@ -327,20 +327,18 @@ function statusLabel(status: SchoolStatus): string {
                                 <button
                                     type="button"
                                     class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
-                                    @click="toggleSort('razao_social')"
+                                    @click="toggleSort('legal_name')"
                                 >
                                     Razão Social
                                     <ChevronUp
                                         v-if="
-                                            getSortIcon('razao_social') ===
-                                            'asc'
+                                            getSortIcon('legal_name') === 'asc'
                                         "
                                         class="h-3.5 w-3.5 text-primary"
                                     />
                                     <ChevronDown
                                         v-else-if="
-                                            getSortIcon('razao_social') ===
-                                            'desc'
+                                            getSortIcon('legal_name') === 'desc'
                                         "
                                         class="h-3.5 w-3.5 text-primary"
                                     />
@@ -439,7 +437,7 @@ function statusLabel(status: SchoolStatus): string {
                             class="transition-colors hover:bg-muted/30"
                         >
                             <td class="px-3 py-3 font-medium text-foreground">
-                                {{ school.razao_social }}
+                                {{ school.legal_name }}
                             </td>
                             <td
                                 class="px-3 py-3 font-mono text-xs text-muted-foreground"
@@ -525,7 +523,7 @@ function statusLabel(status: SchoolStatus): string {
             v-if="schoolToDelete"
             v-model:open="showDeleteModal"
             title="Confirmar Exclusão"
-            :message="`Tem certeza que deseja excluir a escola ${schoolToDelete.razao_social}?`"
+            :message="`Tem certeza que deseja excluir a escola ${schoolToDelete.legal_name}?`"
             :action="confirmDelete({ school: schoolToDelete.uuid }).url"
             success-message="Escola excluída com sucesso."
             @success="handleDeleteSuccess"

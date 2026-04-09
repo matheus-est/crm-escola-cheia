@@ -21,7 +21,7 @@ class GradeFactory extends Factory
             'uuid' => Str::uuid()->toString(),
             'school_id' => School::factory(),
             'segment_id' => Segment::factory(),
-            'nome' => fake()->randomElement(['1º', '2º', '3º', '4º', '5º']).' Ano '.fake()->randomLetter(),
+            'name' => fake()->randomElement(['1º', '2º', '3º', '4º', '5º']).' Ano '.fake()->randomLetter(),
             'order' => fake()->numberBetween(1, 20),
         ];
     }

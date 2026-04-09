@@ -20,7 +20,7 @@ const props = defineProps<{
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Oportunidades', href: index().url },
-    { title: props.opportunity.student?.nome ?? 'Oportunidade', href: '#' },
+    { title: props.opportunity.student?.name ?? 'Oportunidade', href: '#' },
     { title: 'Detalhes', href: '#' },
 ];
 
@@ -104,14 +104,14 @@ function formatDate(dateStr: string | null): string {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head :title="opportunity.student?.nome ?? 'Oportunidade'" />
+        <Head :title="opportunity.student?.name ?? 'Oportunidade'" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-start justify-between gap-4">
                 <div class="space-y-1">
                     <h1 class="text-2xl font-semibold tracking-tight">
-                        {{ opportunity.student?.nome ?? 'Sem aluno' }}
+                        {{ opportunity.student?.name ?? 'Sem aluno' }}
                     </h1>
                     <div class="flex items-center gap-2">
                         <span
@@ -154,7 +154,7 @@ function formatDate(dateStr: string | null): string {
                         Responsável
                     </p>
                     <p class="text-sm">
-                        {{ opportunity.guardian?.nome ?? '—' }}
+                        {{ opportunity.guardian?.name ?? '—' }}
                     </p>
                 </div>
                 <div class="space-y-0.5">
@@ -163,7 +163,7 @@ function formatDate(dateStr: string | null): string {
                     >
                         Série
                     </p>
-                    <p class="text-sm">{{ opportunity.grade?.nome ?? '—' }}</p>
+                    <p class="text-sm">{{ opportunity.grade?.name ?? '—' }}</p>
                 </div>
                 <div class="space-y-0.5">
                     <p
@@ -172,7 +172,7 @@ function formatDate(dateStr: string | null): string {
                         Ano Letivo
                     </p>
                     <p class="text-sm">
-                        {{ (opportunity as any).school_year?.nome ?? '—' }}
+                        {{ (opportunity as any).school_year?.name ?? '—' }}
                     </p>
                 </div>
                 <div class="space-y-0.5">
@@ -182,7 +182,7 @@ function formatDate(dateStr: string | null): string {
                         Origem
                     </p>
                     <p class="text-sm">
-                        {{ (opportunity as any).lead_source?.nome ?? '—' }}
+                        {{ (opportunity as any).lead_source?.name ?? '—' }}
                     </p>
                 </div>
                 <div class="space-y-0.5">

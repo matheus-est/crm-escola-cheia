@@ -15,7 +15,6 @@ class DatabaseSeeder extends Seeder
             ModuleSeeder::class,
             PermissionSeeder::class,
             RoleSeeder::class,
-            CrmPermissionSeeder::class,
             TermVersionSeeder::class,
             SystemSettingSeeder::class,
             SegmentSeeder::class,

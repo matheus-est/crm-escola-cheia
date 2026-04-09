@@ -26,9 +26,9 @@ class GuardianService
             $existing = $this->lookup($data['cpf']);
 
             if ($existing !== null) {
-                $existing->fill(array_filter($data, fn($v) => $v !== null && $v !== ''));
+                $existing->fill(array_filter($data, fn ($v) => $v !== null && $v !== ''));
                 $existing->save();
-                
+
                 return $existing;
             }
         }
@@ -39,7 +39,7 @@ class GuardianService
     public function list(): LengthAwarePaginator
     {
         return Guardian::query()
-            ->orderBy('nome')
+            ->orderBy('name')
             ->paginate(15);
     }
 

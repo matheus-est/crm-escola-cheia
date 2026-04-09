@@ -67,7 +67,7 @@ function makeSchoolForLeadSourceTests(): School
 
     return School::create([
         'cnpj' => str_pad((string) ($counter + 900), 14, '0', STR_PAD_LEFT),
-        'razao_social' => 'Escola LeadSource '.$counter,
+        'legal_name' => 'Escola LeadSource '.$counter,
     ]);
 }
 
@@ -75,7 +75,7 @@ function makeSystemLeadSource(): LeadSource
 {
     return LeadSource::withoutLeadSourceScope()->create([
         'school_id' => null,
-        'nome' => 'Origem Sistema',
+        'name' => 'Origem Sistema',
         'is_system' => true,
         'is_active' => true,
     ]);
@@ -85,7 +85,7 @@ function makeTenantLeadSource(School $school): LeadSource
 {
     return LeadSource::withoutLeadSourceScope()->create([
         'school_id' => $school->id,
-        'nome' => 'Origem Tenant',
+        'name' => 'Origem Tenant',
         'is_system' => false,
         'is_active' => true,
     ]);
@@ -178,14 +178,14 @@ it('POST store cria uma LeadSource e redireciona', function (): void {
 
     $this->actingAs($user)
         ->post(route('tenant.lead_sources.store'), [
-            'nome' => 'Instagram',
+            'name' => 'Instagram',
             'is_active' => true,
         ])
         ->assertRedirect(route('tenant.lead_sources.index'));
 
     $this->assertDatabaseHas('lead_sources', [
         'school_id' => $school->id,
-        'nome' => 'Instagram',
+        'name' => 'Instagram',
         'is_system' => false,
     ]);
 });
@@ -199,10 +199,10 @@ it('POST store retorna 422 quando nome está vazio', function (): void {
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
         ->post(route('tenant.lead_sources.store'), [
-            'nome' => '',
+            'name' => '',
         ])
         ->assertStatus(422)
-        ->assertJsonValidationErrors(['nome']);
+        ->assertJsonValidationErrors(['name']);
 });
 
 it('POST store retorna 403 para usuário Comercial', function (): void {
@@ -214,7 +214,7 @@ it('POST store retorna 403 para usuário Comercial', function (): void {
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
         ->post(route('tenant.lead_sources.store'), [
-            'nome' => 'Facebook',
+            'name' => 'Facebook',
             'is_active' => true,
         ])
         ->assertStatus(403);
@@ -233,14 +233,14 @@ it('PUT update atualiza uma LeadSource e redireciona', function (): void {
 
     $this->actingAs($user)
         ->put(route('tenant.lead_sources.update', [$leadSource]), [
-            'nome' => 'Origem Atualizada',
+            'name' => 'Origem Atualizada',
             'is_active' => false,
         ])
         ->assertRedirect(route('tenant.lead_sources.index'));
 
     $this->assertDatabaseHas('lead_sources', [
         'id' => $leadSource->id,
-        'nome' => 'Origem Atualizada',
+        'name' => 'Origem Atualizada',
         'is_active' => false,
     ]);
 });
@@ -255,7 +255,7 @@ it('PUT update em origem de sistema retorna 403', function (): void {
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
         ->put(route('tenant.lead_sources.update', [$systemSource]), [
-            'nome' => 'Tentativa',
+            'name' => 'Tentativa',
             'is_active' => true,
         ])
         ->assertStatus(403);

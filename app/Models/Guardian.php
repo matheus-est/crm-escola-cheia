@@ -22,16 +22,17 @@ class Guardian extends Model implements Auditable
     protected $fillable = [
         'uuid',
         'school_id',
-        'nome',
+        'name',
         'cpf',
-        'telefone',
+        'phone',
         'email',
-        'cep',
-        'logradouro',
-        'numero',
-        'estado',
-        'cidade',
-        'bairro',
+        'zip_code',
+        'street',
+        'number',
+        'state',
+        'city',
+        'neighborhood',
+        'complement',
     ];
 
     public function getRouteKeyName(): string

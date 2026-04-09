@@ -22,7 +22,7 @@ class Grade extends Model implements Auditable
         'uuid',
         'school_id',
         'segment_id',
-        'nome',
+        'name',
         'order',
     ];
 

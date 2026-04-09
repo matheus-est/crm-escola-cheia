@@ -11,7 +11,7 @@ class MenuGroupSeeder extends Seeder
 {
     protected array $groups = [
         [
-            'name' => 'Configuração',
+            'name' => 'Configurações',
             'slug' => 'configuration',
             'icon' => 'Settings',
             'order' => 1,
@@ -22,13 +22,6 @@ class MenuGroupSeeder extends Seeder
             'slug' => 'registration',
             'icon' => 'FolderInput',
             'order' => 2,
-            'is_active' => true,
-        ],
-        [
-            'name' => 'Configurações',
-            'slug' => 'tenant_settings',
-            'icon' => 'SlidersHorizontal',
-            'order' => 3,
             'is_active' => true,
         ],
     ];

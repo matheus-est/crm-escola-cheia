@@ -5,24 +5,26 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\School;
-use App\Models\Student;
+use App\Models\SchoolYear;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends Factory<Student>
+ * @extends Factory<SchoolYear>
  */
-class StudentFactory extends Factory
+class SchoolYearFactory extends Factory
 {
-    protected $model = Student::class;
+    protected $model = SchoolYear::class;
 
     public function definition(): array
     {
         return [
             'uuid' => (string) Str::uuid(),
             'school_id' => School::factory(),
-            'name' => fake()->name(),
-            'cpf' => null,
+            'name' => (string) fake()->year(),
+            'start' => '2025-01-01',
+            'end' => '2025-12-31',
+            'status' => 'planejamento',
         ];
     }
 }

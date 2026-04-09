@@ -15,8 +15,8 @@ class GradeService
     {
         $query = Grade::query()->with('segment');
 
-        if (! empty($filters['nome'])) {
-            $query->where('nome', 'like', '%'.$filters['nome'].'%');
+        if (! empty($filters['name'])) {
+            $query->where('name', 'like', '%'.$filters['name'].'%');
         }
 
         if (! empty($filters['segment_id'])) {
@@ -25,16 +25,12 @@ class GradeService
             });
         }
 
-        $sortBy = $filters['sort_by'] ?? 'nome';
+        $sortBy = $filters['sort_by'] ?? 'name';
         $sortDir = $filters['sort_dir'] ?? 'asc';
 
-        $allowedSorts = ['nome', 'order'];
+        $allowedSorts = ['name', 'order'];
         if (in_array($sortBy, $allowedSorts)) {
-            if ($sortBy === 'segment_id') { // If order by segment was requested, although currently not in standard UI
-                $query->orderBy('segment_id', $sortDir);
-            } else {
-                $query->orderBy($sortBy, $sortDir);
-            }
+            $query->orderBy($sortBy, $sortDir);
         }
 
         $perPage = (int) ($filters['per_page'] ?? 10);
@@ -50,7 +46,7 @@ class GradeService
             'uuid' => Str::uuid()->toString(),
             'school_id' => app('tenant.school_id') ?? auth()->user()->school_current_id,
             'segment_id' => $segment->id,
-            'nome' => $data['nome'],
+            'name' => $data['name'],
             'order' => $data['order'] ?? 0,
         ]);
     }
@@ -61,7 +57,7 @@ class GradeService
 
         $grade->update([
             'segment_id' => $segment->id,
-            'nome' => $data['nome'],
+            'name' => $data['name'],
             'order' => $data['order'] ?? $grade->order,
         ]);
 

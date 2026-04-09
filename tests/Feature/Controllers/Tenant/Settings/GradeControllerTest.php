@@ -7,12 +7,14 @@ use App\Models\Role;
 use App\Models\School;
 use App\Models\Segment;
 use App\Models\User;
-use Database\Seeders\CrmPermissionSeeder;
+use Database\Seeders\ModuleSeeder;
+use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
-    $this->seed(CrmPermissionSeeder::class);
+    $this->seed(ModuleSeeder::class);
+    $this->seed(PermissionSeeder::class);
 
     $this->school = School::factory()->create();
     $this->role = Role::firstOrCreate(['name' => 'Gestor']);
@@ -29,7 +31,7 @@ it('can list grades page', function () {
     Grade::factory()->create([
         'school_id' => $this->school->id,
         'segment_id' => $this->segment->id,
-        'nome' => '1º Ano A',
+        'name' => '1º Ano A',
     ]);
 
     $response = $this->actingAs($this->user)
@@ -46,7 +48,7 @@ it('can list grades page', function () {
 it('can create a grade', function () {
     $response = $this->actingAs($this->user)
         ->post(route('tenant.grades.store'), [
-            'nome' => '2º Ano B',
+            'name' => '2º Ano B',
             'segment_uuid' => $this->segment->uuid,
             'order' => 2,
         ]);
@@ -54,7 +56,7 @@ it('can create a grade', function () {
     $response->assertRedirect(route('tenant.grades.index'));
 
     $this->assertDatabaseHas('grades', [
-        'nome' => '2º Ano B',
+        'name' => '2º Ano B',
         'segment_id' => $this->segment->id,
         'school_id' => $this->school->id,
     ]);
@@ -64,30 +66,30 @@ it('validates unique name per school on create', function () {
     Grade::factory()->create([
         'school_id' => $this->school->id,
         'segment_id' => $this->segment->id,
-        'nome' => '1º Ano A',
+        'name' => '1º Ano A',
     ]);
 
     $response = $this->actingAs($this->user)
         ->post(route('tenant.grades.store'), [
-            'nome' => '1º Ano A',
+            'name' => '1º Ano A',
             'segment_uuid' => $this->segment->uuid,
         ]);
 
-    $response->assertSessionHasErrors('nome');
+    $response->assertSessionHasErrors('name');
 });
 
 it('can update a grade', function () {
     $grade = Grade::factory()->create([
         'school_id' => $this->school->id,
         'segment_id' => $this->segment->id,
-        'nome' => '1º Ano A',
+        'name' => '1º Ano A',
     ]);
 
     $newSegment = Segment::factory()->create(['name' => 'Ensino Médio']);
 
     $response = $this->actingAs($this->user)
         ->put(route('tenant.grades.update', ['grade' => $grade->uuid]), [
-            'nome' => '1º Ano B',
+            'name' => '1º Ano B',
             'segment_uuid' => $newSegment->uuid,
             'order' => 10,
         ]);
@@ -96,7 +98,7 @@ it('can update a grade', function () {
 
     $this->assertDatabaseHas('grades', [
         'id' => $grade->id,
-        'nome' => '1º Ano B',
+        'name' => '1º Ano B',
         'segment_id' => $newSegment->id,
         'order' => 10,
     ]);
@@ -106,7 +108,7 @@ it('can delete a grade', function () {
     $grade = Grade::factory()->create([
         'school_id' => $this->school->id,
         'segment_id' => $this->segment->id,
-        'nome' => 'Turma para Excluir',
+        'name' => 'Turma para Excluir',
     ]);
 
     $response = $this->actingAs($this->user)

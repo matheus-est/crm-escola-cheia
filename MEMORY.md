@@ -7,7 +7,7 @@
 
 ## CURRENT STATE
 
-**Last session:** 2026-04-09
+**Last session:** 2026-04-10
 **Next task:** 5.4 — Reviewer pass on Stage 5 (Tasks module)
 
 ### Completed
@@ -59,7 +59,9 @@
 - [x] ADJ-B2 — StoreEventRequest/UpdateEventRequest: prepareForValidation() nullifies event_date when has_no_date=true — 2026-04-09
 - [x] ADJ-B3 — EventService::listUnlinkedOpportunities() · EventController::availableOpportunities() · route events.available_opportunities — 2026-04-09
 - [x] ADJ-B4 — StoreOpportunityRequest: task_type rule · OpportunityService injects TaskService + creates task on opportunity create — 2026-04-09
-- [ ] **5.4 — Reviewer pass on Stage 5 🔴**
+- [x] ADJ-B5 — Masked fields stored as-is: migration fix_masked_field_columns (schools.cnpj varchar(18), school_units cep/logradouro/bairro/cidade nullable) · SchoolStoreRequest+UpdateRequest normalize CNPJ to masked format · OpportunityService remove CEP strip · CLAUDE.md rule added — 2026-04-09
+- [x] ADJ-EN — Portuguese→English field rename cleanup: auth.ts · TenantSwitcher.vue · Schools/Index.vue · SchoolYears.vue · Grades.vue · SchoolObserver · WelcomeSchoolUserMail · StudentUpdateRequest · 15+ test files (razao_social→legal_name, nome→name, telefone→phone, cep→zip_code, logradouro→street, bairro→neighborhood, cidade→city, estado→state, numero→number) — 197 tests passing — 2026-04-09
+- [x] FIX-A — SchoolYear inicio/fim→start/end: StoreRequest+UpdateRequest+tests+crm.ts SchoolYear interface · SchoolYearFactory created · guardians.cpf nullable migration added · boilerplate Settings tests deleted — 2026-04-10\n- [ ] **5.4 — Reviewer pass on Stage 5 🔴**
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
 
 ---
@@ -108,12 +110,14 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-05 | `*Service.php` | Non-blocking warnings: add `hasClosed*` helper on service; controller checks after `create()` and flashes `warning` vs `success` — never block creation |
 | 2026-04-05 | `*.vue` (ui) | No `Textarea` component in `ui/` — use plain `<textarea>` with inline Tailwind classes matching shadcn Input style |
 | 2026-04-08 | `OpportunityService::create()` | Pass guardian fields through `array_filter` removing nulls/empty before `findOrCreate()` — guardian `cpf` is nullable but not all guardians arrive with CPF |
-| 2026-04-08 | `opportunities/Create.vue` | `Guardian` interface uses Portuguese field names (`telefone`, `cep`, `logradouro`, `numero`, `bairro`, `cidade`, `estado`) — never English aliases in `fillGuardianFields()` |
+| 2026-04-09 | `opportunities/Create.vue` | `Guardian` interface uses English field names (`phone`, `zip_code`, `street`, `number`, `neighborhood`, `city`, `state`) — use these in `fillGuardianFields()`, never the old Portuguese names |
 | 2026-04-09 | `EventTest.php` | 419 CSRF failures on POST/PUT/DELETE are pre-existing throughout the test suite — GET tests pass; the 419 pattern is systemic, not module-specific |
 | 2026-04-09 | `*.vue` (forms) | Boolean checkbox in Inertia `<Form>`: add `<input type="hidden" name="field" value="0" />` BEFORE the Checkbox — unchecked sends 0, checked overrides with 1 |
 | 2026-04-09 | `RoomController.php` | `back()` em store/update/destroy — RoomFormDialog é usado em múltiplos contextos (Rooms settings + Events form); `to_route()` causaria redirect indesejado |
 | 2026-04-09 | `OpportunityService.php` | Ao injetar novo serviço no construtor, verificar se `syncWithoutDetaching()` pré-existente viola CLAUDE.md — substituir por `exists() + attach()` |
 | 2026-04-09 | `opportunities/Edit.vue` | Estava usando shadcn `<Tabs>` (único arquivo); padronizado para botões manuais + `v-show` igual ao restante do projeto |
+| 2026-04-10 | `ActiveSchoolControllerTest.php` | `SetActiveTenant` global middleware aborts 403 for non-cross-tenant users with no school in session — use `$this->withoutMiddleware(SetActiveTenant::class)` when testing validation that lives past the middleware |
+| 2026-04-09 | \`SchoolStoreRequest\`, \`SchoolUpdateRequest\`, \`OpportunityService\` | Masked fields (CEP, CNPJ, CPF, phone) must be stored with display mask — never strip non-digits before persisting; strip only for API calls or mod-11 validation |\n| 2026-04-10 | \`SchoolYearStoreRequest\`, tests | Column rename (inicio→start, fim→end) must be applied consistently to requests, tests, TS interfaces AND a nullable migration must be created when docs say \"nullable migration\" — check all four touch points |
 
 ---
 

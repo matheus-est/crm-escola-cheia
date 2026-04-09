@@ -14,14 +14,14 @@ return new class extends Migration
             $table->id();
             $table->uuid('uuid')->unique();
             $table->foreignId('school_id')->constrained('schools')->cascadeOnDelete();
-            $table->string('nome');
-            $table->string('cep', 8);
-            $table->string('logradouro');
-            $table->string('numero', 20);
-            $table->string('complemento')->nullable();
-            $table->string('bairro');
-            $table->string('cidade');
-            $table->char('estado', 2);
+            $table->string('name');
+            $table->string('zip_code', 9);
+            $table->string('street');
+            $table->string('number', 20);
+            $table->string('complement')->nullable();
+            $table->string('neighborhood');
+            $table->string('city');
+            $table->string('state');
             $table->timestamps();
         });
     }

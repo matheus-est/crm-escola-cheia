@@ -25,7 +25,7 @@ class WelcomeSchoolUserMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Bem-vindo — Acesso ao Sistema {$this->school->razao_social}",
+            subject: "Bem-vindo — Acesso ao Sistema {$this->school->legal_name}",
         );
     }
 

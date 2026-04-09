@@ -18,9 +18,9 @@ class SchoolYearStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => ['required', 'string', 'max:100'],
-            'inicio' => ['required', 'date'],
-            'fim' => ['required', 'date', 'after_or_equal:inicio'],
+            'name' => ['required', 'string', 'max:100'],
+            'start' => ['required', 'date'],
+            'end' => ['required', 'date', 'after_or_equal:start'],
             'status' => ['required', new Enum(SchoolYearStatus::class)],
         ];
     }

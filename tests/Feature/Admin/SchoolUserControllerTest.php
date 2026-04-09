@@ -29,7 +29,7 @@ function makeSchoolForUserTests(): School
 
     return School::create([
         'cnpj' => str_pad((string) $counter, 14, '0', STR_PAD_LEFT),
-        'razao_social' => 'Escola Teste '.$counter,
+        'legal_name' => 'Escola Teste '.$counter,
     ]);
 }
 

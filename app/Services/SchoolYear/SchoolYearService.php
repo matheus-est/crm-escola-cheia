@@ -13,16 +13,16 @@ class SchoolYearService
     {
         $query = SchoolYear::query();
 
-        if (array_key_exists('nome', $filters) && $filters['nome'] !== '') {
-            $query->where('nome', 'LIKE', '%'.$filters['nome'].'%');
+        if (array_key_exists('name', $filters) && $filters['name'] !== '') {
+            $query->where('name', 'LIKE', '%'.$filters['name'].'%');
         }
 
         if (array_key_exists('status', $filters) && $filters['status'] !== '') {
             $query->where('status', $filters['status']);
         }
 
-        $allowedSort = ['nome', 'inicio', 'fim', 'status'];
-        $sortBy = in_array($filters['sort_by'] ?? '', $allowedSort, strict: true) ? $filters['sort_by'] : 'nome';
+        $allowedSort = ['name', 'start', 'end', 'status'];
+        $sortBy = in_array($filters['sort_by'] ?? '', $allowedSort, strict: true) ? $filters['sort_by'] : 'name';
         $sortDir = ($filters['sort_dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         $query->orderBy($sortBy, $sortDir);
 

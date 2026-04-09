@@ -44,8 +44,14 @@ const tabs: { value: Tab; label: string; icon: Component }[] = [
     { value: 'salas', label: 'Salas', icon: DoorOpen },
 ];
 
-// Checkbox has_no_date — controlled locally to disable date field
+// Checkbox has_no_date — controlled locally to disable and clear date field
 const hasNoDate = ref(false);
+const eventDate = ref('');
+
+function handleHasNoDateChange(val: boolean): void {
+    hasNoDate.value = val;
+    if (val) eventDate.value = '';
+}
 
 // Rooms selection
 const selectedRoomUuids = ref<string[]>([]);
@@ -135,8 +141,9 @@ function handleError(): void {
                             v-show="activeTab === 'sobre'"
                             class="space-y-6 p-6"
                         >
+                            <!-- Linha 1: Título + Data do Evento -->
                             <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="space-y-2 sm:col-span-2">
+                                <div class="space-y-2">
                                     <Label for="title">
                                         Título do Evento
                                         <span class="text-destructive">*</span>
@@ -148,6 +155,111 @@ function handleError(): void {
                                         required
                                     />
                                     <InputError :message="errors.title" />
+                                </div>
+
+                                <!-- Data + Checkbox empilhados na coluna direita -->
+                                <div class="space-y-2">
+                                    <Label for="event_date"
+                                        >Data do Evento</Label
+                                    >
+                                    <div class="relative">
+                                        <Input
+                                            id="event_date"
+                                            type="datetime-local"
+                                            :name="
+                                                hasNoDate
+                                                    ? undefined
+                                                    : 'event_date'
+                                            "
+                                            v-model="eventDate"
+                                            :disabled="hasNoDate"
+                                            :readonly="hasNoDate"
+                                            :class="
+                                                hasNoDate ? 'opacity-40' : ''
+                                            "
+                                        />
+                                        <!-- Overlay que bloqueia mouse e teclado quando hasNoDate -->
+                                        <div
+                                            v-if="hasNoDate"
+                                            class="absolute inset-0 z-10 cursor-not-allowed rounded-md"
+                                            @click.prevent.stop
+                                            @keydown.prevent.stop
+                                            @mousedown.prevent.stop
+                                        />
+                                    </div>
+                                    <InputError :message="errors.event_date" />
+
+                                    <!-- Checkbox logo abaixo do campo de data -->
+                                    <div class="flex items-center gap-2 pt-1">
+                                        <input
+                                            type="hidden"
+                                            name="has_no_date"
+                                            value="0"
+                                        />
+                                        <Checkbox
+                                            id="has_no_date"
+                                            name="has_no_date"
+                                            :checked="hasNoDate"
+                                            @update:checked="
+                                                handleHasNoDateChange
+                                            "
+                                        />
+                                        <Label
+                                            for="has_no_date"
+                                            class="cursor-pointer"
+                                        >
+                                            Este evento não possui Data
+                                        </Label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Linha 2: Unidade + Série + Nº Máximo + Tipo -->
+                            <div class="grid grid-cols-4 gap-4">
+                                <div class="space-y-2">
+                                    <Label>Unidade</Label>
+                                    <Input
+                                        :value="props.school_name"
+                                        disabled
+                                        class="bg-muted/50"
+                                    />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="grade_uuid">Série</Label>
+                                    <Select name="grade_uuid">
+                                        <SelectTrigger id="grade_uuid">
+                                            <SelectValue
+                                                placeholder="Selecione..."
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="grade in props.grades"
+                                                :key="grade.uuid"
+                                                :value="grade.uuid"
+                                            >
+                                                {{ grade.name }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError :message="errors.grade_uuid" />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="max_capacity"
+                                        >Nº Máximo de Inscritos</Label
+                                    >
+                                    <Input
+                                        id="max_capacity"
+                                        type="number"
+                                        name="max_capacity"
+                                        min="1"
+                                        placeholder="Ex: 50"
+                                    />
+                                    <InputError
+                                        :message="errors.max_capacity"
+                                    />
                                 </div>
 
                                 <div class="space-y-2">
@@ -173,101 +285,6 @@ function handleError(): void {
                                         </SelectContent>
                                     </Select>
                                     <InputError :message="errors.event_type" />
-                                </div>
-
-                                <div class="space-y-2">
-                                    <Label for="grade_uuid">Série</Label>
-                                    <Select name="grade_uuid">
-                                        <SelectTrigger id="grade_uuid">
-                                            <SelectValue
-                                                placeholder="Selecione..."
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem
-                                                v-for="grade in props.grades"
-                                                :key="grade.uuid"
-                                                :value="grade.uuid"
-                                            >
-                                                {{ grade.nome }}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <InputError :message="errors.grade_uuid" />
-                                </div>
-
-                                <div
-                                    class="flex items-center gap-2 sm:col-span-2"
-                                >
-                                    <input
-                                        type="hidden"
-                                        name="has_no_date"
-                                        value="0"
-                                    />
-                                    <Checkbox
-                                        id="has_no_date"
-                                        name="has_no_date"
-                                        :checked="hasNoDate"
-                                        @update:checked="
-                                            (val: boolean) => {
-                                                hasNoDate = val;
-                                            }
-                                        "
-                                    />
-                                    <Label
-                                        for="has_no_date"
-                                        class="cursor-pointer"
-                                    >
-                                        Este evento não possui Data
-                                    </Label>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <Label for="event_date"
-                                        >Data do Evento</Label
-                                    >
-                                    <Input
-                                        id="event_date"
-                                        type="datetime-local"
-                                        name="event_date"
-                                        :disabled="hasNoDate"
-                                    />
-                                    <InputError :message="errors.event_date" />
-                                </div>
-
-                                <div class="space-y-2">
-                                    <Label for="location">Local</Label>
-                                    <Input
-                                        id="location"
-                                        name="location"
-                                        placeholder="Local do evento"
-                                    />
-                                    <InputError :message="errors.location" />
-                                </div>
-
-                                <div class="space-y-2">
-                                    <Label for="max_capacity"
-                                        >Número Máximo De Inscritos</Label
-                                    >
-                                    <Input
-                                        id="max_capacity"
-                                        type="number"
-                                        name="max_capacity"
-                                        min="1"
-                                        placeholder="Ex: 50"
-                                    />
-                                    <InputError
-                                        :message="errors.max_capacity"
-                                    />
-                                </div>
-
-                                <div class="space-y-2">
-                                    <Label>Unidade</Label>
-                                    <Input
-                                        :value="props.school_name"
-                                        disabled
-                                        class="bg-muted/50"
-                                    />
                                 </div>
                             </div>
                         </div>

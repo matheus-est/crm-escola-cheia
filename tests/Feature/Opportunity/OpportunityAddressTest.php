@@ -37,7 +37,7 @@ function makeSchoolForAddressTests(): School
 
     return School::create([
         'cnpj' => str_pad((string) ($counter + 6000), 14, '0', STR_PAD_LEFT),
-        'razao_social' => 'Escola Address '.$counter,
+        'legal_name' => 'Escola Address '.$counter,
     ]);
 }
 
@@ -48,7 +48,7 @@ function makeGradeForAddressTests(School $school): Grade
     return Grade::withoutTenantScope()->create([
         'school_id' => $school->id,
         'segment_id' => $segment->id,
-        'nome' => '3º Ano',
+        'name' => '3º Ano',
     ]);
 }
 
@@ -56,9 +56,9 @@ function makeSchoolYearForAddressTests(School $school): SchoolYear
 {
     return SchoolYear::withoutTenantScope()->create([
         'school_id' => $school->id,
-        'nome' => '2025',
-        'inicio' => '2025-01-01',
-        'fim' => '2025-12-31',
+        'name' => '2025',
+        'start' => '2025-01-01',
+        'end' => '2025-12-31',
         'status' => 'planejamento',
     ]);
 }
@@ -89,17 +89,17 @@ it('POST store persiste campos de endereço do guardian', function (): void {
 
     $guardian = Guardian::withoutTenantScope()
         ->where('school_id', $school->id)
-        ->where('nome', 'Responsável Endereço')
+        ->where('name', 'Responsável Endereço')
         ->first();
 
     expect($guardian)->not->toBeNull()
-        ->and($guardian->telefone)->toBe('(11) 98765-4321')
-        ->and($guardian->cep)->toBe('01310-100')
-        ->and($guardian->logradouro)->toBe('Av. Paulista')
-        ->and($guardian->numero)->toBe('1000')
-        ->and($guardian->bairro)->toBe('Bela Vista')
-        ->and($guardian->cidade)->toBe('São Paulo')
-        ->and($guardian->estado)->toBe('SP');
+        ->and($guardian->phone)->toBe('(11) 98765-4321')
+        ->and($guardian->zip_code)->toBe('01310-100')
+        ->and($guardian->street)->toBe('Av. Paulista')
+        ->and($guardian->number)->toBe('1000')
+        ->and($guardian->neighborhood)->toBe('Bela Vista')
+        ->and($guardian->city)->toBe('São Paulo')
+        ->and($guardian->state)->toBe('SP');
 });
 
 it('POST store com guardian_cpf inválido retorna 422', function (): void {

@@ -57,7 +57,7 @@ function makeSchoolForEventTests(): School
 
     return School::create([
         'cnpj' => str_pad((string) ($counter + 9000), 14, '0', STR_PAD_LEFT),
-        'razao_social' => 'Escola Evento '.$counter,
+        'legal_name' => 'Escola Evento '.$counter,
     ]);
 }
 
@@ -79,15 +79,15 @@ function makeOpportunityForEvent(School $school): Opportunity
     );
 
     $grade = Grade::withoutTenantScope()->firstOrCreate(
-        ['school_id' => $school->id, 'nome' => '1º Ano Evento'],
+        ['school_id' => $school->id, 'name' => '1º Ano Evento'],
         ['segment_id' => $segment->id],
     );
 
     $schoolYear = SchoolYear::withoutTenantScope()->firstOrCreate(
-        ['school_id' => $school->id, 'nome' => '2025-Evento'],
+        ['school_id' => $school->id, 'name' => '2025-Evento'],
         [
-            'inicio' => '2025-01-01',
-            'fim' => '2025-12-31',
+            'start' => '2025-01-01',
+            'end' => '2025-12-31',
             'status' => 'planejamento',
         ],
     );
@@ -502,7 +502,7 @@ it('POST store com grade_uuid valido armazena corretamente', function (): void {
     $grade = Grade::withoutTenantScope()->create([
         'school_id' => $school->id,
         'segment_id' => $segment->id,
-        'nome' => 'Grade do Evento',
+        'name' => 'Grade do Evento',
         'order' => 1,
     ]);
 

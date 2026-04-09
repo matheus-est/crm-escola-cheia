@@ -30,7 +30,7 @@ function makeSchool(): School
 {
     return School::create([
         'cnpj' => '12345678000195',
-        'razao_social' => 'Escola Teste',
+        'legal_name' => 'Escola Teste',
     ]);
 }
 
@@ -50,11 +50,11 @@ it('Admin consegue editar escola', function (): void {
     $this->actingAs($user)
         ->put(route('admin.schools.update', $school), [
             'cnpj' => '12345678000195',
-            'razao_social' => 'Escola Atualizada',
+            'legal_name' => 'Escola Atualizada',
         ])
         ->assertRedirect(route('admin.schools.edit', $school));
 
-    $this->assertDatabaseHas('schools', ['razao_social' => 'Escola Atualizada']);
+    $this->assertDatabaseHas('schools', ['legal_name' => 'Escola Atualizada']);
 });
 
 it('Master consegue excluir escola', function (): void {
@@ -124,7 +124,7 @@ it('lookupCnpj retorna dados para CNPJ válido', function (): void {
         ->withHeader('Accept', 'application/json')
         ->get(route('admin.schools.cnpjLookup', '12345678000195'))
         ->assertOk()
-        ->assertJsonFragment(['razao_social' => 'EMPRESA TESTE LTDA']);
+        ->assertJsonFragment(['legal_name' => 'EMPRESA TESTE LTDA']);
 });
 
 it('lookupCnpj retorna 422 para CNPJ inválido', function (): void {
@@ -147,11 +147,11 @@ it('store redireciona para edit após criar escola', function (): void {
     $this->actingAs($user)
         ->post(route('admin.schools.store'), [
             'cnpj' => '12345678000195',
-            'razao_social' => 'Nova Escola',
+            'legal_name' => 'Nova Escola',
         ])
         ->assertRedirectContains('/edit');
 
-    $this->assertDatabaseHas('schools', ['razao_social' => 'Nova Escola']);
+    $this->assertDatabaseHas('schools', ['legal_name' => 'Nova Escola']);
 });
 
 it('create page passa availableRoles como prop', function (): void {
