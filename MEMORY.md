@@ -8,7 +8,7 @@
 ## CURRENT STATE
 
 **Last session:** 2026-04-09
-**Next task:** 7.R — Reviewer pass on Stage 7 (Events frontend rewrite)
+**Next task:** 5.4 — Reviewer pass on Stage 5 (Tasks module)
 
 ### Completed
 
@@ -47,6 +47,18 @@
 - [x] 7.2B — Events backend refactor: migrations 005/006 (title/event_type/has_no_date/grade_id + event_room pivot) · Event model (rooms/grade relations) · StoreEventRequest · UpdateEventRequest · EventService (room_ids attach/detach, listAvailable no is_active) · EventController (grades/rooms/school_name props) · EventFactory · crm.ts Event interface · EventTest updated + 6 new tests — 2026-04-09
 - [x] 7.3F — Events frontend rewrite: RoomFormDialog.vue component · Rooms.vue refactored · events/Create.vue with 2 tabs · events/Edit.vue with 3 tabs · events/Index.vue title+has_no_date — 2026-04-09
 - [x] 7.4F — Reviewer fixes: inline delete (Index.vue) · has_no_date hidden input (Create+Edit) · attachOpportunity→to_route() + useForm.post() (controller+Edit.vue) · room_uuids/grade_uuid UUID-based validation · school_id removed from Event $fillable · migration dropColumn separated · Limpar filtros button · breadcrumb href:#
+- [x] ADJ-FT — crm.ts: AvailableOpportunity interface added — 2026-04-09
+- [x] ADJ-F2 — events/Create.vue + Edit.vue: ícones Info/DoorOpen/Users nas abas — 2026-04-09
+- [x] ADJ-F3 — events/Create.vue + Edit.vue: campo Data sempre visível, :disabled=hasNoDate — 2026-04-09
+- [x] ADJ-F4 — events/Edit.vue: available-opportunities table com fetch + router.post attach (removido attachForm/useForm) — 2026-04-09
+- [x] ADJ-F5 — opportunities/Create.vue + Edit.vue: campo Unidade usa nome_fantasia ?? razao_social — 2026-04-09
+- [x] ADJ-F6 — opportunities/Create.vue + Edit.vue: select Tarefa Vinculada funcional (task_type) — 2026-04-09
+- [x] ADJ-F7 — opportunities/Create.vue: ícones ClipboardList/User/FileText nas abas; Edit.vue refatorado para botões manuais + ícones — 2026-04-09
+- [x] ADJ-F8 — ModuleSeeder: lead_sources show_in_menu => false — 2026-04-09
+- [x] ADJ-B1 — RoomController: store/update/destroy use back() — dialog-safe redirect (from Events form) — 2026-04-09
+- [x] ADJ-B2 — StoreEventRequest/UpdateEventRequest: prepareForValidation() nullifies event_date when has_no_date=true — 2026-04-09
+- [x] ADJ-B3 — EventService::listUnlinkedOpportunities() · EventController::availableOpportunities() · route events.available_opportunities — 2026-04-09
+- [x] ADJ-B4 — StoreOpportunityRequest: task_type rule · OpportunityService injects TaskService + creates task on opportunity create — 2026-04-09
 - [ ] **5.4 — Reviewer pass on Stage 5 🔴**
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
 
@@ -99,6 +111,9 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-08 | `opportunities/Create.vue` | `Guardian` interface uses Portuguese field names (`telefone`, `cep`, `logradouro`, `numero`, `bairro`, `cidade`, `estado`) — never English aliases in `fillGuardianFields()` |
 | 2026-04-09 | `EventTest.php` | 419 CSRF failures on POST/PUT/DELETE are pre-existing throughout the test suite — GET tests pass; the 419 pattern is systemic, not module-specific |
 | 2026-04-09 | `*.vue` (forms) | Boolean checkbox in Inertia `<Form>`: add `<input type="hidden" name="field" value="0" />` BEFORE the Checkbox — unchecked sends 0, checked overrides with 1 |
+| 2026-04-09 | `RoomController.php` | `back()` em store/update/destroy — RoomFormDialog é usado em múltiplos contextos (Rooms settings + Events form); `to_route()` causaria redirect indesejado |
+| 2026-04-09 | `OpportunityService.php` | Ao injetar novo serviço no construtor, verificar se `syncWithoutDetaching()` pré-existente viola CLAUDE.md — substituir por `exists() + attach()` |
+| 2026-04-09 | `opportunities/Edit.vue` | Estava usando shadcn `<Tabs>` (único arquivo); padronizado para botões manuais + `v-show` igual ao restante do projeto |
 
 ---
 

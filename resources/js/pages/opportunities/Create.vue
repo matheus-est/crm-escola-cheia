@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ArrowLeft, ClipboardList, FileText, User } from 'lucide-vue-next';
+import { type Component, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -51,10 +51,18 @@ const toast = useToast();
 type Tab = 'cadastro' | 'aluno' | 'complementar';
 const activeTab = ref<Tab>('cadastro');
 
-const tabs = [
-    { value: 'cadastro' as Tab, label: 'Informações do Cadastro' },
-    { value: 'aluno' as Tab, label: 'Aluno / Responsável' },
-    { value: 'complementar' as Tab, label: 'Informações Complementares' },
+const tabs: { value: Tab; label: string; icon: Component }[] = [
+    {
+        value: 'cadastro',
+        label: 'Informações do Cadastro',
+        icon: ClipboardList,
+    },
+    { value: 'aluno', label: 'Aluno / Responsável', icon: User },
+    {
+        value: 'complementar',
+        label: 'Informações Complementares',
+        icon: FileText,
+    },
 ];
 
 const guardianFilledByStudent = ref(false);
@@ -253,6 +261,10 @@ function handleError(): void {
                                 "
                                 @click="activeTab = tab.value"
                             >
+                                <component
+                                    :is="tab.icon"
+                                    class="mr-2 inline h-4 w-4"
+                                />
                                 {{ tab.label }}
                             </button>
                         </div>
@@ -338,17 +350,54 @@ function handleError(): void {
                                 </div>
 
                                 <div class="space-y-2">
-                                    <Label for="task_placeholder"
+                                    <Label for="task_type"
                                         >Tarefa Vinculada</Label
                                     >
-                                    <Select disabled>
-                                        <SelectTrigger id="task_placeholder">
+                                    <Select name="task_type">
+                                        <SelectTrigger id="task_type">
                                             <SelectValue
-                                                placeholder="Em breve..."
+                                                placeholder="Selecione..."
                                             />
                                         </SelectTrigger>
-                                        <SelectContent />
+                                        <SelectContent>
+                                            <SelectItem value="retorno_ligacao"
+                                                >Retorno de Ligação</SelectItem
+                                            >
+                                            <SelectItem value="agendamento"
+                                                >Agendamento</SelectItem
+                                            >
+                                            <SelectItem value="lembrete_agenda"
+                                                >Lembrete de Agenda</SelectItem
+                                            >
+                                            <SelectItem value="reagendamento"
+                                                >Reagendamento</SelectItem
+                                            >
+                                            <SelectItem value="double_check"
+                                                >Double Check</SelectItem
+                                            >
+                                            <SelectItem
+                                                value="provavel_matricula"
+                                                >Provável Matrícula</SelectItem
+                                            >
+                                            <SelectItem value="evento"
+                                                >Evento</SelectItem
+                                            >
+                                            <SelectItem value="lembrete_evento"
+                                                >Lembrete de Evento</SelectItem
+                                            >
+                                            <SelectItem
+                                                value="reagendamento_evento"
+                                                >Reagendamento de
+                                                Evento</SelectItem
+                                            >
+                                            <SelectItem
+                                                value="double_check_evento"
+                                                >Double Check de
+                                                Evento</SelectItem
+                                            >
+                                        </SelectContent>
                                     </Select>
+                                    <InputError :message="errors.task_type" />
                                 </div>
                             </div>
                         </div>
@@ -489,7 +538,10 @@ function handleError(): void {
                                     <div class="space-y-2">
                                         <Label>Unidade</Label>
                                         <Input
-                                            :value="props.school.razao_social"
+                                            :value="
+                                                props.school.nome_fantasia ??
+                                                props.school.razao_social
+                                            "
                                             disabled
                                             class="bg-muted/50"
                                         />

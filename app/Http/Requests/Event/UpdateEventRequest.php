@@ -13,6 +13,17 @@ class UpdateEventRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $hasNoDate = filter_var($this->input('has_no_date'), FILTER_VALIDATE_BOOLEAN);
+
+        if ($hasNoDate) {
+            $this->merge(['event_date' => null, 'has_no_date' => true]);
+        } else {
+            $this->merge(['has_no_date' => false]);
+        }
+    }
+
     public function rules(): array
     {
         return [

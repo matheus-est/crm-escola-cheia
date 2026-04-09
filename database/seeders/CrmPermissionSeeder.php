@@ -25,16 +25,6 @@ class CrmPermissionSeeder extends Seeder
             'is_active' => true,
         ],
         [
-            'slug' => 'leads',
-            'name' => 'Leads',
-            'icon' => 'Users',
-            'url' => '/tenant/leads',
-            'description' => 'Gestão de captação',
-            'order' => 11,
-            'show_in_menu' => true,
-            'is_active' => true,
-        ],
-        [
             'slug' => 'oportunidades',
             'name' => 'Oportunidades',
             'icon' => 'Target',
@@ -113,7 +103,6 @@ class CrmPermissionSeeder extends Seeder
      */
     private array $actions = [
         'schools' => ['view', 'list', 'add', 'edit', 'delete'],
-        'leads' => ['view', 'list', 'add', 'edit', 'delete'],
         'oportunidades' => ['view', 'list', 'add', 'edit', 'delete'],
         'tarefas' => ['view', 'list', 'add', 'edit', 'complete'],
         'school_years' => ['view', 'list', 'add', 'edit', 'delete'],
@@ -207,10 +196,6 @@ class CrmPermissionSeeder extends Seeder
                     'tarefas_list',
                     'tarefas_add',
                     'tarefas_complete',
-                    'leads_view',
-                    'leads_list',
-                    'leads_add',
-                    'leads_edit',
                     'school_years_view',
                     'school_years_list',
                     'lead_sources_view',

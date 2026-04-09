@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import { Form, Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Plus, Search, Trash2, UserPlus } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { Form, Head, Link, router } from '@inertiajs/vue3';
+import {
+    ArrowLeft,
+    DoorOpen,
+    Info,
+    Link2,
+    Plus,
+    Search,
+    Trash2,
+    UserPlus,
+    Users,
+} from 'lucide-vue-next';
+import { type Component, computed, ref, watch } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import RoomFormDialog from '@/components/RoomFormDialog.vue';
@@ -23,6 +33,7 @@ import { index, update } from '@/routes/tenant/events/index';
 import { attach, detach } from '@/routes/tenant/events/opportunities/index';
 import type { BreadcrumbItem } from '@/types';
 import type {
+    AvailableOpportunity,
     Event,
     Grade,
     Opportunity,
@@ -49,10 +60,10 @@ const toast = useToast();
 type Tab = 'sobre' | 'salas' | 'oportunidades';
 const activeTab = ref<Tab>('sobre');
 
-const tabs = [
-    { value: 'sobre' as Tab, label: 'Sobre o Evento' },
-    { value: 'salas' as Tab, label: 'Salas' },
-    { value: 'oportunidades' as Tab, label: 'Oportunidades' },
+const tabs: { value: Tab; label: string; icon: Component }[] = [
+    { value: 'sobre', label: 'Sobre o Evento', icon: Info },
+    { value: 'salas', label: 'Salas', icon: DoorOpen },
+    { value: 'oportunidades', label: 'Oportunidades', icon: Users },
 ];
 
 // has_no_date checkbox
@@ -124,26 +135,54 @@ const statusClasses: Record<OpportunityStatus, string> = {
         'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-400/10 dark:text-red-400 dark:ring-red-400/20',
 };
 
-// Attach opportunity
-const attachForm = useForm({
-    opportunity_uuid: '',
-});
+// Available opportunities fetch + attach
+const availableOpportunities = ref<AvailableOpportunity[]>([]);
+const isLoadingAvailable = ref(false);
+const attachingUuid = ref<string | null>(null);
 
-function submitAttach(): void {
-    attachForm.post(attach({ event: props.event.uuid }).url, {
-        preserveScroll: false,
-        onSuccess: () => {
-            attachForm.reset();
-            toast.success('Oportunidade vinculada com sucesso.');
-        },
-        onError: () => {
-            toast.error(
-                attachForm.errors.opportunity_uuid ??
-                    'Erro ao vincular oportunidade.',
-            );
-        },
-    });
+async function fetchAvailableOpportunities(): Promise<void> {
+    isLoadingAvailable.value = true;
+    try {
+        const response = await fetch(
+            `/t/events/${props.event.uuid}/available-opportunities`,
+            { headers: { Accept: 'application/json' } },
+        );
+        if (response.ok) {
+            availableOpportunities.value =
+                (await response.json()) as AvailableOpportunity[];
+        }
+    } catch {
+        // silent — não bloqueia a UI
+    } finally {
+        isLoadingAvailable.value = false;
+    }
 }
+
+function handleAttach(opportunityUuid: string): void {
+    attachingUuid.value = opportunityUuid;
+    router.post(
+        attach({ event: props.event.uuid }).url,
+        { opportunity_uuid: opportunityUuid },
+        {
+            preserveUrl: true,
+            onSuccess: () => {
+                void fetchAvailableOpportunities();
+                toast.success('Oportunidade vinculada com sucesso.');
+                attachingUuid.value = null;
+            },
+            onError: () => {
+                toast.error('Erro ao vincular oportunidade.');
+                attachingUuid.value = null;
+            },
+        },
+    );
+}
+
+watch(activeTab, (tab) => {
+    if (tab === 'oportunidades') {
+        void fetchAvailableOpportunities();
+    }
+});
 
 // Detach opportunity
 const detachingUuid = ref<string | null>(null);
@@ -203,6 +242,10 @@ function handleDetach(opportunityUuid: string): void {
                                 "
                                 @click="activeTab = tab.value"
                             >
+                                <component
+                                    :is="tab.icon"
+                                    class="mr-2 inline h-4 w-4"
+                                />
                                 {{ tab.label }}
                             </button>
                         </div>
@@ -310,7 +353,7 @@ function handleDetach(opportunityUuid: string): void {
                                     </Label>
                                 </div>
 
-                                <div v-if="!hasNoDate" class="space-y-2">
+                                <div class="space-y-2">
                                     <Label for="event_date"
                                         >Data do Evento</Label
                                     >
@@ -323,6 +366,7 @@ function handleDetach(opportunityUuid: string): void {
                                                 props.event.event_date,
                                             )
                                         "
+                                        :disabled="hasNoDate"
                                     />
                                     <InputError :message="errors.event_date" />
                                 </div>
@@ -475,7 +519,7 @@ function handleDetach(opportunityUuid: string): void {
                             v-show="activeTab === 'oportunidades'"
                             class="space-y-6 p-6"
                         >
-                            <!-- Opportunities table -->
+                            <!-- Linked opportunities table -->
                             <div v-if="props.event.opportunities.length > 0">
                                 <table class="w-full text-sm">
                                     <thead>
@@ -554,7 +598,7 @@ function handleDetach(opportunityUuid: string): void {
                                 Nenhuma oportunidade vinculada a este evento.
                             </div>
 
-                            <!-- Attach opportunity form -->
+                            <!-- Available opportunities table -->
                             <div class="rounded-md border bg-muted/20 p-4">
                                 <h3
                                     class="mb-3 flex items-center gap-2 text-sm font-medium"
@@ -562,44 +606,138 @@ function handleDetach(opportunityUuid: string): void {
                                     <UserPlus class="h-4 w-4" />
                                     Vincular Oportunidade
                                 </h3>
-                                <form
-                                    class="flex items-end gap-3"
-                                    @submit.prevent="submitAttach"
+
+                                <div
+                                    v-if="isLoadingAvailable"
+                                    class="py-6 text-center text-sm text-muted-foreground"
                                 >
-                                    <div class="grid flex-1 gap-1.5">
-                                        <Label
-                                            for="opportunity_uuid"
-                                            class="text-xs"
+                                    Carregando oportunidades...
+                                </div>
+
+                                <div
+                                    v-else-if="
+                                        availableOpportunities.length === 0
+                                    "
+                                    class="py-6 text-center text-sm text-muted-foreground"
+                                >
+                                    Nenhuma oportunidade disponível para
+                                    vincular.
+                                </div>
+
+                                <table v-else class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b">
+                                            <th
+                                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                                            >
+                                                Data de Criação
+                                            </th>
+                                            <th
+                                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                                            >
+                                                Oportunidade
+                                            </th>
+                                            <th
+                                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                                            >
+                                                Etapa
+                                            </th>
+                                            <th
+                                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                                            >
+                                                Ano Letivo
+                                            </th>
+                                            <th
+                                                class="px-3 pb-3 text-left font-medium text-muted-foreground"
+                                            >
+                                                Porta do Funil
+                                            </th>
+                                            <th
+                                                class="px-3 pb-3 text-right font-medium text-muted-foreground"
+                                            >
+                                                Vincular
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-border/50">
+                                        <tr
+                                            v-for="opp in availableOpportunities"
+                                            :key="opp.uuid"
+                                            class="transition-colors hover:bg-muted/30"
                                         >
-                                            UUID da Oportunidade
-                                        </Label>
-                                        <Input
-                                            id="opportunity_uuid"
-                                            v-model="
-                                                attachForm.opportunity_uuid
-                                            "
-                                            placeholder="Cole o UUID da oportunidade..."
-                                            class="h-9"
-                                        />
-                                        <InputError
-                                            :message="
-                                                attachForm.errors
-                                                    .opportunity_uuid
-                                            "
-                                        />
-                                    </div>
-                                    <Button
-                                        type="submit"
-                                        size="sm"
-                                        :disabled="
-                                            attachForm.processing ||
-                                            !attachForm.opportunity_uuid
-                                        "
-                                        class="h-9"
-                                    >
-                                        Vincular
-                                    </Button>
-                                </form>
+                                            <td
+                                                class="px-3 py-3 text-muted-foreground"
+                                            >
+                                                {{
+                                                    new Date(
+                                                        opp.created_at,
+                                                    ).toLocaleDateString(
+                                                        'pt-BR',
+                                                    )
+                                                }}
+                                            </td>
+                                            <td
+                                                class="px-3 py-3 font-medium text-foreground"
+                                            >
+                                                {{
+                                                    opp.guardian_name ??
+                                                    opp.student_name ??
+                                                    '—'
+                                                }}
+                                            </td>
+                                            <td class="px-3 py-3">
+                                                <span
+                                                    class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset"
+                                                    :class="
+                                                        statusClasses[
+                                                            opp.status
+                                                        ]
+                                                    "
+                                                >
+                                                    {{
+                                                        statusLabels[opp.status]
+                                                    }}
+                                                </span>
+                                            </td>
+                                            <td
+                                                class="px-3 py-3 text-muted-foreground"
+                                            >
+                                                {{
+                                                    opp.school_year_name ?? '—'
+                                                }}
+                                            </td>
+                                            <td
+                                                class="px-3 py-3 text-muted-foreground"
+                                            >
+                                                {{
+                                                    opp.registration_type ===
+                                                    'agendamento'
+                                                        ? 'Agendamento'
+                                                        : opp.registration_type ===
+                                                            'evento'
+                                                          ? 'Evento'
+                                                          : '—'
+                                                }}
+                                            </td>
+                                            <td class="px-3 py-3 text-right">
+                                                <button
+                                                    type="button"
+                                                    class="inline-flex items-center gap-1.5 rounded p-1 text-green-600 hover:bg-muted disabled:opacity-50"
+                                                    title="Vincular"
+                                                    :disabled="
+                                                        attachingUuid ===
+                                                        opp.uuid
+                                                    "
+                                                    @click="
+                                                        handleAttach(opp.uuid)
+                                                    "
+                                                >
+                                                    <Link2 class="h-4 w-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>

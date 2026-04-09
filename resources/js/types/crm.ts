@@ -315,3 +315,13 @@ export interface PaginatedRooms {
     total: number;
     links: Array<{ url: string | null; label: string; active: boolean }>;
 }
+
+export interface AvailableOpportunity {
+    uuid: string;
+    created_at: string;
+    guardian_name: string | null;
+    student_name: string | null;
+    status: OpportunityStatus;
+    school_year_name: string | null;
+    registration_type: RegistrationType | null;
+}

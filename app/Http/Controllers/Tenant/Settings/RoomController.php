@@ -44,8 +44,7 @@ class RoomController extends Controller
 
         $this->roomService->create($request->validated());
 
-        return to_route('tenant.settings.rooms.index')
-            ->with('success', 'Sala criada com sucesso.');
+        return back()->with('success', 'Sala criada com sucesso.');
     }
 
     public function update(UpdateRoomRequest $request, Room $room): RedirectResponse
@@ -54,8 +53,7 @@ class RoomController extends Controller
 
         $this->roomService->update($room, $request->validated());
 
-        return to_route('tenant.settings.rooms.index')
-            ->with('success', 'Sala atualizada com sucesso.');
+        return back()->with('success', 'Sala atualizada com sucesso.');
     }
 
     public function destroy(Room $room): RedirectResponse
@@ -64,7 +62,6 @@ class RoomController extends Controller
 
         $this->roomService->delete($room);
 
-        return to_route('tenant.settings.rooms.index')
-            ->with('success', 'Sala excluída com sucesso.');
+        return back()->with('success', 'Sala excluída com sucesso.');
     }
 }

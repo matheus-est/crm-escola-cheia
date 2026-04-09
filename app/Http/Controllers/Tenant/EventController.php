@@ -105,6 +105,25 @@ class EventController extends Controller
         return response()->json($events);
     }
 
+    public function availableOpportunities(Event $event): JsonResponse
+    {
+        Gate::authorize('update', $event);
+
+        $opportunities = $this->eventService->listUnlinkedOpportunities($event);
+
+        return response()->json(
+            $opportunities->map(fn (Opportunity $opp) => [
+                'uuid' => $opp->uuid,
+                'created_at' => $opp->created_at,
+                'guardian_name' => $opp->guardian?->nome,
+                'student_name' => $opp->student?->nome,
+                'status' => $opp->status?->value,
+                'school_year_name' => $opp->schoolYear?->nome,
+                'registration_type' => $opp->registration_type,
+            ])
+        );
+    }
+
     public function attachOpportunity(AttachOpportunityRequest $request, Event $event): RedirectResponse
     {
         Gate::authorize('update', $event);

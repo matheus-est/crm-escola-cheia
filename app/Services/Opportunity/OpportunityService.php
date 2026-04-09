@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Services\Opportunity;
 
 use App\Enums\SchoolYearStatus;
+use App\Enums\TaskType;
 use App\Models\Grade;
 use App\Models\Opportunity;
 use App\Models\SchoolYear;
 use App\Models\User;
 use App\Services\Guardian\GuardianService;
 use App\Services\Student\StudentService;
+use App\Services\Task\TaskService;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OpportunityService
@@ -19,6 +22,7 @@ class OpportunityService
     public function __construct(
         protected readonly GuardianService $guardianService,
         protected readonly StudentService $studentService,
+        protected readonly TaskService $taskService,
     ) {}
 
     public function list(array $filters = []): LengthAwarePaginator
@@ -60,6 +64,9 @@ class OpportunityService
 
     public function create(array $data): Opportunity
     {
+        $taskType = $data['task_type'] ?? null;
+        unset($data['task_type']);
+
         $guardianId = null;
 
         if (! empty($data['guardian_name'])) {
@@ -86,21 +93,31 @@ class OpportunityService
         ], fn ($v) => $v !== null && $v !== ''));
 
         if ($guardianId !== null) {
-            $student->guardians()->syncWithoutDetaching([$guardianId]);
+            if (! $student->guardians()->where('guardian_id', $guardianId)->exists()) {
+                $student->guardians()->attach($guardianId);
+            }
         }
 
-        return Opportunity::create([
-            'student_id' => $student->id,
-            'guardian_id' => $guardianId,
-            'grade_id' => $data['grade_id'],
-            'school_year_id' => $data['school_year_id'],
-            'lead_source_id' => $data['lead_source_id'] ?? null,
-            'responsible_user_id' => $data['responsible_user_id'] ?? null,
-            'registration_type' => $data['registration_type'] ?? null,
-            'segment_id' => $data['segment_id'] ?? null,
-            'history' => $data['history'] ?? null,
-            'indications' => $data['indications'] ?? null,
-        ]);
+        return DB::transaction(function () use ($data, $student, $guardianId, $taskType): Opportunity {
+            $opportunity = Opportunity::create([
+                'student_id' => $student->id,
+                'guardian_id' => $guardianId,
+                'grade_id' => $data['grade_id'],
+                'school_year_id' => $data['school_year_id'],
+                'lead_source_id' => $data['lead_source_id'] ?? null,
+                'responsible_user_id' => $data['responsible_user_id'] ?? null,
+                'registration_type' => $data['registration_type'] ?? null,
+                'segment_id' => $data['segment_id'] ?? null,
+                'history' => $data['history'] ?? null,
+                'indications' => $data['indications'] ?? null,
+            ]);
+
+            if ($taskType !== null) {
+                $this->taskService->create($opportunity, ['type' => TaskType::from($taskType)]);
+            }
+
+            return $opportunity;
+        });
     }
 
     public function update(Opportunity $opportunity, array $data): Opportunity

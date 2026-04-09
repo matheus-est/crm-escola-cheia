@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Opportunity;
 
+use App\Enums\TaskType;
 use App\Rules\CpfRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreOpportunityRequest extends FormRequest
 {
@@ -40,6 +42,7 @@ class StoreOpportunityRequest extends FormRequest
             'neighborhood' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', 'size:2'],
+            'task_type' => ['nullable', Rule::enum(TaskType::class)],
         ];
     }
 }

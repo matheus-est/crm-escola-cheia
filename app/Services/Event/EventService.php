@@ -50,6 +50,15 @@ class EventService
             ->get();
     }
 
+    public function listUnlinkedOpportunities(Event $event): Collection
+    {
+        return Opportunity::query()
+            ->whereDoesntHave('events', fn ($q) => $q->where('events.id', $event->id))
+            ->with(['guardian', 'student', 'schoolYear'])
+            ->orderByDesc('created_at')
+            ->get();
+    }
+
     public function create(array $data): Event
     {
         $roomUuids = $data['room_uuids'] ?? [];

@@ -123,7 +123,7 @@ class ModuleSeeder extends Seeder
                 'url' => '/tenant-settings/lead-sources',
                 'description' => 'Gestão de origens de lead do tenant',
                 'order' => 2,
-                'show_in_menu' => true,
+                'show_in_menu' => false,
                 'is_active' => true,
                 'menu_group_id' => $tenantSettingsGroup?->id,
             ],

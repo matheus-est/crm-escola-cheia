@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Plus, Search } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { ArrowLeft, DoorOpen, Info, Plus, Search } from 'lucide-vue-next';
+import { type Component, computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import RoomFormDialog from '@/components/RoomFormDialog.vue';
@@ -39,12 +39,12 @@ const toast = useToast();
 type Tab = 'sobre' | 'salas';
 const activeTab = ref<Tab>('sobre');
 
-const tabs = [
-    { value: 'sobre' as Tab, label: 'Sobre o Evento' },
-    { value: 'salas' as Tab, label: 'Salas' },
+const tabs: { value: Tab; label: string; icon: Component }[] = [
+    { value: 'sobre', label: 'Sobre o Evento', icon: Info },
+    { value: 'salas', label: 'Salas', icon: DoorOpen },
 ];
 
-// Checkbox has_no_date — controlled locally to show/hide date field
+// Checkbox has_no_date — controlled locally to disable date field
 const hasNoDate = ref(false);
 
 // Rooms selection
@@ -122,6 +122,10 @@ function handleError(): void {
                                 "
                                 @click="activeTab = tab.value"
                             >
+                                <component
+                                    :is="tab.icon"
+                                    class="mr-2 inline h-4 w-4"
+                                />
                                 {{ tab.label }}
                             </button>
                         </div>
@@ -218,7 +222,7 @@ function handleError(): void {
                                     </Label>
                                 </div>
 
-                                <div v-if="!hasNoDate" class="space-y-2">
+                                <div class="space-y-2">
                                     <Label for="event_date"
                                         >Data do Evento</Label
                                     >
@@ -226,6 +230,7 @@ function handleError(): void {
                                         id="event_date"
                                         type="datetime-local"
                                         name="event_date"
+                                        :disabled="hasNoDate"
                                     />
                                     <InputError :message="errors.event_date" />
                                 </div>
