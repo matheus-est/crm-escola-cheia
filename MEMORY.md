@@ -8,7 +8,7 @@
 ## CURRENT STATE
 
 **Last session:** 2026-04-10
-**Next task:** 5.4 — Reviewer pass on Stage 5 (Tasks module) · also add EventTypes.vue to tenant-settings navigation if needed
+\*\*Next task:\*\* 5.4 — Reviewer pass on Stage 5 (Tasks module)
 
 ### Completed
 
@@ -64,7 +64,8 @@
 - [x] ADJ-EN — Portuguese→English field rename cleanup: auth.ts · TenantSwitcher.vue · Schools/Index.vue · SchoolYears.vue · Grades.vue · SchoolObserver · WelcomeSchoolUserMail · StudentUpdateRequest · 15+ test files (razao_social→legal_name, nome→name, telefone→phone, cep→zip_code, logradouro→street, bairro→neighborhood, cidade→city, estado→state, numero→number) — 197 tests passing — 2026-04-09
 - [x] FIX-A — SchoolYear inicio/fim→start/end: StoreRequest+UpdateRequest+tests+crm.ts SchoolYear interface · SchoolYearFactory created · guardians.cpf nullable migration added · boilerplate Settings tests deleted — 2026-04-10
 - [x] 7.6B — EventType module backend: migration create_event_types + alter_events_event_type_to_fk · EventType model/observer/policy/service/requests/controller/resource/factory · EventTypeSeeder (Palestra/Workshop/Visita per tenant) · ModuleSeeder+PermissionSeeder+RoleSeeder updated · Event model event_type_id FK + eventType() relation · StoreEventRequest+UpdateEventRequest prepareForValidation UUID→ID — 2026-04-10
-- [x] 7.6F — EventType module frontend: EventTypeFormDialog · EventTypeToggleDialog (password-confirmed) · EventTypes.vue settings page · crm.ts EventType interface + PaginatedEventTypes (with links) · events/Create.vue+Edit.vue event_type_uuid Select · EventController edit() loads current event_type even if inactive — 2026-04-10
+- [x] 7.6F — EventType module frontend: EventTypeFormDialog · EventTypeToggleDialog (password-confirmed) · EventTypes.vue settings page · crm.ts EventType interface + PaginatedEventTypes (with links) · events/Create.vue+Edit.vue event_type_uuid Select · EventController edit() loads current event_type even if inactive — 2026-04-10\n- [x] ADJ-SY — SchoolYears.vue: inline form replaced with SchoolYearFormDialog (dialog pattern); applyFilters preserveScroll→preserveUrl fix — 2026-04-10
+- [x] ADJ-GR — Grades.vue: inline form replaced with GradeFormDialog (dialog pattern); applyFilters router.post→router.get with preserveUrl fix — 2026-04-10\n- [x] ADJ-F9 — events/Create.vue + Edit.vue: has_no_date checkbox hidden-input pattern fixed (v-if="hasNoDate" hidden value="1"); overlay divs removed; shadcn Input used for date field; Unidade field has bg-muted/50; dead code (Plus/Search/Card/filteredRooms/toggleRoom/isRoomSelected) removed from Create.vue — 2026-04-10
 - [ ] **5.4 — Reviewer pass on Stage 5 🔴**
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
 

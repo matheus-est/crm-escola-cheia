@@ -69,12 +69,15 @@ const tabs: { value: Tab; label: string; icon: Component }[] = [
 ];
 
 // has_no_date checkbox
-const hasNoDate = ref(props.event.has_no_date);
-const eventDateEdit = ref(formatDatetimeLocal(props.event.event_date));
+const hasNoDate = ref(Boolean(props.event.has_no_date));
+const eventDateEdit = ref(
+    props.event.has_no_date ? '' : formatDatetimeLocal(props.event.event_date),
+);
 
-watch(hasNoDate, (val: boolean) => {
+function handleHasNoDateChange(val: boolean): void {
+    hasNoDate.value = val;
     if (val) eventDateEdit.value = '';
-});
+}
 
 // Rooms selection — pre-select rooms from event
 const selectedRoomUuids = ref<string[]>(
@@ -367,15 +370,16 @@ function handleDetach(opportunityUuid: string): void {
                                         name="has_no_date"
                                         value="0"
                                     />
+                                    <input
+                                        v-if="hasNoDate"
+                                        type="hidden"
+                                        name="has_no_date"
+                                        value="1"
+                                    />
                                     <Checkbox
                                         id="has_no_date"
-                                        name="has_no_date"
-                                        :checked="hasNoDate"
-                                        @update:checked="
-                                            (val: boolean) => {
-                                                hasNoDate.value = val;
-                                            }
-                                        "
+                                        :model-value="hasNoDate"
+                                        @update:modelValue="handleHasNoDateChange"
                                     />
                                     <Label
                                         for="has_no_date"
@@ -394,14 +398,13 @@ function handleDetach(opportunityUuid: string): void {
                                             >*</span
                                         ></Label
                                     >
-                                    <Input
+                                    <input
                                         id="event_date"
                                         type="datetime-local"
                                         v-model="eventDateEdit"
-                                        :name="
-                                            hasNoDate ? undefined : 'event_date'
-                                        "
+                                        name="event_date"
                                         :disabled="hasNoDate"
+                                        class="border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm"
                                     />
                                     <InputError :message="errors.event_date" />
                                 </div>
@@ -422,9 +425,9 @@ function handleDetach(opportunityUuid: string): void {
                                 <div class="space-y-2 sm:col-span-1">
                                     <Label>Unidade</Label>
                                     <Input
-                                        :value="props.school_name"
-                                        disabled
-                                        class="bg-muted/50"
+                                        :default-value="props.school_name"
+                                        readonly
+                                        class="cursor-not-allowed bg-muted"
                                     />
                                 </div>
                             </div>

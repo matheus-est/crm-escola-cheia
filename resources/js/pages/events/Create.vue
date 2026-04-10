@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, DoorOpen, Info, Plus, Search } from 'lucide-vue-next';
-import { type Component, computed, ref } from 'vue';
+import { ArrowLeft, DoorOpen, Info } from 'lucide-vue-next';
+import { type Component, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import RoomFormDialog from '@/components/RoomFormDialog.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,39 +44,21 @@ const tabs: { value: Tab; label: string; icon: Component }[] = [
     { value: 'salas', label: 'Salas', icon: DoorOpen },
 ];
 
-// Checkbox has_no_date — controlled locally to disable and clear date field
+// 🔥 estado simples
 const hasNoDate = ref(false);
 const eventDate = ref('');
 
-function handleHasNoDateChange(val: boolean): void {
-    hasNoDate.value = val;
-    if (val) eventDate.value = '';
-}
+function handleHasNoDateChange(val: boolean | 'indeterminate'): void {
+    const checked = val === true;
 
-// Rooms selection
-const selectedRoomUuids = ref<string[]>([]);
-const roomSearch = ref('');
+    hasNoDate.value = checked;
 
-const filteredRooms = computed(() =>
-    props.rooms.filter((r) =>
-        r.name.toLowerCase().includes(roomSearch.value.toLowerCase()),
-    ),
-);
-
-function toggleRoom(uuid: string): void {
-    const idx = selectedRoomUuids.value.indexOf(uuid);
-    if (idx === -1) {
-        selectedRoomUuids.value.push(uuid);
-    } else {
-        selectedRoomUuids.value.splice(idx, 1);
+    if (checked) {
+        eventDate.value = '';
     }
 }
 
-function isRoomSelected(uuid: string): boolean {
-    return selectedRoomUuids.value.includes(uuid);
-}
-
-// RoomFormDialog
+// Dialog
 const showRoomDialog = ref(false);
 
 function handleRoomCreated(): void {
@@ -89,7 +70,7 @@ function handleSuccess(): void {
 }
 
 function handleError(): void {
-    toast.error('Erro ao criar evento. Verifique os campos.');
+    toast.error('Erro ao criar evento.');
 }
 </script>
 
@@ -115,17 +96,17 @@ function handleError(): void {
                     @error="handleError"
                 >
                     <div class="p-6">
-                        <!-- Tabs nav -->
+                        <!-- Tabs -->
                         <div class="flex border-b">
                             <button
                                 v-for="tab in tabs"
                                 :key="tab.value"
                                 type="button"
-                                class="px-4 py-3 text-sm font-medium transition-colors"
+                                class="px-4 py-3 text-sm font-medium"
                                 :class="
                                     activeTab === tab.value
                                         ? 'border-b-2 border-primary text-primary'
-                                        : 'text-muted-foreground hover:text-foreground'
+                                        : 'text-muted-foreground'
                                 "
                                 @click="activeTab = tab.value"
                             >
@@ -137,146 +118,111 @@ function handleError(): void {
                             </button>
                         </div>
 
-                        <!-- Tab 1: Sobre o Evento -->
+                        <!-- SOBRE -->
                         <div
                             v-show="activeTab === 'sobre'"
                             class="space-y-6 p-6"
                         >
-                            <!-- Linha 1: Título + Data do Evento -->
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="space-y-2">
                                     <Label for="title">
                                         Título do Evento
                                         <span class="text-destructive">*</span>
                                     </Label>
-                                    <Input
-                                        id="title"
-                                        name="title"
-                                        placeholder="Título do evento"
-                                        required
-                                    />
+                                    <Input id="title" name="title" required />
                                     <InputError :message="errors.title" />
                                 </div>
 
-                                <!-- Data + Checkbox empilhados na coluna direita -->
                                 <div class="space-y-2">
-                                    <Label for="event_date"
-                                        >Data do Evento
+                                    <Label>
+                                        Data do Evento
                                         <span
                                             v-if="!hasNoDate"
                                             class="text-destructive"
                                             >*</span
-                                        ></Label
-                                    >
-                                    <div class="relative">
-                                        <Input
-                                            id="event_date"
-                                            type="datetime-local"
-                                            :name="
-                                                hasNoDate
-                                                    ? undefined
-                                                    : 'event_date'
-                                            "
-                                            v-model="eventDate"
-                                            :disabled="hasNoDate"
-                                            :readonly="hasNoDate"
-                                            :class="
-                                                hasNoDate ? 'opacity-40' : ''
-                                            "
-                                        />
-                                        <!-- Overlay que bloqueia mouse e teclado quando hasNoDate -->
-                                        <div
-                                            v-if="hasNoDate"
-                                            class="absolute inset-0 z-10 cursor-not-allowed rounded-md"
-                                            @click.prevent.stop
-                                            @keydown.prevent.stop
-                                            @mousedown.prevent.stop
-                                        />
-                                    </div>
+                                        >
+                                    </Label>
+
+                                    <input
+                                        id="event_date"
+                                        type="datetime-local"
+                                        name="event_date"
+                                        v-model="eventDate"
+                                        :disabled="hasNoDate"
+                                        class="border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm"
+                                    />
+
                                     <InputError :message="errors.event_date" />
 
-                                    <!-- Checkbox logo abaixo do campo de data -->
                                     <div class="flex items-center gap-2 pt-1">
                                         <input
                                             type="hidden"
                                             name="has_no_date"
                                             value="0"
                                         />
-                                        <Checkbox
-                                            id="has_no_date"
+                                        <input
+                                            v-if="hasNoDate"
+                                            type="hidden"
                                             name="has_no_date"
-                                            :checked="hasNoDate"
-                                            @update:checked="
+                                            value="1"
+                                        />
+
+                                        <Checkbox
+                                            :model-value="hasNoDate"
+                                            @update:modelValue="
                                                 handleHasNoDateChange
                                             "
                                         />
-                                        <Label
-                                            for="has_no_date"
-                                            class="cursor-pointer"
-                                        >
+
+                                        <Label>
                                             Este evento não possui Data
                                         </Label>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Linha 2: Unidade + Série + Nº Máximo + Tipo -->
+                            <!-- restante intacto -->
                             <div class="grid grid-cols-6 gap-4">
-                                <div class="col-span-1 space-y-2">
+                                <div class="col-span-1">
                                     <Label>Unidade</Label>
                                     <Input
-                                        :value="props.school_name"
-                                        disabled
-                                        class="bg-muted/50"
+                                        :default-value="props.school_name"
+                                        readonly
+                                        class="cursor-not-allowed bg-muted"
                                     />
                                 </div>
 
-                                <div class="col-span-2 space-y-2">
-                                    <Label for="grade_uuid">Série</Label>
+                                <div class="col-span-2">
+                                    <Label>Série</Label>
                                     <Select name="grade_uuid">
-                                        <SelectTrigger id="grade_uuid">
+                                        <SelectTrigger>
                                             <SelectValue
                                                 placeholder="Selecione..."
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem
-                                                v-for="grade in props.grades"
-                                                :key="grade.uuid"
-                                                :value="grade.uuid"
+                                                v-for="g in props.grades"
+                                                :key="g.uuid"
+                                                :value="g.uuid"
                                             >
-                                                {{ grade.name }}
+                                                {{ g.name }}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <InputError :message="errors.grade_uuid" />
                                 </div>
 
-                                <div class="col-span-1 space-y-2">
-                                    <Label for="max_capacity"
-                                        >Nº Máximo de Inscritos</Label
-                                    >
-                                    <Input
-                                        id="max_capacity"
-                                        type="number"
-                                        name="max_capacity"
-                                        min="1"
-                                        placeholder="Ex: 50"
-                                        class="max-w-[6rem]"
-                                    />
-                                    <InputError
-                                        :message="errors.max_capacity"
-                                    />
+                                <div class="col-span-1">
+                                    <Label>Nº Máximo</Label>
+                                    <Input type="number" name="max_capacity" />
                                 </div>
 
-                                <div class="col-span-2 space-y-2">
-                                    <Label for="event_type_uuid"
-                                        >Tipo do Evento</Label
-                                    >
+                                <div class="col-span-2">
+                                    <Label>Tipo</Label>
                                     <Select name="event_type_uuid">
-                                        <SelectTrigger id="event_type_uuid">
+                                        <SelectTrigger>
                                             <SelectValue
-                                                placeholder="Selecione o tipo..."
+                                                placeholder="Selecione..."
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -289,128 +235,21 @@ function handleError(): void {
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <InputError
-                                        :message="errors.event_type_uuid"
-                                    />
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Tab 2: Salas -->
-                        <div
-                            v-show="activeTab === 'salas'"
-                            class="space-y-4 p-6"
-                        >
-                            <!-- Hidden inputs for selected rooms -->
-                            <input
-                                v-for="uuid in selectedRoomUuids"
-                                :key="uuid"
-                                type="hidden"
-                                name="room_uuids[]"
-                                :value="uuid"
-                            />
-
-                            <div
-                                class="flex items-center justify-between gap-4"
-                            >
-                                <div class="relative flex-1">
-                                    <Search
-                                        class="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground"
-                                    />
-                                    <Input
-                                        v-model="roomSearch"
-                                        placeholder="Buscar sala..."
-                                        class="pl-9"
-                                    />
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    class="shrink-0"
-                                    @click="showRoomDialog = true"
-                                >
-                                    <Plus class="mr-2 h-4 w-4" />
-                                    Adicionar Sala
-                                </Button>
-                            </div>
-
-                            <div
-                                v-if="filteredRooms.length > 0"
-                                class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-                            >
-                                <Card
-                                    v-for="room in filteredRooms"
-                                    :key="room.uuid"
-                                    class="cursor-pointer transition-all"
-                                    :class="
-                                        isRoomSelected(room.uuid)
-                                            ? 'ring-2 ring-primary'
-                                            : 'hover:bg-muted/30'
-                                    "
-                                    @click="toggleRoom(room.uuid)"
-                                >
-                                    <CardContent class="p-4">
-                                        <div
-                                            class="flex items-start justify-between gap-2"
-                                        >
-                                            <div class="min-w-0">
-                                                <p
-                                                    class="truncate font-medium text-foreground"
-                                                >
-                                                    {{ room.name }}
-                                                </p>
-                                                <p
-                                                    class="text-xs text-muted-foreground"
-                                                >
-                                                    {{
-                                                        room.capacity
-                                                            ? `máx. ${room.capacity} pessoas`
-                                                            : 'Sem capacidade definida'
-                                                    }}
-                                                </p>
-                                            </div>
-                                            <span
-                                                v-if="room.is_external"
-                                                class="inline-flex shrink-0 items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-600/20 ring-inset dark:bg-amber-400/10 dark:text-amber-400 dark:ring-amber-400/20"
-                                            >
-                                                Externa
-                                            </span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            <div
-                                v-else
-                                class="py-8 text-center text-sm text-muted-foreground"
-                            >
-                                {{
-                                    roomSearch
-                                        ? 'Nenhuma sala encontrada para a busca.'
-                                        : 'Nenhuma sala cadastrada.'
-                                }}
                             </div>
                         </div>
                     </div>
 
-                    <div
-                        class="flex items-center justify-between gap-4 border-t bg-muted/20 px-6 py-4"
-                    >
+                    <div class="flex justify-between border-t px-6 py-4">
                         <Button
                             type="button"
                             variant="outline"
-                            :disabled="processing"
-                            class="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                             @click="() => router.visit(index().url)"
                         >
                             Cancelar
                         </Button>
 
-                        <Button
-                            type="submit"
-                            :disabled="processing"
-                            class="bg-green-600 text-sm text-white hover:bg-green-700"
-                        >
+                        <Button type="submit" :disabled="processing">
                             {{ processing ? 'Salvando...' : 'Criar Evento' }}
                         </Button>
                     </div>

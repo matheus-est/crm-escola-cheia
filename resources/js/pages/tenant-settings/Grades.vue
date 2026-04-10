@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import {
     BookOpen,
     ChevronDown,
@@ -9,11 +9,10 @@ import {
     Pencil,
     Plus,
     Trash2,
-    X,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import GradeFormDialog from '@/components/GradeFormDialog.vue';
 import Heading from '@/components/Heading.vue';
-import InputError from '@/components/InputError.vue';
 import PerPageSelect from '@/components/PerPageSelect.vue';
 import TablePagination from '@/components/TablePagination.vue';
 import {
@@ -34,7 +33,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { index, store, update, destroy } from '@/routes/tenant/grades';
+import { destroy, index } from '@/routes/tenant/grades';
 import type { BreadcrumbItem } from '@/types';
 import type { PaginatedGrades, School, Segment } from '@/types/crm';
 
@@ -43,9 +42,7 @@ interface GradeItem {
     name: string;
     order: number;
     segment_id: number;
-    segment?: Segment;
-    created_at: string;
-    updated_at: string;
+    segment?: Segment | null;
 }
 
 interface Filters {
@@ -114,65 +111,41 @@ function updateFilterSegment(value: string): void {
 }
 
 function applyFilters(): void {
-    router.post(
-        index.post().url,
-        {
-            name: localFilters.value.name,
-            segment_id: localFilters.value.segment_id,
-            sort_by: localFilters.value.sort_by,
-            sort_dir: localFilters.value.sort_dir,
-            per_page: localFilters.value.per_page,
-        },
-        { preserveScroll: true },
-    );
+    router.get(index().url, { ...localFilters.value }, { preserveUrl: true });
 }
 
 function clearFilters(): void {
     router.visit(index().url);
 }
 
-// — Inline form (create / edit) —
+// — Dialog form (create / edit) —
 type FormMode = 'create' | 'edit';
 
 const formMode = ref<FormMode>('create');
 const editingGrade = ref<GradeItem | null>(null);
-const showForm = ref(false);
+const showDialog = ref(false);
 
 function openCreateForm(): void {
     formMode.value = 'create';
     editingGrade.value = null;
-    showForm.value = true;
+    showDialog.value = true;
 }
 
 function openEditForm(grade: GradeItem): void {
     formMode.value = 'edit';
     editingGrade.value = grade;
-    showForm.value = true;
+    showDialog.value = true;
 }
 
-function closeForm(): void {
-    showForm.value = false;
+function handleDialogSuccess(): void {
+    showDialog.value = false;
     editingGrade.value = null;
-}
-
-function handleFormSuccess(): void {
-    closeForm();
     toast.success(
         formMode.value === 'create'
             ? 'Turma criada com sucesso.'
             : 'Turma atualizada com sucesso.',
     );
     router.reload({ preserveUrl: true });
-}
-
-function handleFormError(errors: any): void {
-    if (errors.segment_uuid) {
-        toast.error(
-            'Por favor, selecione um segmento oblíquo e tente novamente.',
-        );
-    } else {
-        toast.error('Verifique os campos e tente novamente.');
-    }
 }
 
 // — Delete —
@@ -250,8 +223,8 @@ function confirmDelete(): void {
                                 class="rounded-lg border bg-card p-4 shadow-sm"
                             >
                                 <form
-                                    @submit.prevent="applyFilters"
                                     class="space-y-4"
+                                    @submit.prevent="applyFilters"
                                 >
                                     <div class="space-y-1.5">
                                         <Label
@@ -292,9 +265,9 @@ function confirmDelete(): void {
                                                 />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todos</SelectItem
-                                                >
+                                                <SelectItem value="all">
+                                                    Todos
+                                                </SelectItem>
                                                 <SelectItem
                                                     v-for="segment in props.segments"
                                                     :key="segment.uuid"
@@ -336,207 +309,17 @@ function confirmDelete(): void {
             <!-- Table header actions -->
             <div class="flex items-center justify-between">
                 <Button
-                    v-if="!showForm || formMode !== 'create'"
                     class="inline-flex items-center gap-2"
                     @click="openCreateForm"
                 >
                     <Plus class="h-4 w-4" />
                     Nova Turma/Série
                 </Button>
-                <div v-else />
 
                 <PerPageSelect
                     :model-value="String(localFilters.per_page)"
                     @update:model-value="updatePerPage"
                 />
-            </div>
-
-            <!-- Inline Form -->
-            <div v-if="showForm" class="rounded-md border">
-                <div
-                    class="flex items-center justify-between border-b px-6 py-4"
-                >
-                    <h3 class="text-sm font-semibold">
-                        {{
-                            formMode === 'create'
-                                ? 'Nova Turma/Série'
-                                : 'Editar Turma/Série'
-                        }}
-                    </h3>
-                    <button
-                        type="button"
-                        class="rounded p-1 hover:bg-muted"
-                        @click="closeForm"
-                    >
-                        <X class="h-4 w-4" />
-                    </button>
-                </div>
-
-                <!-- Create Form -->
-                <Form
-                    v-if="formMode === 'create'"
-                    method="post"
-                    :action="store().url"
-                    class="space-y-0"
-                    v-slot="{ errors, processing }"
-                    @success="handleFormSuccess"
-                    @error="handleFormError"
-                >
-                    <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-3">
-                        <div class="grid gap-2">
-                            <Label for="grade-name">Nome</Label>
-                            <Input
-                                id="grade-name"
-                                name="name"
-                                placeholder="Ex: 1º Ano A"
-                                required
-                            />
-                            <InputError :message="errors.name" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="segment_uuid">Segmento</Label>
-                            <Select name="segment_uuid" required>
-                                <SelectTrigger id="segment_uuid">
-                                    <SelectValue
-                                        placeholder="Selecione o segmento"
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem
-                                        v-for="segment in props.segments"
-                                        :key="segment.uuid"
-                                        :value="segment.uuid"
-                                    >
-                                        {{ segment.name }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError :message="errors.segment_uuid" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="order">Ordem (Opcional)</Label>
-                            <Input
-                                id="order"
-                                type="number"
-                                name="order"
-                                min="0"
-                                placeholder="Ex: 5"
-                            />
-                            <InputError :message="errors.order" />
-                        </div>
-                    </div>
-
-                    <div
-                        class="flex items-center justify-between gap-4 border-t bg-muted/20 px-6 py-4"
-                    >
-                        <Button
-                            type="button"
-                            variant="outline"
-                            class="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                            @click="closeForm"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            :disabled="processing"
-                            class="bg-green-600 text-sm text-white hover:bg-green-700"
-                        >
-                            Criar Turma
-                        </Button>
-                    </div>
-                </Form>
-
-                <!-- Edit Form -->
-                <Form
-                    v-else-if="formMode === 'edit' && editingGrade"
-                    method="put"
-                    :action="
-                        update({
-                            grade: editingGrade.uuid,
-                        }).url
-                    "
-                    class="space-y-0"
-                    v-slot="{ errors, processing }"
-                    @success="handleFormSuccess"
-                    @error="handleFormError"
-                >
-                    <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-3">
-                        <div class="grid gap-2">
-                            <Label for="edit-grade-name">Nome</Label>
-                            <Input
-                                id="edit-grade-name"
-                                name="name"
-                                :default-value="editingGrade.name"
-                                required
-                            />
-                            <InputError :message="errors.name" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="edit-segment_uuid">Segmento</Label>
-                            <Select
-                                name="segment_uuid"
-                                :default-value="
-                                    props.segments.find(
-                                        (s) =>
-                                            s.uuid ===
-                                            editingGrade?.segment?.uuid,
-                                    )?.uuid
-                                "
-                                required
-                            >
-                                <SelectTrigger id="edit-segment_uuid">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem
-                                        v-for="segment in props.segments"
-                                        :key="segment.uuid"
-                                        :value="segment.uuid"
-                                    >
-                                        {{ segment.name }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError :message="errors.segment_uuid" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="edit-order">Ordem</Label>
-                            <Input
-                                id="edit-order"
-                                type="number"
-                                name="order"
-                                min="0"
-                                :default-value="editingGrade.order?.toString()"
-                            />
-                            <InputError :message="errors.order" />
-                        </div>
-                    </div>
-
-                    <div
-                        class="flex items-center justify-between gap-4 border-t bg-muted/20 px-6 py-4"
-                    >
-                        <Button
-                            type="button"
-                            variant="outline"
-                            class="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                            @click="closeForm"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            :disabled="processing"
-                            class="bg-green-600 text-sm text-white hover:bg-green-700"
-                        >
-                            Salvar Alterações
-                        </Button>
-                    </div>
-                </Form>
             </div>
 
             <!-- Table -->
@@ -678,7 +461,7 @@ function confirmDelete(): void {
                         }}
                     </p>
                     <Button
-                        v-if="!hasActiveFilter && !showForm"
+                        v-if="!hasActiveFilter"
                         class="mt-4 inline-flex items-center gap-2"
                         @click="openCreateForm"
                     >
@@ -690,6 +473,15 @@ function confirmDelete(): void {
 
             <TablePagination :paginator="props.grades" />
         </div>
+
+        <!-- Create / Edit Dialog -->
+        <GradeFormDialog
+            v-model:open="showDialog"
+            :mode="formMode"
+            :grade="editingGrade"
+            :segments="props.segments"
+            @success="handleDialogSuccess"
+        />
 
         <!-- Delete confirmation inline dialog -->
         <div

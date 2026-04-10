@@ -31,8 +31,8 @@ class SchoolYear extends Model implements Auditable
     protected function casts(): array
     {
         return [
-            'start' => 'date',
-            'end' => 'date',
+            'start' => 'date:Y-m-d',
+            'end' => 'date:Y-m-d',
             'status' => SchoolYearStatus::class,
         ];
     }

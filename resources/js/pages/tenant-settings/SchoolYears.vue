@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import {
     BookOpen,
     ChevronDown,
@@ -9,12 +9,11 @@ import {
     Pencil,
     Plus,
     Trash2,
-    X,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
-import InputError from '@/components/InputError.vue';
 import PerPageSelect from '@/components/PerPageSelect.vue';
+import SchoolYearFormDialog from '@/components/SchoolYearFormDialog.vue';
 import TablePagination from '@/components/TablePagination.vue';
 import {
     Accordion,
@@ -34,7 +33,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { index, store, update, destroy } from '@/routes/tenant/school_years';
+import { destroy, index } from '@/routes/tenant/school_years';
 import type { BreadcrumbItem } from '@/types';
 import type {
     PaginatedSchoolYears,
@@ -110,59 +109,41 @@ function updateFilterStatus(value: string): void {
 }
 
 function applyFilters(): void {
-    router.post(
-        index.post().url,
-        {
-            name: localFilters.value.name,
-            status: localFilters.value.status,
-            sort_by: localFilters.value.sort_by,
-            sort_dir: localFilters.value.sort_dir,
-            per_page: localFilters.value.per_page,
-        },
-        { preserveScroll: true },
-    );
+    router.get(index().url, { ...localFilters.value }, { preserveUrl: true });
 }
 
 function clearFilters(): void {
     router.visit(index().url);
 }
 
-// — Inline form (create / edit) —
+// — Dialog form (create / edit) —
 type FormMode = 'create' | 'edit';
 
 const formMode = ref<FormMode>('create');
 const editingSchoolYear = ref<SchoolYear | null>(null);
-const showForm = ref(false);
+const showDialog = ref(false);
 
 function openCreateForm(): void {
     formMode.value = 'create';
     editingSchoolYear.value = null;
-    showForm.value = true;
+    showDialog.value = true;
 }
 
 function openEditForm(schoolYear: SchoolYear): void {
     formMode.value = 'edit';
     editingSchoolYear.value = schoolYear;
-    showForm.value = true;
+    showDialog.value = true;
 }
 
-function closeForm(): void {
-    showForm.value = false;
+function handleDialogSuccess(): void {
+    showDialog.value = false;
     editingSchoolYear.value = null;
-}
-
-function handleFormSuccess(): void {
-    closeForm();
     toast.success(
         formMode.value === 'create'
             ? 'Ano letivo criado com sucesso.'
             : 'Ano letivo atualizado com sucesso.',
     );
     router.reload({ preserveUrl: true });
-}
-
-function handleFormError(): void {
-    toast.error('Verifique os campos e tente novamente.');
 }
 
 // — Delete —
@@ -265,8 +246,8 @@ function formatDate(dateStr: string): string {
                                 class="rounded-lg border bg-card p-4 shadow-sm"
                             >
                                 <form
-                                    @submit.prevent="applyFilters"
                                     class="space-y-4"
+                                    @submit.prevent="applyFilters"
                                 >
                                     <div class="space-y-1.5">
                                         <Label
@@ -307,9 +288,6 @@ function formatDate(dateStr: string): string {
                                                 />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value=""
-                                                    >Todos</SelectItem
-                                                >
                                                 <SelectItem value="ativo"
                                                     >Ativo</SelectItem
                                                 >
@@ -353,219 +331,17 @@ function formatDate(dateStr: string): string {
             <!-- Table header actions -->
             <div class="flex items-center justify-between">
                 <Button
-                    v-if="!showForm || formMode !== 'create'"
                     class="inline-flex items-center gap-2"
                     @click="openCreateForm"
                 >
                     <Plus class="h-4 w-4" />
                     Novo Ano Letivo
                 </Button>
-                <div v-else />
 
                 <PerPageSelect
                     :model-value="String(localFilters.per_page)"
                     @update:model-value="updatePerPage"
                 />
-            </div>
-
-            <!-- Inline Form -->
-            <div v-if="showForm" class="rounded-md border">
-                <div
-                    class="flex items-center justify-between border-b px-6 py-4"
-                >
-                    <h3 class="text-sm font-semibold">
-                        {{
-                            formMode === 'create'
-                                ? 'Novo Ano Letivo'
-                                : 'Editar Ano Letivo'
-                        }}
-                    </h3>
-                    <button
-                        type="button"
-                        class="rounded p-1 hover:bg-muted"
-                        @click="closeForm"
-                    >
-                        <X class="h-4 w-4" />
-                    </button>
-                </div>
-
-                <!-- Create Form -->
-                <Form
-                    v-if="formMode === 'create'"
-                    method="post"
-                    :action="store().url"
-                    class="space-y-0"
-                    v-slot="{ errors, processing }"
-                    @success="handleFormSuccess"
-                    @error="handleFormError"
-                >
-                    <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-4">
-                        <div class="grid gap-2">
-                            <Label for="name">Nome</Label>
-                            <Input
-                                id="name"
-                                name="name"
-                                placeholder="Ex: 2025"
-                                required
-                            />
-                            <InputError :message="errors.name" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="start">Início</Label>
-                            <Input
-                                id="start"
-                                type="date"
-                                name="start"
-                                required
-                            />
-                            <InputError :message="errors.start" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="end">Fim</Label>
-                            <Input id="end" type="date" name="end" required />
-                            <InputError :message="errors.end" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="status">Status</Label>
-                            <Select name="status" required>
-                                <SelectTrigger id="status">
-                                    <SelectValue
-                                        placeholder="Selecione o status"
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="planejamento"
-                                        >Planejamento</SelectItem
-                                    >
-                                    <SelectItem value="ativo">Ativo</SelectItem>
-                                    <SelectItem value="encerrado"
-                                        >Encerrado</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
-                            <InputError :message="errors.status" />
-                        </div>
-                    </div>
-
-                    <div
-                        class="flex items-center justify-between gap-4 border-t bg-muted/20 px-6 py-4"
-                    >
-                        <Button
-                            type="button"
-                            variant="outline"
-                            class="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                            @click="closeForm"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            :disabled="processing"
-                            class="bg-green-600 text-sm text-white hover:bg-green-700"
-                        >
-                            Criar Ano Letivo
-                        </Button>
-                    </div>
-                </Form>
-
-                <!-- Edit Form -->
-                <Form
-                    v-else-if="formMode === 'edit' && editingSchoolYear"
-                    method="put"
-                    :action="
-                        update({
-                            schoolYear: editingSchoolYear.uuid,
-                        }).url
-                    "
-                    class="space-y-0"
-                    v-slot="{ errors, processing }"
-                    @success="handleFormSuccess"
-                    @error="handleFormError"
-                >
-                    <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-4">
-                        <div class="grid gap-2">
-                            <Label for="edit-name">Nome</Label>
-                            <Input
-                                id="edit-name"
-                                name="name"
-                                :default-value="editingSchoolYear.name"
-                                placeholder="Ex: 2025"
-                                required
-                            />
-                            <InputError :message="errors.name" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="edit-start">Início</Label>
-                            <Input
-                                id="edit-start"
-                                type="date"
-                                name="start"
-                                :default-value="editingSchoolYear.start"
-                                required
-                            />
-                            <InputError :message="errors.start" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="edit-end">Fim</Label>
-                            <Input
-                                id="edit-end"
-                                type="date"
-                                name="end"
-                                :default-value="editingSchoolYear.end"
-                                required
-                            />
-                            <InputError :message="errors.end" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label for="edit-status">Status</Label>
-                            <Select
-                                name="status"
-                                :default-value="editingSchoolYear.status"
-                                required
-                            >
-                                <SelectTrigger id="edit-status">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="planejamento"
-                                        >Planejamento</SelectItem
-                                    >
-                                    <SelectItem value="ativo">Ativo</SelectItem>
-                                    <SelectItem value="encerrado"
-                                        >Encerrado</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
-                            <InputError :message="errors.status" />
-                        </div>
-                    </div>
-
-                    <div
-                        class="flex items-center justify-between gap-4 border-t bg-muted/20 px-6 py-4"
-                    >
-                        <Button
-                            type="button"
-                            variant="outline"
-                            class="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                            @click="closeForm"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            :disabled="processing"
-                            class="bg-green-600 text-sm text-white hover:bg-green-700"
-                        >
-                            Salvar Alterações
-                        </Button>
-                    </div>
-                </Form>
             </div>
 
             <!-- Table -->
@@ -748,7 +524,7 @@ function formatDate(dateStr: string): string {
                         }}
                     </p>
                     <Button
-                        v-if="!hasActiveFilter && !showForm"
+                        v-if="!hasActiveFilter"
                         class="mt-4 inline-flex items-center gap-2"
                         @click="openCreateForm"
                     >
@@ -760,6 +536,14 @@ function formatDate(dateStr: string): string {
 
             <TablePagination :paginator="props.schoolYears" />
         </div>
+
+        <!-- Create / Edit Dialog -->
+        <SchoolYearFormDialog
+            v-model:open="showDialog"
+            :mode="formMode"
+            :school-year="editingSchoolYear"
+            @success="handleDialogSuccess"
+        />
 
         <!-- Delete confirmation inline dialog -->
         <div
