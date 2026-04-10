@@ -72,6 +72,8 @@ class EventService
                 : null;
         }
 
+        unset($data['event_type_uuid']);
+
         $event = Event::create($data);
 
         if (! empty($roomUuids)) {
@@ -95,6 +97,8 @@ class EventService
                 ? Grade::where('uuid', $gradeUuid)->value('id')
                 : null;
         }
+
+        unset($data['event_type_uuid']);
 
         $event->update($data);
 

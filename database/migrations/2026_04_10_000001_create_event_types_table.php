@@ -10,21 +10,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('students', function (Blueprint $table): void {
+        Schema::create('event_types', function (Blueprint $table): void {
             $table->id();
             $table->uuid('uuid')->unique();
             $table->foreignId('school_id')->constrained('schools')->cascadeOnDelete();
-            $table->string('name');
-            $table->string('cpf')->nullable();
-            $table->date('date_of_birth')->nullable();
+            $table->string('name', 100);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
-
-            $table->index(['school_id', 'cpf']);
+            $table->index('school_id');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('students');
+        Schema::dropIfExists('event_types');
     }
 };

@@ -11,13 +11,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rooms', function (Blueprint $table): void {
-            $table->bigIncrements('id');
-            $table->string('uuid')->unique();
+            $table->id();
+            $table->uuid()->unique();
             $table->foreignId('school_id')->constrained('schools');
             $table->string('name', 255);
             $table->unsignedInteger('capacity')->nullable();
-            $table->text('description')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->boolean('is_external')->default(false);
             $table->softDeletes();
             $table->timestamps();
 

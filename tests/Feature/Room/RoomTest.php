@@ -54,6 +54,7 @@ function makeSchoolForRoomTests(): School
     return School::create([
         'cnpj' => str_pad((string) ($counter + 500), 14, '0', STR_PAD_LEFT),
         'legal_name' => 'Escola Room '.$counter,
+        'slug' => 'escola-room-'.$counter,
     ]);
 }
 

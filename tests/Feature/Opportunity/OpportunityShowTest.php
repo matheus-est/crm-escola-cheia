@@ -41,6 +41,7 @@ function showMakeSchool(): School
     return School::create([
         'cnpj' => str_pad((string) ($counter + 80000), 14, '0', STR_PAD_LEFT),
         'legal_name' => "Escola Show {$counter}",
+        'slug' => "escola-show-{$counter}",
     ]);
 }
 

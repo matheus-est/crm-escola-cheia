@@ -15,6 +15,7 @@ it('gera uuid automaticamente via observer ao criar school year', function () {
     $school = School::create([
         'cnpj' => '12345678000195',
         'legal_name' => 'Escola Teste',
+        'slug' => 'escola-teste',
     ]);
 
     $schoolYear = SchoolYear::withoutTenantScope()->create([

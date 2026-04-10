@@ -9,6 +9,7 @@ use App\Http\Requests\Event\AttachOpportunityRequest;
 use App\Http\Requests\Event\StoreEventRequest;
 use App\Http\Requests\Event\UpdateEventRequest;
 use App\Models\Event;
+use App\Models\EventType;
 use App\Models\Grade;
 use App\Models\Opportunity;
 use App\Models\Room;
@@ -50,6 +51,7 @@ class EventController extends Controller
             'grades' => Grade::query()->orderBy('order')->get(['uuid', 'name', 'segment_id']),
             'rooms' => Room::query()->orderBy('name')->get(['uuid', 'name', 'capacity', 'is_external']),
             'school_name' => $school->trade_name ?? $school->legal_name,
+            'event_types' => EventType::query()->where('is_active', true)->orderBy('name')->get(['uuid', 'name']),
         ]);
     }
 
@@ -75,6 +77,13 @@ class EventController extends Controller
             'grades' => Grade::query()->orderBy('order')->get(['uuid', 'name', 'segment_id']),
             'rooms' => Room::query()->orderBy('name')->get(['uuid', 'name', 'capacity', 'is_external']),
             'school_name' => $school->trade_name ?? $school->legal_name,
+            'event_types' => EventType::query()
+                ->where(function ($q) use ($event): void {
+                    $q->where('is_active', true)
+                        ->orWhere('id', $event->event_type_id);
+                })
+                ->orderBy('name')
+                ->get(['uuid', 'name', 'is_active']),
         ]);
     }
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -26,6 +27,14 @@ const emit = defineEmits<{
     'update:open': [val: boolean];
     success: [];
 }>();
+
+const isExternalCreate = ref(false);
+const isExternalEdit = ref(props.room?.is_external ?? false);
+
+function fillInput(id: string, value: string): void {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    if (el) el.value = value;
+}
 
 function handleSuccess(): void {
     emit('success');
@@ -70,7 +79,10 @@ function handleClose(): void {
                 @success="handleSuccess"
             >
                 <div class="grid gap-2">
-                    <Label for="room-name">Nome</Label>
+                    <Label for="room-name">
+                        Nome
+                        <span class="text-destructive">*</span>
+                    </Label>
                     <Input
                         id="room-name"
                         name="name"
@@ -88,15 +100,26 @@ function handleClose(): void {
                         name="capacity"
                         min="1"
                         placeholder="Ex: 30"
+                        :disabled="isExternalCreate"
+                        :class="{
+                            'cursor-not-allowed opacity-50': isExternalCreate,
+                        }"
                     />
                     <InputError :message="errors.capacity" />
                 </div>
 
                 <div class="flex items-center gap-2">
+                    <input type="hidden" name="is_external" value="0" />
                     <Checkbox
                         id="room-is_external"
                         name="is_external"
                         :default-checked="false"
+                        @update:checked="
+                            (val: boolean) => {
+                                isExternalCreate = val;
+                                if (val) fillInput('room-capacity', '');
+                            }
+                        "
                     />
                     <Label for="room-is_external" class="cursor-pointer">
                         Esta sala é externa
@@ -131,7 +154,10 @@ function handleClose(): void {
                 @success="handleSuccess"
             >
                 <div class="grid gap-2">
-                    <Label for="room-edit-name">Nome</Label>
+                    <Label for="room-edit-name">
+                        Nome
+                        <span class="text-destructive">*</span>
+                    </Label>
                     <Input
                         id="room-edit-name"
                         name="name"
@@ -153,15 +179,26 @@ function handleClose(): void {
                                 ? String(props.room.capacity)
                                 : ''
                         "
+                        :disabled="isExternalEdit"
+                        :class="{
+                            'cursor-not-allowed opacity-50': isExternalEdit,
+                        }"
                     />
                     <InputError :message="errors.capacity" />
                 </div>
 
                 <div class="flex items-center gap-2">
+                    <input type="hidden" name="is_external" value="0" />
                     <Checkbox
                         id="room-edit-is_external"
                         name="is_external"
                         :default-checked="props.room.is_external"
+                        @update:checked="
+                            (val: boolean) => {
+                                isExternalEdit = val;
+                                if (val) fillInput('room-edit-capacity', '');
+                            }
+                        "
                     />
                     <Label for="room-edit-is_external" class="cursor-pointer">
                         Esta sala é externa

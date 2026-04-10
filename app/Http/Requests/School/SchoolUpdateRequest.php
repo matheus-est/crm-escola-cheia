@@ -31,6 +31,7 @@ class SchoolUpdateRequest extends FormRequest
         return [
             'cnpj' => ['required', 'string', Rule::unique('schools', 'cnpj')->ignore($this->school->id, 'id')],
             'legal_name' => 'required|string|max:255',
+            'slug' => ['required', 'string', 'max:100', Rule::unique('schools', 'slug')->ignore($this->school->id, 'id')],
             'trade_name' => 'nullable|string|max:255',
             'logo_path' => 'nullable|string',
             'address_json' => 'nullable|array',
@@ -41,7 +42,7 @@ class SchoolUpdateRequest extends FormRequest
             'units.*.name' => 'required_with:units|string|max:255',
             'units.*.zip_code' => 'nullable|string',
             'units.*.street' => 'nullable|string',
-            'units.*.number' => 'nullable|string',
+            'units.*.number' => 'required|string',
             'units.*.complement' => 'nullable|string',
             'units.*.neighborhood' => 'nullable|string',
             'units.*.city' => 'nullable|string',

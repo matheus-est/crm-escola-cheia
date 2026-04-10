@@ -35,6 +35,7 @@ import type { BreadcrumbItem } from '@/types';
 import type {
     AvailableOpportunity,
     Event,
+    EventType,
     Grade,
     Opportunity,
     OpportunityStatus,
@@ -48,6 +49,7 @@ const props = defineProps<{
     grades: Grade[];
     rooms: Room[];
     school_name: string;
+    event_types: EventType[];
 }>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
@@ -68,6 +70,11 @@ const tabs: { value: Tab; label: string; icon: Component }[] = [
 
 // has_no_date checkbox
 const hasNoDate = ref(props.event.has_no_date);
+const eventDateEdit = ref(formatDatetimeLocal(props.event.event_date));
+
+watch(hasNoDate, (val: boolean) => {
+    if (val) eventDateEdit.value = '';
+});
 
 // Rooms selection — pre-select rooms from event
 const selectedRoomUuids = ref<string[]>(
@@ -322,33 +329,34 @@ function handleDetach(opportunityUuid: string): void {
                                 </div>
 
                                 <div class="space-y-2 sm:col-span-2">
-                                    <Label for="event_type"
+                                    <Label for="event_type_uuid"
                                         >Tipo do Evento</Label
                                     >
                                     <Select
-                                        name="event_type"
+                                        name="event_type_uuid"
                                         :default-value="
-                                            props.event.event_type ?? undefined
+                                            props.event.event_type?.uuid ??
+                                            undefined
                                         "
                                     >
-                                        <SelectTrigger id="event_type">
+                                        <SelectTrigger id="event_type_uuid">
                                             <SelectValue
-                                                placeholder="Selecione..."
+                                                placeholder="Selecione o tipo..."
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="palestra"
-                                                >Palestra</SelectItem
+                                            <SelectItem
+                                                v-for="et in props.event_types"
+                                                :key="et.uuid"
+                                                :value="et.uuid"
                                             >
-                                            <SelectItem value="workshop"
-                                                >Workshop</SelectItem
-                                            >
-                                            <SelectItem value="visita"
-                                                >Visita</SelectItem
-                                            >
+                                                {{ et.name }}
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <InputError :message="errors.event_type" />
+                                    <InputError
+                                        :message="errors.event_type_uuid"
+                                    />
                                 </div>
 
                                 <div
@@ -365,7 +373,7 @@ function handleDetach(opportunityUuid: string): void {
                                         :checked="hasNoDate"
                                         @update:checked="
                                             (val: boolean) => {
-                                                hasNoDate = val;
+                                                hasNoDate.value = val;
                                             }
                                         "
                                     />
@@ -379,16 +387,19 @@ function handleDetach(opportunityUuid: string): void {
 
                                 <div class="space-y-2 sm:col-span-2">
                                     <Label for="event_date"
-                                        >Data do Evento</Label
+                                        >Data do Evento
+                                        <span
+                                            v-if="!hasNoDate"
+                                            class="text-destructive"
+                                            >*</span
+                                        ></Label
                                     >
                                     <Input
                                         id="event_date"
                                         type="datetime-local"
-                                        name="event_date"
-                                        :default-value="
-                                            formatDatetimeLocal(
-                                                props.event.event_date,
-                                            )
+                                        v-model="eventDateEdit"
+                                        :name="
+                                            hasNoDate ? undefined : 'event_date'
                                         "
                                         :disabled="hasNoDate"
                                     />

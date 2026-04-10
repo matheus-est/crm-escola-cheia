@@ -53,6 +53,7 @@ function makeSchoolForOpportunityTests(): School
     return School::create([
         'cnpj' => str_pad((string) ($counter + 8000), 14, '0', STR_PAD_LEFT),
         'legal_name' => 'Escola Oportunidade '.$counter,
+        'slug' => 'escola-oportunidade-'.$counter,
     ]);
 }
 

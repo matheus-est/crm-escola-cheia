@@ -51,6 +51,7 @@ const {
 
 // CNPJ state — DOM-only mask, no reactive ref (avoids re-render delay)
 const legalNameValue = ref('');
+const userModifiedSlug = false;
 
 function fillInput(id: string, value: string): void {
     const el = document.getElementById(id) as HTMLInputElement | null;
@@ -75,6 +76,7 @@ function handleCepBlur(event: Event): void {
 
 function handleTradeNameInput(event: Event): void {
     const input = event.target as HTMLInputElement;
+    if (userModifiedSlug) return;
     const value = input.value || legalNameValue.value;
     fillInput(
         'slug',
@@ -97,16 +99,21 @@ function handleCnpjInput(e: Event) {
             legalNameValue.value = data.legal_name;
             fillInput('trade_name', data.trade_name);
             const slugSource = data.trade_name || data.legal_name;
-            fillInput(
+            const slugEl = document.getElementById(
                 'slug',
-                slugSource
-                    .toLowerCase()
-                    .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '')
-                    .replace(/[^a-z0-9\s-]/g, '')
-                    .trim()
-                    .replace(/\s+/g, '-'),
-            );
+            ) as HTMLInputElement | null;
+            if (!slugEl?.value) {
+                fillInput(
+                    'slug',
+                    slugSource
+                        .toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .trim()
+                        .replace(/\s+/g, '-'),
+                );
+            }
             if (data.zip_code) {
                 const d = data.zip_code.replace(/\D/g, '');
                 fillInput(
@@ -216,7 +223,12 @@ const handleError = () => {
 
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div class="space-y-2">
-                                            <Label for="cnpj">CNPJ</Label>
+                                            <Label for="cnpj">
+                                                CNPJ
+                                                <span class="text-destructive"
+                                                    >*</span
+                                                >
+                                            </Label>
                                             <div class="relative">
                                                 <Input
                                                     id="cnpj"
@@ -243,7 +255,10 @@ const handleError = () => {
 
                                         <div class="space-y-2">
                                             <Label for="legal_name"
-                                                >Razão Social</Label
+                                                >Razão Social
+                                                <span class="text-destructive"
+                                                    >*</span
+                                                ></Label
                                             >
                                             <Input
                                                 id="legal_name"
@@ -279,18 +294,28 @@ const handleError = () => {
 
                                         <div class="space-y-2">
                                             <Label for="slug"
-                                                >Slug da Instância</Label
+                                                >Slug da Instância
+                                                <span class="text-destructive"
+                                                    >*</span
+                                                ></Label
                                             >
                                             <Input
                                                 id="slug"
                                                 name="slug"
                                                 placeholder="gerado-automaticamente"
+                                                required
+                                                @input="
+                                                    () => {
+                                                        userModifiedSlug = true;
+                                                    }
+                                                "
                                             />
                                             <p
                                                 class="text-xs text-muted-foreground"
                                             >
-                                                Gerado automaticamente a partir
-                                                do nome fantasia.
+                                                Obrigatório. Gerado
+                                                automaticamente a partir do nome
+                                                fantasia.
                                             </p>
                                             <InputError
                                                 :message="errors.slug"
@@ -343,7 +368,7 @@ const handleError = () => {
                                             </p>
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-4">
+                                        <div class="space-y-2 sm:col-span-5">
                                             <Label for="street"
                                                 >Logradouro</Label
                                             >
@@ -360,48 +385,21 @@ const handleError = () => {
                                         </div>
 
                                         <div class="space-y-2 sm:col-span-2">
-                                            <Label for="number">Número</Label>
+                                            <Label for="number"
+                                                >Número
+                                                <span class="text-destructive"
+                                                    >*</span
+                                                ></Label
+                                            >
                                             <Input
                                                 id="number"
                                                 name="units[0][number]"
                                                 placeholder="123"
+                                                required
                                             />
                                             <InputError
                                                 :message="
                                                     errors['units.0.number']
-                                                "
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2 sm:col-span-2">
-                                            <Label for="state">UF</Label>
-                                            <Input
-                                                id="state"
-                                                name="units[0][state]"
-                                                placeholder="UF"
-                                                maxlength="2"
-                                            />
-                                            <InputError
-                                                :message="
-                                                    errors['units.0.state']
-                                                "
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2 sm:col-span-2">
-                                            <Label for="neighborhood"
-                                                >Bairro</Label
-                                            >
-                                            <Input
-                                                id="neighborhood"
-                                                name="units[0][neighborhood]"
-                                                placeholder="Bairro"
-                                            />
-                                            <InputError
-                                                :message="
-                                                    errors[
-                                                        'units.0.neighborhood'
-                                                    ]
                                                 "
                                             />
                                         </div>
@@ -422,7 +420,25 @@ const handleError = () => {
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-9">
+                                        <div class="space-y-2 sm:col-span-3">
+                                            <Label for="neighborhood"
+                                                >Bairro</Label
+                                            >
+                                            <Input
+                                                id="neighborhood"
+                                                name="units[0][neighborhood]"
+                                                placeholder="Bairro"
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors[
+                                                        'units.0.neighborhood'
+                                                    ]
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-7">
                                             <Label for="city">Cidade</Label>
                                             <Input
                                                 id="city"
@@ -432,6 +448,21 @@ const handleError = () => {
                                             <InputError
                                                 :message="
                                                     errors['units.0.city']
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-2">
+                                            <Label for="state">UF</Label>
+                                            <Input
+                                                id="state"
+                                                name="units[0][state]"
+                                                placeholder="UF"
+                                                maxlength="2"
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors['units.0.state']
                                                 "
                                             />
                                         </div>

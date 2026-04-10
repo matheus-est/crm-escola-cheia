@@ -437,7 +437,7 @@ function handleError(): void {
                             >
                                 <h3 class="text-lg font-medium">Aluno</h3>
 
-                                <div class="grid gap-4 sm:grid-cols-2">
+                                <div class="grid gap-4 sm:grid-cols-3">
                                     <div class="space-y-2">
                                         <Label for="student_name">
                                             Nome do Aluno
@@ -701,7 +701,7 @@ function handleError(): void {
                                         />
                                     </div>
 
-                                    <div class="space-y-2 sm:col-span-4">
+                                    <div class="space-y-2 sm:col-span-5">
                                         <Label for="street">Logradouro</Label>
                                         <Input
                                             id="street"
@@ -721,29 +721,6 @@ function handleError(): void {
                                         <InputError :message="errors.number" />
                                     </div>
 
-                                    <div class="space-y-2 sm:col-span-2">
-                                        <Label for="state">UF</Label>
-                                        <Input
-                                            id="state"
-                                            name="state"
-                                            placeholder="UF"
-                                            maxlength="2"
-                                        />
-                                        <InputError :message="errors.state" />
-                                    </div>
-
-                                    <div class="space-y-2 sm:col-span-2">
-                                        <Label for="neighborhood">Bairro</Label>
-                                        <Input
-                                            id="neighborhood"
-                                            name="neighborhood"
-                                            placeholder="Bairro"
-                                        />
-                                        <InputError
-                                            :message="errors.neighborhood"
-                                        />
-                                    </div>
-
                                     <div class="space-y-2 sm:col-span-3">
                                         <Label for="complement"
                                             >Complemento</Label
@@ -758,7 +735,19 @@ function handleError(): void {
                                         />
                                     </div>
 
-                                    <div class="space-y-2 sm:col-span-9">
+                                    <div class="space-y-2 sm:col-span-3">
+                                        <Label for="neighborhood">Bairro</Label>
+                                        <Input
+                                            id="neighborhood"
+                                            name="neighborhood"
+                                            placeholder="Bairro"
+                                        />
+                                        <InputError
+                                            :message="errors.neighborhood"
+                                        />
+                                    </div>
+
+                                    <div class="space-y-2 sm:col-span-7">
                                         <Label for="city">Cidade</Label>
                                         <Input
                                             id="city"
@@ -766,6 +755,17 @@ function handleError(): void {
                                             placeholder="Cidade"
                                         />
                                         <InputError :message="errors.city" />
+                                    </div>
+
+                                    <div class="space-y-2 sm:col-span-2">
+                                        <Label for="state">UF</Label>
+                                        <Input
+                                            id="state"
+                                            name="state"
+                                            placeholder="UF"
+                                            maxlength="2"
+                                        />
+                                        <InputError :message="errors.state" />
                                     </div>
                                 </div>
                             </div>

@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('event_opportunity', function (Blueprint $table): void {
-            $table->bigIncrements('id');
+            $table->id();
             $table->foreignId('event_id')->constrained('events');
             $table->foreignId('opportunity_id')->constrained('opportunities')->cascadeOnDelete();
             $table->timestamps();

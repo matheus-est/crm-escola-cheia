@@ -29,6 +29,7 @@ function makeActiveSchool(): School
     return School::query()->create([
         'cnpj' => fake()->numerify('##############'),
         'legal_name' => fake()->company(),
+        'slug' => fake()->unique()->slug(),
         'status' => SchoolStatus::Active->value,
     ]);
 }
@@ -38,6 +39,7 @@ function makeInactiveSchool(): School
     return School::query()->create([
         'cnpj' => fake()->numerify('##############'),
         'legal_name' => fake()->company(),
+        'slug' => fake()->unique()->slug(),
         'status' => SchoolStatus::Inactive->value,
     ]);
 }

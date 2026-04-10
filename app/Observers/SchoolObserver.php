@@ -14,16 +14,5 @@ class SchoolObserver
         if ($school->uuid === null) {
             $school->uuid = (string) Str::uuid();
         }
-
-        $base = Str::slug($school->legal_name);
-        $slug = $base;
-        $suffix = 1;
-
-        while (School::query()->where('slug', $slug)->exists()) {
-            $suffix++;
-            $slug = $base.'-'.$suffix;
-        }
-
-        $school->slug = $slug;
     }
 }

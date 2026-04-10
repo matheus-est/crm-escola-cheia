@@ -50,6 +50,7 @@ function makeSchoolForGuardianTests(): School
     return School::create([
         'cnpj' => str_pad((string) ($counter + 9000), 14, '0', STR_PAD_LEFT),
         'legal_name' => 'Escola Guardian '.$counter,
+        'slug' => 'escola-guardian-'.$counter,
     ]);
 }
 

@@ -23,7 +23,7 @@ class Event extends Model implements Auditable
     protected $fillable = [
         'uuid',
         'title',
-        'event_type',
+        'event_type_id',
         'has_no_date',
         'grade_id',
         'event_date',
@@ -58,6 +58,11 @@ class Event extends Model implements Auditable
     public function grade(): BelongsTo
     {
         return $this->belongsTo(Grade::class);
+    }
+
+    public function eventType(): BelongsTo
+    {
+        return $this->belongsTo(EventType::class);
     }
 
     public function school(): BelongsTo

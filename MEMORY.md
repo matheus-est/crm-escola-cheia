@@ -8,7 +8,7 @@
 ## CURRENT STATE
 
 **Last session:** 2026-04-10
-**Next task:** 5.4 — Reviewer pass on Stage 5 (Tasks module)
+**Next task:** 5.4 — Reviewer pass on Stage 5 (Tasks module) · also add EventTypes.vue to tenant-settings navigation if needed
 
 ### Completed
 
@@ -55,13 +55,17 @@
 - [x] ADJ-F6 — opportunities/Create.vue + Edit.vue: select Tarefa Vinculada funcional (task_type) — 2026-04-09
 - [x] ADJ-F7 — opportunities/Create.vue: ícones ClipboardList/User/FileText nas abas; Edit.vue refatorado para botões manuais + ícones — 2026-04-09
 - [x] ADJ-F8 — ModuleSeeder: lead_sources show_in_menu => false — 2026-04-09
+- [x] 7.5F — EventType frontend: EventTypeFormDialog · EventTypeToggleDialog · EventTypes.vue settings page · crm.ts EventType interface · events/Create.vue+Edit.vue use event_type_uuid Select with dynamic EventType list — 2026-04-10
 - [x] ADJ-B1 — RoomController: store/update/destroy use back() — dialog-safe redirect (from Events form) — 2026-04-09
 - [x] ADJ-B2 — StoreEventRequest/UpdateEventRequest: prepareForValidation() nullifies event_date when has_no_date=true — 2026-04-09
 - [x] ADJ-B3 — EventService::listUnlinkedOpportunities() · EventController::availableOpportunities() · route events.available_opportunities — 2026-04-09
 - [x] ADJ-B4 — StoreOpportunityRequest: task_type rule · OpportunityService injects TaskService + creates task on opportunity create — 2026-04-09
 - [x] ADJ-B5 — Masked fields stored as-is: migration fix_masked_field_columns (schools.cnpj varchar(18), school_units cep/logradouro/bairro/cidade nullable) · SchoolStoreRequest+UpdateRequest normalize CNPJ to masked format · OpportunityService remove CEP strip · CLAUDE.md rule added — 2026-04-09
 - [x] ADJ-EN — Portuguese→English field rename cleanup: auth.ts · TenantSwitcher.vue · Schools/Index.vue · SchoolYears.vue · Grades.vue · SchoolObserver · WelcomeSchoolUserMail · StudentUpdateRequest · 15+ test files (razao_social→legal_name, nome→name, telefone→phone, cep→zip_code, logradouro→street, bairro→neighborhood, cidade→city, estado→state, numero→number) — 197 tests passing — 2026-04-09
-- [x] FIX-A — SchoolYear inicio/fim→start/end: StoreRequest+UpdateRequest+tests+crm.ts SchoolYear interface · SchoolYearFactory created · guardians.cpf nullable migration added · boilerplate Settings tests deleted — 2026-04-10\n- [ ] **5.4 — Reviewer pass on Stage 5 🔴**
+- [x] FIX-A — SchoolYear inicio/fim→start/end: StoreRequest+UpdateRequest+tests+crm.ts SchoolYear interface · SchoolYearFactory created · guardians.cpf nullable migration added · boilerplate Settings tests deleted — 2026-04-10
+- [x] 7.6B — EventType module backend: migration create_event_types + alter_events_event_type_to_fk · EventType model/observer/policy/service/requests/controller/resource/factory · EventTypeSeeder (Palestra/Workshop/Visita per tenant) · ModuleSeeder+PermissionSeeder+RoleSeeder updated · Event model event_type_id FK + eventType() relation · StoreEventRequest+UpdateEventRequest prepareForValidation UUID→ID — 2026-04-10
+- [x] 7.6F — EventType module frontend: EventTypeFormDialog · EventTypeToggleDialog (password-confirmed) · EventTypes.vue settings page · crm.ts EventType interface + PaginatedEventTypes (with links) · events/Create.vue+Edit.vue event_type_uuid Select · EventController edit() loads current event_type even if inactive — 2026-04-10
+- [ ] **5.4 — Reviewer pass on Stage 5 🔴**
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
 
 ---
@@ -116,7 +120,9 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-09 | `RoomController.php` | `back()` em store/update/destroy — RoomFormDialog é usado em múltiplos contextos (Rooms settings + Events form); `to_route()` causaria redirect indesejado |
 | 2026-04-09 | `OpportunityService.php` | Ao injetar novo serviço no construtor, verificar se `syncWithoutDetaching()` pré-existente viola CLAUDE.md — substituir por `exists() + attach()` |
 | 2026-04-09 | `opportunities/Edit.vue` | Estava usando shadcn `<Tabs>` (único arquivo); padronizado para botões manuais + `v-show` igual ao restante do projeto |
+| 2026-04-10 | `EventTypeToggleDialog.vue` | Password-confirmation toggle uses `router.post` with `onError: (errors: Record<string, string>)` — no `any`; mirrors `ConfirmRestoreModal` pattern |
 | 2026-04-10 | `ActiveSchoolControllerTest.php` | `SetActiveTenant` global middleware aborts 403 for non-cross-tenant users with no school in session — use `$this->withoutMiddleware(SetActiveTenant::class)` when testing validation that lives past the middleware |
+| 2026-04-10 | `SchoolFactory`, all test helpers | `schools.slug` is NOT NULL — `SchoolFactory` and every `School::create()` in tests must include `'slug'`; observer no longer auto-generates it |
 | 2026-04-09 | \`SchoolStoreRequest\`, \`SchoolUpdateRequest\`, \`OpportunityService\` | Masked fields (CEP, CNPJ, CPF, phone) must be stored with display mask — never strip non-digits before persisting; strip only for API calls or mod-11 validation |\n| 2026-04-10 | \`SchoolYearStoreRequest\`, tests | Column rename (inicio→start, fim→end) must be applied consistently to requests, tests, TS interfaces AND a nullable migration must be created when docs say \"nullable migration\" — check all four touch points |
 
 ---

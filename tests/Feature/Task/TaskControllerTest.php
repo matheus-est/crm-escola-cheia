@@ -42,6 +42,7 @@ function taskMakeSchool(): School
     return School::create([
         'cnpj' => str_pad((string) ($counter + 50000), 14, '0', STR_PAD_LEFT),
         'legal_name' => "Escola Task {$counter}",
+        'slug' => "escola-task-{$counter}",
     ]);
 }
 

@@ -38,6 +38,7 @@ function makeSchoolForAddressTests(): School
     return School::create([
         'cnpj' => str_pad((string) ($counter + 6000), 14, '0', STR_PAD_LEFT),
         'legal_name' => 'Escola Address '.$counter,
+        'slug' => 'escola-address-'.$counter,
     ]);
 }
 

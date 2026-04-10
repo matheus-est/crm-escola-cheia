@@ -276,7 +276,7 @@ export interface PaginatedTasks {
 export interface Event {
     uuid: string;
     title: string;
-    event_type: string | null;
+    event_type: EventType | null;
     has_no_date: boolean;
     event_date: string | null;
     location: string | null;
@@ -326,3 +326,18 @@ export interface AvailableOpportunity {
     school_year_name: string | null;
     registration_type: RegistrationType | null;
 }
+
+export interface EventType {
+    uuid: string;
+    name: string;
+    is_active: boolean;
+}
+
+export type PaginatedEventTypes = {
+    data: EventType[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+};

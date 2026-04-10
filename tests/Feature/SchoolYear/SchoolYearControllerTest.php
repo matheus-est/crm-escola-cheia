@@ -51,6 +51,7 @@ function makeSchoolForYearTests(): School
     return School::create([
         'cnpj' => str_pad((string) $counter, 14, '0', STR_PAD_LEFT),
         'legal_name' => 'Escola Ano Letivo '.$counter,
+        'slug' => 'escola-ano-letivo-'.$counter,
     ]);
 }
 

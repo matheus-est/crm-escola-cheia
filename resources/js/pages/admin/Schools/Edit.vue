@@ -283,7 +283,12 @@ function detachUser(userUuid: string) {
 
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="space-y-2">
-                                        <Label for="cnpj">CNPJ</Label>
+                                        <Label for="cnpj">
+                                            CNPJ
+                                            <span class="text-destructive"
+                                                >*</span
+                                            >
+                                        </Label>
                                         <div class="relative">
                                             <Input
                                                 id="cnpj"
@@ -311,7 +316,10 @@ function detachUser(userUuid: string) {
 
                                     <div class="space-y-2">
                                         <Label for="legal_name"
-                                            >Razão Social</Label
+                                            >Razão Social
+                                            <span class="text-destructive"
+                                                >*</span
+                                            ></Label
                                         >
                                         <Input
                                             id="legal_name"
@@ -471,7 +479,7 @@ function detachUser(userUuid: string) {
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-4">
+                                        <div class="space-y-2 sm:col-span-5">
                                             <Label for="unit-street"
                                                 >Logradouro</Label
                                             >
@@ -493,12 +501,16 @@ function detachUser(userUuid: string) {
 
                                         <div class="space-y-2 sm:col-span-2">
                                             <Label for="unit-number"
-                                                >Número</Label
+                                                >Número
+                                                <span class="text-destructive"
+                                                    >*</span
+                                                ></Label
                                             >
                                             <Input
                                                 id="unit-number"
                                                 name="units[0][number]"
                                                 placeholder="123"
+                                                required
                                                 :default-value="
                                                     props.school.units?.[0]
                                                         ?.number ?? ''
@@ -507,47 +519,6 @@ function detachUser(userUuid: string) {
                                             <InputError
                                                 :message="
                                                     errors['units.0.number']
-                                                "
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2 sm:col-span-2">
-                                            <Label for="unit-state">UF</Label>
-                                            <Input
-                                                id="unit-state"
-                                                name="units[0][state]"
-                                                placeholder="UF"
-                                                maxlength="2"
-                                                :default-value="
-                                                    props.school.units?.[0]
-                                                        ?.state ?? ''
-                                                "
-                                            />
-                                            <InputError
-                                                :message="
-                                                    errors['units.0.state']
-                                                "
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2 sm:col-span-2">
-                                            <Label for="unit-neighborhood"
-                                                >Bairro</Label
-                                            >
-                                            <Input
-                                                id="unit-neighborhood"
-                                                name="units[0][neighborhood]"
-                                                placeholder="Bairro"
-                                                :default-value="
-                                                    props.school.units?.[0]
-                                                        ?.neighborhood ?? ''
-                                                "
-                                            />
-                                            <InputError
-                                                :message="
-                                                    errors[
-                                                        'units.0.neighborhood'
-                                                    ]
                                                 "
                                             />
                                         </div>
@@ -572,7 +543,29 @@ function detachUser(userUuid: string) {
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-9">
+                                        <div class="space-y-2 sm:col-span-3">
+                                            <Label for="unit-neighborhood"
+                                                >Bairro</Label
+                                            >
+                                            <Input
+                                                id="unit-neighborhood"
+                                                name="units[0][neighborhood]"
+                                                placeholder="Bairro"
+                                                :default-value="
+                                                    props.school.units?.[0]
+                                                        ?.neighborhood ?? ''
+                                                "
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors[
+                                                        'units.0.neighborhood'
+                                                    ]
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-7">
                                             <Label for="unit-city"
                                                 >Cidade</Label
                                             >
@@ -588,6 +581,25 @@ function detachUser(userUuid: string) {
                                             <InputError
                                                 :message="
                                                     errors['units.0.city']
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-2 sm:col-span-2">
+                                            <Label for="unit-state">UF</Label>
+                                            <Input
+                                                id="unit-state"
+                                                name="units[0][state]"
+                                                placeholder="UF"
+                                                maxlength="2"
+                                                :default-value="
+                                                    props.school.units?.[0]
+                                                        ?.state ?? ''
+                                                "
+                                            />
+                                            <InputError
+                                                :message="
+                                                    errors['units.0.state']
                                                 "
                                             />
                                         </div>

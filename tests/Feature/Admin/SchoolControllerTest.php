@@ -31,6 +31,7 @@ function makeSchool(): School
     return School::create([
         'cnpj' => '12345678000195',
         'legal_name' => 'Escola Teste',
+        'slug' => 'escola-teste',
     ]);
 }
 
@@ -51,6 +52,7 @@ it('Admin consegue editar escola', function (): void {
         ->put(route('admin.schools.update', $school), [
             'cnpj' => '12345678000195',
             'legal_name' => 'Escola Atualizada',
+            'slug' => 'escola-atualizada',
         ])
         ->assertRedirect(route('admin.schools.edit', $school));
 
@@ -148,6 +150,7 @@ it('store redireciona para edit após criar escola', function (): void {
         ->post(route('admin.schools.store'), [
             'cnpj' => '12345678000195',
             'legal_name' => 'Nova Escola',
+            'slug' => 'nova-escola',
         ])
         ->assertRedirectContains('/edit');
 

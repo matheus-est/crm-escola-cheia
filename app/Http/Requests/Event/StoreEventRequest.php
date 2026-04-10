@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Event;
 
+use App\Models\EventType;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreEventRequest extends FormRequest
@@ -22,13 +23,18 @@ class StoreEventRequest extends FormRequest
         } else {
             $this->merge(['has_no_date' => false]);
         }
+
+        if ($this->filled('event_type_uuid')) {
+            $this->merge([
+                'event_type_id' => EventType::where('uuid', $this->input('event_type_uuid'))->value('id'),
+            ]);
+        }
     }
 
     public function rules(): array
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'event_type' => ['nullable', 'string', 'max:60'],
             'has_no_date' => ['sometimes', 'boolean'],
             'grade_uuid' => ['nullable', 'exists:grades,uuid'],
             'event_date' => ['required_unless:has_no_date,true', 'nullable', 'date'],
@@ -36,6 +42,7 @@ class StoreEventRequest extends FormRequest
             'max_capacity' => ['nullable', 'integer', 'min:1'],
             'room_uuids' => ['nullable', 'array'],
             'room_uuids.*' => ['exists:rooms,uuid'],
+            'event_type_id' => ['nullable', 'exists:event_types,id'],
         ];
     }
 }

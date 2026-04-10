@@ -53,6 +53,7 @@ class RoleSeeder extends Seeder
             'lead_sources',
             'grades',
             'rooms',
+            'event_types',
         ])->pluck('id');
 
         return [

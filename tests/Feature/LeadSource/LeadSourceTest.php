@@ -68,6 +68,7 @@ function makeSchoolForLeadSourceTests(): School
     return School::create([
         'cnpj' => str_pad((string) ($counter + 900), 14, '0', STR_PAD_LEFT),
         'legal_name' => 'Escola LeadSource '.$counter,
+        'slug' => 'escola-leadsource-'.$counter,
     ]);
 }
 

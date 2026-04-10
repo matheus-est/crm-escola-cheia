@@ -112,6 +112,15 @@ class PermissionSeeder extends Seeder
             ['name' => 'delete', 'label' => 'Excluir',    'order' => 5, 'description' => 'Remover evento'],
         ],
 
+        'event_types' => [
+            ['name' => 'view',    'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar tipo de evento'],
+            ['name' => 'list',    'label' => 'Listar',     'order' => 2, 'description' => 'Listar tipos de evento'],
+            ['name' => 'add',     'label' => 'Adicionar',  'order' => 3, 'description' => 'Cadastrar tipo de evento'],
+            ['name' => 'edit',    'label' => 'Editar',     'order' => 4, 'description' => 'Editar tipo de evento'],
+            ['name' => 'delete',  'label' => 'Excluir',    'order' => 5, 'description' => 'Inativar tipo de evento'],
+            ['name' => 'restore', 'label' => 'Reativar',   'order' => 6, 'description' => 'Reativar tipo de evento'],
+        ],
+
         'rooms' => [
             ['name' => 'view',   'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar sala'],
             ['name' => 'list',   'label' => 'Listar',     'order' => 2, 'description' => 'Listar salas'],

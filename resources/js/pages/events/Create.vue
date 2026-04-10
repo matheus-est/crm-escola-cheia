@@ -21,12 +21,13 @@ import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { index, store } from '@/routes/tenant/events/index';
 import type { BreadcrumbItem } from '@/types';
-import type { Grade, Room } from '@/types/crm';
+import type { EventType, Grade, Room } from '@/types/crm';
 
 const props = defineProps<{
     grades: Grade[];
     rooms: Room[];
     school_name: string;
+    event_types: EventType[];
 }>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
@@ -160,7 +161,12 @@ function handleError(): void {
                                 <!-- Data + Checkbox empilhados na coluna direita -->
                                 <div class="space-y-2">
                                     <Label for="event_date"
-                                        >Data do Evento</Label
+                                        >Data do Evento
+                                        <span
+                                            v-if="!hasNoDate"
+                                            class="text-destructive"
+                                            >*</span
+                                        ></Label
                                     >
                                     <div class="relative">
                                         <Input
@@ -264,28 +270,28 @@ function handleError(): void {
                                 </div>
 
                                 <div class="col-span-2 space-y-2">
-                                    <Label for="event_type"
+                                    <Label for="event_type_uuid"
                                         >Tipo do Evento</Label
                                     >
-                                    <Select name="event_type">
-                                        <SelectTrigger id="event_type">
+                                    <Select name="event_type_uuid">
+                                        <SelectTrigger id="event_type_uuid">
                                             <SelectValue
-                                                placeholder="Selecione..."
+                                                placeholder="Selecione o tipo..."
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="palestra"
-                                                >Palestra</SelectItem
+                                            <SelectItem
+                                                v-for="et in props.event_types"
+                                                :key="et.uuid"
+                                                :value="et.uuid"
                                             >
-                                            <SelectItem value="workshop"
-                                                >Workshop</SelectItem
-                                            >
-                                            <SelectItem value="visita"
-                                                >Visita</SelectItem
-                                            >
+                                                {{ et.name }}
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <InputError :message="errors.event_type" />
+                                    <InputError
+                                        :message="errors.event_type_uuid"
+                                    />
                                 </div>
                             </div>
                         </div>

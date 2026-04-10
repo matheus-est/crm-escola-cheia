@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('guardians', function (Blueprint $table): void {
             $table->id();
-            $table->uuid()->unique();
+            $table->uuid('uuid')->unique();
             $table->foreignId('school_id')->constrained('schools')->cascadeOnDelete();
             $table->string('name');
             $table->string('cpf');

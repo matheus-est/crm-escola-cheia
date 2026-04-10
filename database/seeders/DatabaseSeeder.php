@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             SegmentSeeder::class,
             LeadSourceSeeder::class,
             OutcomeSeeder::class,
+            EventTypeSeeder::class,
         ]);
     }
 }

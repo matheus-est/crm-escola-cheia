@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Tenant\EventController;
 use App\Http\Controllers\Tenant\GuardianController;
 use App\Http\Controllers\Tenant\OpportunityController;
+use App\Http\Controllers\Tenant\Settings\EventTypeController;
 use App\Http\Controllers\Tenant\Settings\GradeController;
 use App\Http\Controllers\Tenant\Settings\LeadSourceController;
 use App\Http\Controllers\Tenant\Settings\RoomController;
@@ -21,7 +22,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
         Route::get('/dashboard', fn () => Inertia::render('Dashboard'))
             ->name('dashboard');
 
-        // Tenant Settings — Ano Letivo
+        // Ano Letivo
         Route::match(['get', 'post'], '/tenant-settings/school-years', [SchoolYearController::class, 'index'])
             ->name('school_years.index');
         Route::post('/tenant-settings/school-years/store', [SchoolYearController::class, 'store'])
@@ -31,7 +32,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
         Route::delete('/tenant-settings/school-years/{schoolYear}', [SchoolYearController::class, 'destroy'])
             ->name('school_years.destroy');
 
-        // Tenant Settings — Origem de Lead
+        // Origem de Lead
         Route::match(['get', 'post'], '/tenant-settings/lead-sources', [LeadSourceController::class, 'index'])
             ->name('lead_sources.index');
         Route::post('/tenant-settings/lead-sources/store', [LeadSourceController::class, 'store'])
@@ -41,7 +42,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
         Route::delete('/tenant-settings/lead-sources/{leadSource}', [LeadSourceController::class, 'destroy'])
             ->name('lead_sources.destroy');
 
-        // Tenant Settings — Turmas e Séries
+        // Turmas e Séries
         Route::match(['get', 'post'], '/tenant-settings/grades', [GradeController::class, 'index'])
             ->name('grades.index');
         Route::post('/tenant-settings/grades/store', [GradeController::class, 'store'])
@@ -51,7 +52,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
         Route::delete('/tenant-settings/grades/{grade}', [GradeController::class, 'destroy'])
             ->name('grades.destroy');
 
-        // Tenant Settings — Salas
         // Salas
         Route::match(['get', 'post'], '/tenant-settings/rooms', [RoomController::class, 'index'])
             ->name('settings.rooms.index');
@@ -121,4 +121,16 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
         Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
         Route::post('/events/{event}/opportunities', [EventController::class, 'attachOpportunity'])->name('events.opportunities.attach');
         Route::delete('/events/{event}/opportunities/{opportunity}', [EventController::class, 'detachOpportunity'])->name('events.opportunities.detach');
+
+        // Tipos de Evento
+        Route::match(['get', 'post'], '/tenant-settings/event-types', [EventTypeController::class, 'index'])
+            ->name('settings.event_types.index');
+        Route::post('/tenant-settings/event-types/store', [EventTypeController::class, 'store'])
+            ->name('settings.event_types.store');
+        Route::put('/tenant-settings/event-types/{eventType}', [EventTypeController::class, 'update'])
+            ->name('settings.event_types.update');
+        Route::post('/tenant-settings/event-types/{eventType}/toggle-active', [EventTypeController::class, 'toggleActive'])
+            ->name('settings.event_types.toggle_active');
+        Route::delete('/tenant-settings/event-types/{eventType}', [EventTypeController::class, 'destroy'])
+            ->name('settings.event_types.destroy');
     });
