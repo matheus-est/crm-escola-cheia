@@ -124,11 +124,10 @@ function formatDate(dateStr: string | null): string {
                             }}
                         </span>
                         <span
-                            v-if="(opportunity as any).renitente_count > 0"
+                            v-if="opportunity.renitente_count > 0"
                             class="text-xs text-muted-foreground"
                         >
-                            {{ (opportunity as any).renitente_count }}x
-                            renitente
+                            {{ opportunity.renitente_count }}x renitente
                         </span>
                     </div>
                 </div>
@@ -172,7 +171,7 @@ function formatDate(dateStr: string | null): string {
                         Ano Letivo
                     </p>
                     <p class="text-sm">
-                        {{ (opportunity as any).school_year?.name ?? '—' }}
+                        {{ opportunity.school_year?.name ?? '—' }}
                     </p>
                 </div>
                 <div class="space-y-0.5">
@@ -182,7 +181,7 @@ function formatDate(dateStr: string | null): string {
                         Origem
                     </p>
                     <p class="text-sm">
-                        {{ (opportunity as any).lead_source?.name ?? '—' }}
+                        {{ opportunity.lead_source?.name ?? '—' }}
                     </p>
                 </div>
                 <div class="space-y-0.5">
@@ -202,7 +201,7 @@ function formatDate(dateStr: string | null): string {
                         Responsável comercial
                     </p>
                     <p class="text-sm">
-                        {{ (opportunity as any).responsible_user?.name ?? '—' }}
+                        {{ opportunity.responsible_user?.name ?? '—' }}
                     </p>
                 </div>
             </div>

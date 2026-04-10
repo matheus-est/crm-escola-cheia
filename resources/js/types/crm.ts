@@ -176,6 +176,7 @@ export interface Opportunity {
     history: string | null;
     indications: string | null;
     registration_type: RegistrationType | null;
+    renitente_count: number;
     segment?: Segment | null;
     student?: Student | null;
     guardian?: Guardian | null;

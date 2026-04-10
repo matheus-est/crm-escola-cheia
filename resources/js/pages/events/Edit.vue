@@ -379,7 +379,9 @@ function handleDetach(opportunityUuid: string): void {
                                     <Checkbox
                                         id="has_no_date"
                                         :model-value="hasNoDate"
-                                        @update:modelValue="handleHasNoDateChange"
+                                        @update:modelValue="
+                                            handleHasNoDateChange
+                                        "
                                     />
                                     <Label
                                         for="has_no_date"
@@ -404,7 +406,7 @@ function handleDetach(opportunityUuid: string): void {
                                         v-model="eventDateEdit"
                                         name="event_date"
                                         :disabled="hasNoDate"
-                                        class="border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm"
+                                        class="h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                                     />
                                     <InputError :message="errors.event_date" />
                                 </div>

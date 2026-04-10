@@ -64,6 +64,16 @@
 | 2026-04-01 | `User.php` | `currentSchool()` uses `class_exists(School::class)` — avoids fatal error before Stage 1.x |
 ---
 
+## Module 5 — Tasks / Outcomes (Stage 5)
+
+| Date | File | Rule |
+|---|---|---|
+| 2026-04-10 | `OutcomeModal.vue` | `fetch` + POST used for task completion — authorized exception because `TaskController::complete()` returns JSON (`open_window`) that must control frontend modal behavior; Inertia `useForm` alone cannot return actionable JSON from a form POST. This is the only POST fetch in the codebase. |
+| 2026-04-10 | `StoreTaskRequest.php` | Frontend sends `assigned_user_uuid`; backend resolves to `assigned_user_id` via `prepareForValidation()` — same UUID→ID pattern as Event requests. |
+| 2026-04-10 | `OutcomeProcessorService.php` | No inner `DB::transaction()` — outer transaction in `TaskService::complete()` is the single owner of atomicity; inner wrapping is redundant and was removed. |
+
+---
+
 ## Infrastructure — Queue / Horizon (2026-04-08)
 
 | Date | Decision |

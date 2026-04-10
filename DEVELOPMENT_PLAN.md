@@ -269,7 +269,7 @@
 - [x] 🖥️ `components/Task/RefusalForm.vue` — categoria + detalhamento obrigatório (integrado no OutcomeModal)
 - [x] 🖥️ `components/Task/TaskCreateModal.vue` — modal para criar próxima tarefa (acionado por open_window)
 - [x] 🖥️ Integrar `open_window` da response para acionar modal correto
-- [X] 📋 Reviewer
+- [x] 📋 Reviewer — APROVADO em 2026-04-10
 
 ---
 
@@ -297,28 +297,30 @@
 
 ---
 
-## ETAPA 7 — Eventos e Salas
+## ETAPA 7 — Eventos e Salas — concluída em 2026-04-10
 
 ### 7.1 Backend
-- [ ] ⚙️ Migration `create_event_types_table` (id, school_id, nome)
-- [ ] ⚙️ Migration `create_rooms_table` (id, school_id, unit_id, nome, capacidade, is_external, status)
-- [ ] ⚙️ Migration `create_events_table` (id uuid, school_id, titulo, data, hora_inicio, capacidade, sala_id, sem_data)
-- [ ] ⚙️ Migration `create_opportunity_events_table` (pivot)
-- [ ] ⚙️ `app/Models/Room.php` — BelongsToTenant · auditing
-- [ ] ⚙️ `app/Models/Event.php` — BelongsToTenant · auditing · SoftDelete
-- [ ] ⚙️ `app/Policies/EventPolicy.php` · `RoomPolicy.php`
-- [ ] ⚙️ `app/Services/Event/EventService.php` — `create()`, `invite()`, verificação de conflito de sala (alerta, não bloqueia)
-- [ ] ⚙️ `app/Http/Controllers/Tenant/EventController.php`
-- [ ] ⚙️ `app/Http/Controllers/Tenant/RoomController.php`
-- [ ] ⚙️ Rotas em `routes/tenant.php`
-- [ ] 🧪 Teste: conflito de horário de sala emite alerta mas salva normalmente
-- [ ] 🧪 Teste: vincular oportunidade ao evento gera job de criação de tarefa Evento
-- [ ] 📋 Reviewer
+- [x] ⚙️ Migration `create_event_types_table` (id, school_id, nome) — EventType com BelongsToTenant, seeder por tenant
+- [x] ⚙️ Migration `create_rooms_table` (id, school_id, unit_id, nome, capacidade, is_external, status)
+- [x] ⚙️ Migration `create_events_table` (id uuid, school_id, title, event_date, event_type_id, grade_id, has_no_date)
+- [x] ⚙️ Migration `create_opportunity_events_table` (pivot) + `create_event_room_table` (pivot)
+- [x] ⚙️ `app/Models/Room.php` — BelongsToTenant · auditing
+- [x] ⚙️ `app/Models/Event.php` — BelongsToTenant · auditing · SoftDelete · relações rooms/grade/eventType/opportunities
+- [x] ⚙️ `app/Models/EventType.php` — BelongsToTenant · auditing
+- [x] ⚙️ `app/Policies/EventPolicy.php` · `RoomPolicy.php` · `EventTypePolicy.php`
+- [x] ⚙️ `app/Services/Event/EventService.php` — `create()`, `update()`, `listUnlinkedOpportunities()`, room_ids attach/detach
+- [x] ⚙️ `app/Http/Controllers/Tenant/EventController.php` — inclui `availableOpportunities()` e `attachOpportunity()`
+- [x] ⚙️ `app/Http/Controllers/Tenant/RoomController.php` — `back()` em store/update/destroy (dialog-safe)
+- [x] ⚙️ `app/Http/Controllers/Tenant/Settings/EventTypeController.php`
+- [x] ⚙️ Rotas em `routes/tenant.php`
+- [x] 🧪 Teste: EventType CRUD · Room CRUD · Event CRUD · attachOpportunity
+- [x] 📋 Reviewer — APROVADO em 2026-04-10
 
 ### 7.2 Frontend
-- [ ] 🖥️ `pages/events/Index.vue` · `Create.vue` · `Edit.vue`
-- [ ] 🖥️ `pages/tenant-settings/Rooms.vue`
-- [ ] 📋 Reviewer
+- [x] 🖥️ `pages/events/Index.vue` · `Create.vue` · `Edit.vue` — com abas Info/Salas/Oportunidades
+- [x] 🖥️ `pages/tenant-settings/Rooms.vue` — com RoomFormDialog modal
+- [x] 🖥️ `pages/tenant-settings/EventTypes.vue` — com EventTypeFormDialog + EventTypeToggleDialog
+- [x] 📋 Reviewer — APROVADO em 2026-04-10
 
 ---
 

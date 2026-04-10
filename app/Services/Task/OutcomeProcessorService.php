@@ -13,7 +13,6 @@ use App\Models\Opportunity;
 use App\Models\Outcome;
 use App\Models\OutcomeAction;
 use App\Models\Task;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OutcomeProcessorService
@@ -28,17 +27,15 @@ class OutcomeProcessorService
      */
     public function process(Task $task, Outcome $outcome, array $payload = []): array
     {
-        return DB::transaction(function () use ($task, $outcome, $payload) {
-            $result = ['open_window' => null];
+        $result = ['open_window' => null];
 
-            $actions = $outcome->actions()->orderBy('order')->get();
+        $actions = $outcome->actions()->orderBy('order')->get();
 
-            foreach ($actions as $action) {
-                $this->executeAction($task, $action, $payload, $result);
-            }
+        foreach ($actions as $action) {
+            $this->executeAction($task, $action, $payload, $result);
+        }
 
-            return $result;
-        });
+        return $result;
     }
 
     /**
