@@ -9,6 +9,7 @@
 
 **Last session:** 2026-04-10
 **Next task:** 6 — Notifications module (or continue 4.x improvements)
+**Last rebrand:** 2026-04-10 — Identidade visual migrada para Operis CRM (azul `#2D3AE0`, Eurostile)
 
 ### Completed
 
@@ -76,7 +77,10 @@
 - [x] ADJ-CPF — Opportunity form CPF improvements: mod-11 client-side validation in useCpfLookup (no network call on invalid CPF); StudentController::lookup() returns guardian in JSON; guardian CPF field uses second useCpfLookup instance (type: guardian) replacing manual fetch/blur pattern; student onFound fills guardian fields from student.guardian — 2026-04-10
 - [x] ADJ-UX1 — Opportunity UX fixes: Edit.vue 5 readonly fields (history/student_name/student_cpf/guardian_name/guardian_cpf) with bg-muted/50 cursor-not-allowed, removed useCpfLookup + dead vars; OpportunityCard.vue + tasks/Index.vue link to show instead of edit; Index.vue Nova Oportunidade button moved into header flex row — 2026-04-10
 - [x] ADJ-SHOW — Show.vue redesenho: pipeline header (funnel_stages + days_in_stage) · bloco lead (guardian+student side-by-side) · sidebar 3 abas (Histórico/Próximas Tarefas/Mais Informações) · timeline teal · cards Endereço+Indicação · TaskType.label() · TaskResource task_type · OpportunityController::show() schoolUnit+funnel_stages+days_in_stage · FunnelStage in crm.ts — 2026-04-10
+- [x] REBRAND — Operis visual rebrand: Eurostile fonts · blue brand palette (hsl 234) · favicon.svg 8-petal wheel · AppLogoIcon.vue · AppLogo.vue PNG fallback · AuthSplitLayout.vue slate/blue overlay · Login.vue new headline+Target icon — 2026-04-10
+- [x] REBRAND — Identidade visual Operis CRM: paleta azul `#2D3AE0`, Eurostile, logos/favicon nativos, login redesenhado — 2026-04-10
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
+
 
 ---
 
@@ -104,6 +108,7 @@
 | 2026-04-08 | `guardians.cpf` is nullable — guardian can be created without CPF from opportunity form |
 | 2026-04-09 | Event requests use `room_uuids`/`grade_uuid` (UUID-based) — service resolves to IDs before `attach()`; controller passes only `uuid` (not `id`) in Room/Grade props |
 | 2026-04-09 | `event_type` column is `string(60)` — values provisórios (palestra/workshop/visita) — aguardando confirmação do cliente |
+| 2026-04-10 | Brand identity: Operis blue `#2D3AE0`, font Eurostile LT Pro Unicode — assets in `public/images/operis-avatar-*.png`, `public/fonts/`, background `public/images/auth-bg.jpg`; semantic amber (warnings, status badges) preserved untouched |
 
 ---
 

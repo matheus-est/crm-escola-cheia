@@ -1,10 +1,10 @@
-# CRM Escola Cheia
+# Operis CRM
 
 Plataforma CRM dedicada para escolas — gerencie leads, oportunidades, tarefas e matrículas em um único lugar.
 
 ## 🚀 Sobre o Projeto
 
-O CRM Escola Cheia é um sistema focado no controle do funil de matrículas e rematrículas, bem como no acompanhamento comercial das escolas. O sistema utiliza uma arquitetura baseada em Laravel e Vue.js, garantindo alta performance e reatividade na experiência do usuário.
+O Operis CRM é um sistema focado no controle do funil de matrículas e rematrículas, bem como no acompanhamento comercial das escolas. O sistema utiliza uma arquitetura baseada em Laravel e Vue.js, garantindo alta performance e reatividade na experiência do usuário.
 
 **Principais Funcionalidades:**
 - **Gestão de Matrículas**: Controle completo do funil de captação e rematrículas.
@@ -47,8 +47,8 @@ O ambiente local do projeto pode ser executado de 3 formas: **Docker (Laravel Sa
 
 Independente da forma escolhida, inicialize o código e copie o `.env`:
 ```bash
-git clone <url-do-repositorio> crm-escola-cheia
-cd crm-escola-cheia
+git clone <url-do-repositorio> operis-crm
+cd operis-crm
 cp .env.example .env
 ```
 
@@ -90,7 +90,7 @@ Acesse em: `http://localhost`
 
 Ideal para desenvolvimento nativo (macOS e Windows) zero-config.
 
-1. No painel do **Herd**, certifique-se de que a pasta `crm-escola-cheia` está linkada e rodando no **PHP 8.4**.
+1. No painel do **Herd**, certifique-se de que a pasta `operis-crm` está linkada e rodando no **PHP 8.4**.
 2. Suba o banco de dados (via Herd Pro, DBngin, etc) e edite os dados de conexão `DB_*` no arquivo `.env`.
 3. **Instalação e setup base:**
    ```bash
@@ -104,7 +104,7 @@ Ideal para desenvolvimento nativo (macOS e Windows) zero-config.
    npm run dev
    ```
 
-Acesse em: `http://crm-escola-cheia.test`
+Acesse em: `http://operis-crm.test`
 
 ---
 
@@ -114,7 +114,7 @@ Ideal para desenvolvedores com ambiente Nginx nativo servido pelo Valet.
 
 1. Posicione-se na pasta do projeto e force o link com PHP 8.4:
    ```bash
-   valet link crm-escola-cheia
+   valet link operis-crm
    valet isolate php@8.4
    ```
 2. Crie a base de dados em seu MySQL/MariaDB local e edite os dados `DB_*` no `.env`.
@@ -130,7 +130,7 @@ Ideal para desenvolvedores com ambiente Nginx nativo servido pelo Valet.
    npm run dev
    ```
 
-Acesse em: `http://crm-escola-cheia.test`
+Acesse em: `http://operis-crm.test`
 
 ---
 
@@ -148,7 +148,7 @@ Dentro do console:
 ```php
 User::create([
     'name' => 'Master',
-    'email' => 'master@escolacheia.com.br',
+    'email' => 'master@operiscrm.com.br',
     'password' => bcrypt('sua_senha_segura'),
     'role_id' => 1
 ]);

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
-import { BarChart3, GraduationCap, ShieldCheck, Users } from 'lucide-vue-next';
+import { BarChart3, Target, ShieldCheck, Users } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -23,7 +23,7 @@ defineProps<{
 
 const features = [
     {
-        icon: GraduationCap,
+        icon: Target,
         title: 'Gestão de Matrículas',
         description: 'Controle completo do funil de matrículas e rematrículas',
     },
@@ -47,7 +47,7 @@ const features = [
 
 <template>
     <AuthSplitLayout
-        headline="Matrículas com gestão inteligente."
+        headline="Resultados com gestão inteligente."
         subheadline="Plataforma CRM para escolas — gerencie leads, oportunidades e matrículas em um único lugar."
         :features="features"
     >

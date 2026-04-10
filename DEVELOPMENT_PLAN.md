@@ -1,5 +1,5 @@
 # DEVELOPMENT_PLAN.md
-# CRM Escola Cheia — Plano de Desenvolvimento por Etapas
+# Operis CRM — Plano de Desenvolvimento por Etapas
 
 > **Como usar este documento**
 > Cada etapa é um bloco de desenvolvimento. Cada tarefa dentro da etapa é **micro** — um artefato por vez.

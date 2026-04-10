@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
 
 const page = usePage();
 
@@ -53,13 +52,15 @@ const logoUrl = computed(() => {
         </div>
     </template>
 
-    <!-- Fallback: ícone padrão -->
+    <!-- Fallback: ícone Operis nativo -->
     <template v-else>
         <div
-            class="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground"
+            class="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md bg-sidebar-primary"
         >
-            <AppLogoIcon
-                class="size-5 fill-current text-white dark:text-white"
+            <img
+                src="/images/operis-avatar-blue.png"
+                alt="Operis CRM"
+                class="size-8 object-contain"
             />
         </div>
     </template>

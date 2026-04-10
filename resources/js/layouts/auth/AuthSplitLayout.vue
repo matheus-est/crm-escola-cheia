@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
 import { type Component, computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
 
 interface Feature {
     icon: Component;
@@ -78,7 +77,7 @@ const mobileLogoUrl = computed(() => {
         >
             <!-- Dark overlay for text legibility -->
             <div
-                class="pointer-events-none absolute inset-0 bg-amber-950/75"
+                class="pointer-events-none absolute inset-0 bg-slate-950/65"
             ></div>
 
             <!-- Background grid pattern -->
@@ -101,10 +100,10 @@ const mobileLogoUrl = computed(() => {
 
             <!-- Glow decorativo -->
             <div
-                class="pointer-events-none absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-amber-400/15 blur-[120px]"
+                class="pointer-events-none absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-blue-500/15 blur-[120px]"
             ></div>
             <div
-                class="pointer-events-none absolute -right-20 -bottom-20 h-[400px] w-[400px] rounded-full bg-orange-500/10 blur-[100px]"
+                class="pointer-events-none absolute -right-20 -bottom-20 h-[400px] w-[400px] rounded-full bg-indigo-500/10 blur-[100px]"
             ></div>
 
             <!-- Logo / brand -->
@@ -117,11 +116,11 @@ const mobileLogoUrl = computed(() => {
                     />
                 </template>
                 <template v-else>
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary"
-                    >
-                        <AppLogoIcon class="h-6 w-6 text-white" />
-                    </div>
+                    <img
+                        src="/images/operis-avatar-blue.png"
+                        alt="Operis CRM"
+                        class="h-10 w-auto object-contain"
+                    />
                 </template>
                 <span class="text-xl font-semibold tracking-tight text-white">
                     {{ appName }}
@@ -132,7 +131,7 @@ const mobileLogoUrl = computed(() => {
             <div class="relative z-10 space-y-10">
                 <div class="space-y-3">
                     <h1
-                        class="text-4xl leading-tight font-bold tracking-tight text-white"
+                        class="font-[EurostileLTProUnicode-Bold] text-4xl leading-tight font-bold tracking-tight text-white"
                     >
                         {{ props.headline }}
                     </h1>
@@ -152,11 +151,11 @@ const mobileLogoUrl = computed(() => {
                         class="flex items-start gap-3.5"
                     >
                         <div
-                            class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-amber-400/10 ring-1 ring-amber-400/20"
+                            class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-400/10 ring-1 ring-blue-400/20"
                         >
                             <component
                                 :is="feature.icon"
-                                class="h-4 w-4 text-amber-400"
+                                class="h-4 w-4 text-blue-300"
                             />
                         </div>
                         <div>
@@ -194,11 +193,11 @@ const mobileLogoUrl = computed(() => {
                     />
                 </template>
                 <template v-else>
-                    <div
-                        class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary"
-                    >
-                        <AppLogoIcon class="h-5 w-5 text-white" />
-                    </div>
+                    <img
+                        src="/images/operis-avatar-blue.png"
+                        alt="Operis CRM"
+                        class="h-8 w-auto object-contain"
+                    />
                 </template>
                 <span class="text-lg font-semibold">{{ appName }}</span>
             </div>
