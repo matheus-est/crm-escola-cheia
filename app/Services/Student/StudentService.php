@@ -15,6 +15,7 @@ class StudentService
         $schoolId = app()->bound('tenant.school_id') ? app('tenant.school_id') : null;
 
         return Student::withoutTenantScope()
+            ->with('guardians')
             ->where('school_id', $schoolId)
             ->where('cpf', $cpf)
             ->first();

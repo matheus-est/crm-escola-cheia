@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\Guardian;
 use App\Models\Role;
 use App\Models\School;
 use App\Models\Student;
@@ -216,4 +217,37 @@ it('findOrCreate retorna existente se CPF já cadastrado', function (): void {
 
     expect($result->id)->toBe($existing->id);
     expect(Student::withoutTenantScope()->where('school_id', $school->id)->count())->toBe(1);
+});
+it('GET lookup retorna guardian quando aluno tem responsável vinculado', function (): void {
+    $user = studentMasterUser();
+    $school = makeSchoolForStudentTests();
+    $student = makeStudent($school, '234.567.890-00');
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $guardian = Guardian::withoutGlobalScopes()->create([
+        'school_id' => $school->id,
+        'name' => 'Maria Responsável',
+        'cpf' => '111.222.333-44',
+    ]);
+    $student->guardians()->attach($guardian->id);
+
+    $this->actingAs($user)
+        ->getJson(route('tenant.students.lookup', ['234.567.890-00']))
+        ->assertStatus(200)
+        ->assertJsonPath('guardian.name', 'Maria Responsável')
+        ->assertJsonPath('guardian.cpf', '111.222.333-44');
+});
+
+it('GET lookup retorna guardian null quando aluno não tem responsável', function (): void {
+    $user = studentMasterUser();
+    $school = makeSchoolForStudentTests();
+    makeStudent($school, '345.678.901-00');
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->actingAs($user)
+        ->getJson(route('tenant.students.lookup', ['345.678.901-00']))
+        ->assertStatus(200)
+        ->assertJsonPath('guardian', null);
 });

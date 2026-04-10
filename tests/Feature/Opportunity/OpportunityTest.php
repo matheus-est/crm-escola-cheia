@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\OpportunityStatus;
 use App\Models\Grade;
+use App\Models\LeadSource;
 use App\Models\Opportunity;
 use App\Models\Role;
 use App\Models\School;
@@ -11,6 +12,8 @@ use App\Models\SchoolYear;
 use App\Models\Segment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -304,4 +307,135 @@ it('POST store com registration_type, segment_id, history e indications persiste
         'history' => 'Histórico do aluno.',
         'indications' => 'Indicação de amigo.',
     ]);
+});
+
+it('GET index sem view retorna kanban_columns com todos os status e opportunities null', function (): void {
+    $user = opportunityMasterUser();
+    $school = makeSchoolForOpportunityTests();
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $response = $this->withoutVite()
+        ->actingAs($user)
+        ->get(route('tenant.opportunities.index'));
+
+    $response->assertStatus(200);
+    $response->assertInertia(function ($page): void {
+        $page->where('view', 'kanban')
+            ->where('opportunities', null)
+            ->has('kanban_columns');
+
+        foreach (OpportunityStatus::cases() as $case) {
+            $page->has('kanban_columns.'.$case->value);
+        }
+    });
+});
+
+it('GET index com view=list retorna opportunities paginado e kanban_columns null', function (): void {
+    $user = opportunityMasterUser();
+    $school = makeSchoolForOpportunityTests();
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $response = $this->withoutVite()
+        ->actingAs($user)
+        ->get(route('tenant.opportunities.index', ['view' => 'list']));
+
+    $response->assertStatus(200);
+    $response->assertInertia(function ($page): void {
+        $page->where('view', 'list')
+            ->where('kanban_columns', null)
+            ->has('opportunities');
+    });
+});
+
+it('GET index com lead_source_id filtra corretamente em view list', function (): void {
+    $user = opportunityMasterUser();
+    $school = makeSchoolForOpportunityTests();
+
+    $leadSource = LeadSource::create([
+        'name' => 'Lead Test Filter',
+        'school_id' => $school->id,
+    ]);
+
+    $grade = makeGradeForOpportunity($school);
+    $schoolYear = makeSchoolYearForOpportunity($school);
+
+    Opportunity::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'grade_id' => $grade->id,
+        'school_year_id' => $schoolYear->id,
+        'lead_source_id' => $leadSource->id,
+        'status' => 'cadastro_inicial',
+    ]);
+
+    // Create another opportunity with no lead source
+    Opportunity::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'grade_id' => $grade->id,
+        'school_year_id' => $schoolYear->id,
+        'lead_source_id' => null,
+        'status' => 'cadastro_inicial',
+    ]);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $response = $this->withoutVite()
+        ->actingAs($user)
+        ->get(route('tenant.opportunities.index', [
+            'view' => 'list',
+            'lead_source_id' => $leadSource->uuid,
+        ]));
+
+    $response->assertStatus(200);
+    $response->assertInertia(function ($page): void {
+        $page->where('view', 'list');
+        // The filtered result should have exactly 1 item
+        $page->where('opportunities.meta.total', 1);
+    });
+});
+
+it('GET index com date_from e date_to filtra por intervalo de datas', function (): void {
+    $user = opportunityMasterUser();
+    $school = makeSchoolForOpportunityTests();
+    $grade = makeGradeForOpportunity($school);
+    $schoolYear = makeSchoolYearForOpportunity($school);
+
+    // Use DB::table to bypass observer and set specific timestamps
+    DB::table('opportunities')->insert([
+        'uuid' => (string) Str::uuid(),
+        'school_id' => $school->id,
+        'grade_id' => $grade->id,
+        'school_year_id' => $schoolYear->id,
+        'status' => 'cadastro_inicial',
+        'created_at' => '2026-06-15 10:00:00',
+        'updated_at' => '2026-06-15 10:00:00',
+    ]);
+
+    // Opportunity outside date range
+    DB::table('opportunities')->insert([
+        'uuid' => (string) Str::uuid(),
+        'school_id' => $school->id,
+        'grade_id' => $grade->id,
+        'school_year_id' => $schoolYear->id,
+        'status' => 'cadastro_inicial',
+        'created_at' => '2025-01-01 10:00:00',
+        'updated_at' => '2025-01-01 10:00:00',
+    ]);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $response = $this->withoutVite()
+        ->actingAs($user)
+        ->get(route('tenant.opportunities.index', [
+            'view' => 'list',
+            'date_from' => '2026-01-01',
+            'date_to' => '2026-12-31',
+        ]));
+
+    $response->assertStatus(200);
+    $response->assertInertia(function ($page): void {
+        $page->where('view', 'list')
+            ->where('opportunities.meta.total', 1);
+    });
 });

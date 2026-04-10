@@ -89,12 +89,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
             ->name('guardians.destroy');
 
         // Oportunidades
-        Route::match(['get', 'post'], '/opportunities', [OpportunityController::class, 'index'])
+        Route::get('/opportunities', [OpportunityController::class, 'index'])
             ->name('opportunities.index');
         Route::get('/opportunities/create', [OpportunityController::class, 'create'])
             ->name('opportunities.create');
         Route::post('/opportunities', [OpportunityController::class, 'store'])
             ->name('opportunities.store');
+        Route::patch('/opportunities/{opportunity}/status', [OpportunityController::class, 'updateStatus'])
+            ->name('opportunities.update_status');
         Route::get('/opportunities/{opportunity}', [OpportunityController::class, 'show'])
             ->name('opportunities.show');
         Route::get('/opportunities/{opportunity}/edit', [OpportunityController::class, 'edit'])

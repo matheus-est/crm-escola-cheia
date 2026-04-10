@@ -1,9 +1,19 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { BookOpen, Eye, Filter, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import {
+    BookOpen,
+    Eye,
+    Filter,
+    KanbanSquare,
+    List,
+    Pencil,
+    Plus,
+    Trash2,
+} from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import Heading from '@/components/Heading.vue';
+import KanbanBoard from '@/components/opportunities/KanbanBoard.vue';
 import PerPageSelect from '@/components/PerPageSelect.vue';
 import TablePagination from '@/components/TablePagination.vue';
 import {
@@ -13,6 +23,7 @@ import {
     AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -23,6 +34,11 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
+    isTerminalStatus,
+    statusClasses,
+    statusLabels,
+} from '@/lib/opportunityStatus';
+import {
     create,
     destroy,
     edit,
@@ -32,22 +48,27 @@ import {
 import type { BreadcrumbItem } from '@/types';
 import type {
     Grade,
+    KanbanColumns,
     LeadSource,
     Opportunity,
     OpportunityStatus,
     PaginatedOpportunities,
-    School,
+    SchoolUnit,
     SchoolYear,
+    Segment,
     TenantUser,
 } from '@/types/crm';
 
 const props = defineProps<{
-    school: School;
-    opportunities: PaginatedOpportunities;
+    view: 'kanban' | 'list';
+    opportunities: PaginatedOpportunities | null;
+    kanban_columns: KanbanColumns | null;
     grades: Grade[];
     schoolYears: SchoolYear[];
     leadSources: LeadSource[];
     responsibleUsers: TenantUser[];
+    segments: Segment[];
+    schoolUnits: SchoolUnit[];
 }>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
@@ -59,14 +80,44 @@ const localFilters = ref<{
     grade_id: string;
     school_year_id: string;
     responsible_user_id: string;
+    lead_source_id: string;
+    segment_id: string;
+    school_unit_id: string;
+    registration_type: string;
+    date_from: string;
+    date_to: string;
     per_page: number;
 }>({
     status: '',
     grade_id: '',
     school_year_id: '',
     responsible_user_id: '',
+    lead_source_id: '',
+    segment_id: '',
+    school_unit_id: '',
+    registration_type: '',
+    date_from: '',
+    date_to: '',
     per_page: 10,
 });
+
+const currentFilters = computed<Record<string, string | number | undefined>>(
+    () => ({
+        status: localFilters.value.status || undefined,
+        grade_id: localFilters.value.grade_id || undefined,
+        school_year_id: localFilters.value.school_year_id || undefined,
+        responsible_user_id:
+            localFilters.value.responsible_user_id || undefined,
+        lead_source_id: localFilters.value.lead_source_id || undefined,
+        segment_id: localFilters.value.segment_id || undefined,
+        school_unit_id: localFilters.value.school_unit_id || undefined,
+        registration_type: localFilters.value.registration_type || undefined,
+        date_from: localFilters.value.date_from || undefined,
+        date_to: localFilters.value.date_to || undefined,
+        per_page: localFilters.value.per_page,
+        view: props.view,
+    }),
+);
 
 const hasActiveFilter = computed(
     () =>
@@ -74,7 +125,13 @@ const hasActiveFilter = computed(
             localFilters.value.status ||
             localFilters.value.grade_id ||
             localFilters.value.school_year_id ||
-            localFilters.value.responsible_user_id
+            localFilters.value.responsible_user_id ||
+            localFilters.value.lead_source_id ||
+            localFilters.value.segment_id ||
+            localFilters.value.school_unit_id ||
+            localFilters.value.registration_type ||
+            localFilters.value.date_from ||
+            localFilters.value.date_to
         ),
 );
 
@@ -84,11 +141,18 @@ const filterCount = computed(() =>
         localFilters.value.grade_id ? 1 : 0,
         localFilters.value.school_year_id ? 1 : 0,
         localFilters.value.responsible_user_id ? 1 : 0,
+        localFilters.value.lead_source_id ? 1 : 0,
+        localFilters.value.segment_id ? 1 : 0,
+        localFilters.value.school_unit_id ? 1 : 0,
+        localFilters.value.registration_type ? 1 : 0,
+        localFilters.value.date_from ? 1 : 0,
+        localFilters.value.date_to ? 1 : 0,
     ].reduce((a, b) => a + b, 0),
 );
 
 function updateStatus(value: string): void {
-    localFilters.value.status = value as OpportunityStatus | '';
+    localFilters.value.status =
+        value === 'all' ? '' : (value as OpportunityStatus | '');
 }
 
 function updateGrade(value: string): void {
@@ -103,48 +167,61 @@ function updateResponsibleUser(value: string): void {
     localFilters.value.responsible_user_id = value === 'all' ? '' : value;
 }
 
+function updateLeadSource(value: string): void {
+    localFilters.value.lead_source_id = value === 'all' ? '' : value;
+}
+
+function updateSegment(value: string): void {
+    localFilters.value.segment_id = value === 'all' ? '' : value;
+}
+
+function updateSchoolUnit(value: string): void {
+    localFilters.value.school_unit_id = value === 'all' ? '' : value;
+}
+
+function updateRegistrationType(value: string): void {
+    localFilters.value.registration_type = value === 'all' ? '' : value;
+}
+
 function updatePerPage(value: string): void {
     localFilters.value.per_page = parseInt(value) || 10;
     applyFilters();
 }
 
 function applyFilters(): void {
-    router.post(
-        index.post().url,
+    router.get(
+        index().url,
         {
-            status: localFilters.value.status,
-            grade_id: localFilters.value.grade_id,
-            school_year_id: localFilters.value.school_year_id,
-            responsible_user_id: localFilters.value.responsible_user_id,
+            status: localFilters.value.status || undefined,
+            grade_id: localFilters.value.grade_id || undefined,
+            school_year_id: localFilters.value.school_year_id || undefined,
+            responsible_user_id:
+                localFilters.value.responsible_user_id || undefined,
+            lead_source_id: localFilters.value.lead_source_id || undefined,
+            segment_id: localFilters.value.segment_id || undefined,
+            school_unit_id: localFilters.value.school_unit_id || undefined,
+            registration_type:
+                localFilters.value.registration_type || undefined,
+            date_from: localFilters.value.date_from || undefined,
+            date_to: localFilters.value.date_to || undefined,
             per_page: localFilters.value.per_page,
+            view: props.view,
         },
-        { preserveScroll: true },
+        { preserveUrl: true },
     );
 }
 
-function isTerminalStatus(status: OpportunityStatus): boolean {
-    return status === 'matricula' || status === 'recusado';
+function clearFilters(): void {
+    router.get(index().url, { view: props.view }, { preserveUrl: true });
 }
 
-const statusLabels: Record<OpportunityStatus, string> = {
-    cadastro_inicial: 'Cadastro Inicial',
-    agendamento: 'Agendamento',
-    visita: 'Visita',
-    matricula: 'Matrícula',
-    recusado: 'Recusado',
-};
-
-const statusClasses: Record<OpportunityStatus, string> = {
-    cadastro_inicial:
-        'bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-400/10 dark:text-blue-400 dark:ring-blue-400/20',
-    agendamento:
-        'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-400 dark:ring-yellow-400/20',
-    visita: 'bg-purple-50 text-purple-700 ring-purple-600/20 dark:bg-purple-400/10 dark:text-purple-400 dark:ring-purple-400/20',
-    matricula:
-        'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-400/10 dark:text-green-400 dark:ring-green-400/20',
-    recusado:
-        'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-400/10 dark:text-red-400 dark:ring-red-400/20',
-};
+function switchView(newView: 'kanban' | 'list'): void {
+    router.get(
+        index().url,
+        { ...currentFilters.value, view: newView },
+        { preserveUrl: true },
+    );
+}
 
 // Delete
 const showDeleteModal = ref(false);
@@ -167,7 +244,7 @@ function handleDeleteSuccess(): void {
         <Head title="Oportunidades" />
 
         <div class="space-y-6">
-            <!-- Page header -->
+            <!-- Page header — line 1: Heading | Filters -->
             <div class="flex items-center justify-between">
                 <Heading title="Oportunidades" />
 
@@ -204,6 +281,7 @@ function handleDeleteSuccess(): void {
                                     @submit.prevent="applyFilters"
                                     class="space-y-4"
                                 >
+                                    <!-- Status -->
                                     <div class="space-y-1.5">
                                         <Label
                                             for="filter-status"
@@ -213,7 +291,7 @@ function handleDeleteSuccess(): void {
                                         </Label>
                                         <Select
                                             :default-value="
-                                                localFilters.status || ''
+                                                localFilters.status || 'all'
                                             "
                                             @update:model-value="updateStatus"
                                         >
@@ -250,6 +328,7 @@ function handleDeleteSuccess(): void {
                                         </Select>
                                     </div>
 
+                                    <!-- Série/Turma -->
                                     <div class="space-y-1.5">
                                         <Label
                                             for="filter-grade"
@@ -259,7 +338,7 @@ function handleDeleteSuccess(): void {
                                         </Label>
                                         <Select
                                             :default-value="
-                                                localFilters.grade_id || ''
+                                                localFilters.grade_id || 'all'
                                             "
                                             @update:model-value="updateGrade"
                                         >
@@ -286,6 +365,7 @@ function handleDeleteSuccess(): void {
                                         </Select>
                                     </div>
 
+                                    <!-- Ano Letivo -->
                                     <div class="space-y-1.5">
                                         <Label
                                             for="filter-school-year"
@@ -296,7 +376,7 @@ function handleDeleteSuccess(): void {
                                         <Select
                                             :default-value="
                                                 localFilters.school_year_id ||
-                                                ''
+                                                'all'
                                             "
                                             @update:model-value="
                                                 updateSchoolYear
@@ -325,6 +405,7 @@ function handleDeleteSuccess(): void {
                                         </Select>
                                     </div>
 
+                                    <!-- Responsável -->
                                     <div class="space-y-1.5">
                                         <Label
                                             for="filter-responsible"
@@ -335,7 +416,7 @@ function handleDeleteSuccess(): void {
                                         <Select
                                             :default-value="
                                                 localFilters.responsible_user_id ||
-                                                ''
+                                                'all'
                                             "
                                             @update:model-value="
                                                 updateResponsibleUser
@@ -364,9 +445,200 @@ function handleDeleteSuccess(): void {
                                         </Select>
                                     </div>
 
+                                    <!-- Origem do Lead -->
+                                    <div class="space-y-1.5">
+                                        <Label
+                                            for="filter-lead-source"
+                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            Origem
+                                        </Label>
+                                        <Select
+                                            :default-value="
+                                                localFilters.lead_source_id ||
+                                                'all'
+                                            "
+                                            @update:model-value="
+                                                updateLeadSource
+                                            "
+                                        >
+                                            <SelectTrigger
+                                                id="filter-lead-source"
+                                                class="h-8"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Todas as origens"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all"
+                                                    >Todas as
+                                                    origens</SelectItem
+                                                >
+                                                <SelectItem
+                                                    v-for="ls in props.leadSources"
+                                                    :key="ls.uuid"
+                                                    :value="ls.uuid"
+                                                >
+                                                    {{ ls.name }}
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <!-- Segmento -->
+                                    <div class="space-y-1.5">
+                                        <Label
+                                            for="filter-segment"
+                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            Segmento
+                                        </Label>
+                                        <Select
+                                            :default-value="
+                                                localFilters.segment_id || 'all'
+                                            "
+                                            @update:model-value="updateSegment"
+                                        >
+                                            <SelectTrigger
+                                                id="filter-segment"
+                                                class="h-8"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Todos os segmentos"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all"
+                                                    >Todos os
+                                                    segmentos</SelectItem
+                                                >
+                                                <SelectItem
+                                                    v-for="segment in props.segments"
+                                                    :key="segment.uuid"
+                                                    :value="segment.uuid"
+                                                >
+                                                    {{ segment.name }}
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <!-- Unidade -->
+                                    <div class="space-y-1.5">
+                                        <Label
+                                            for="filter-school-unit"
+                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            Unidade
+                                        </Label>
+                                        <Select
+                                            :default-value="
+                                                localFilters.school_unit_id ||
+                                                'all'
+                                            "
+                                            @update:model-value="
+                                                updateSchoolUnit
+                                            "
+                                        >
+                                            <SelectTrigger
+                                                id="filter-school-unit"
+                                                class="h-8"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Todas as unidades"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all"
+                                                    >Todas as
+                                                    unidades</SelectItem
+                                                >
+                                                <SelectItem
+                                                    v-for="unit in props.schoolUnits"
+                                                    :key="unit.uuid"
+                                                    :value="unit.uuid"
+                                                >
+                                                    {{ unit.name }}
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <!-- Tipo de Cadastro -->
+                                    <div class="space-y-1.5">
+                                        <Label
+                                            for="filter-registration-type"
+                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            Tipo de Cadastro
+                                        </Label>
+                                        <Select
+                                            :default-value="
+                                                localFilters.registration_type ||
+                                                'all'
+                                            "
+                                            @update:model-value="
+                                                updateRegistrationType
+                                            "
+                                        >
+                                            <SelectTrigger
+                                                id="filter-registration-type"
+                                                class="h-8"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Todos os tipos"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all"
+                                                    >Todos os tipos</SelectItem
+                                                >
+                                                <SelectItem value="agendamento"
+                                                    >Agendamento</SelectItem
+                                                >
+                                                <SelectItem value="evento"
+                                                    >Evento</SelectItem
+                                                >
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <!-- Data de / até -->
+                                    <div class="space-y-1.5">
+                                        <Label
+                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            Período
+                                        </Label>
+                                        <div class="flex gap-2">
+                                            <Input
+                                                v-model="localFilters.date_from"
+                                                type="date"
+                                                class="h-8 text-xs"
+                                                placeholder="De"
+                                            />
+                                            <Input
+                                                v-model="localFilters.date_to"
+                                                type="date"
+                                                class="h-8 text-xs"
+                                                placeholder="Até"
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div
-                                        class="flex items-center justify-end gap-2 pt-1"
+                                        class="flex items-center justify-between gap-2 pt-1"
                                     >
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            class="h-8 text-muted-foreground"
+                                            @click="clearFilters"
+                                        >
+                                            Limpar filtros
+                                        </Button>
                                         <Button
                                             type="submit"
                                             size="sm"
@@ -382,7 +654,7 @@ function handleDeleteSuccess(): void {
                 </Accordion>
             </div>
 
-            <!-- Table header actions -->
+            <!-- Page header — line 2: New button | View toggle | PerPageSelect -->
             <div class="flex items-center justify-between">
                 <Link
                     :href="create().url"
@@ -392,14 +664,56 @@ function handleDeleteSuccess(): void {
                     Nova Oportunidade
                 </Link>
 
-                <PerPageSelect
-                    :model-value="String(localFilters.per_page)"
-                    @update:model-value="updatePerPage"
+                <div class="flex rounded-lg border">
+                    <button
+                        type="button"
+                        class="flex items-center gap-1.5 rounded-l-lg px-3 py-2 text-sm font-medium transition-colors"
+                        :class="
+                            props.view === 'kanban'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                        "
+                        @click="switchView('kanban')"
+                    >
+                        <KanbanSquare class="h-4 w-4" />
+                        Kanban
+                    </button>
+                    <button
+                        type="button"
+                        class="flex items-center gap-1.5 rounded-r-lg border-l px-3 py-2 text-sm font-medium transition-colors"
+                        :class="
+                            props.view === 'list'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                        "
+                        @click="switchView('list')"
+                    >
+                        <List class="h-4 w-4" />
+                        Lista
+                    </button>
+                </div>
+
+                <div class="flex items-center">
+                    <PerPageSelect
+                        v-if="props.view === 'list'"
+                        :model-value="String(localFilters.per_page)"
+                        @update:model-value="updatePerPage"
+                    />
+                    <div v-else class="w-32" />
+                </div>
+            </div>
+
+            <!-- Kanban View -->
+            <div v-if="props.view === 'kanban'">
+                <KanbanBoard
+                    v-if="props.kanban_columns"
+                    :columns="props.kanban_columns"
+                    :filters="currentFilters"
                 />
             </div>
 
-            <!-- Table -->
-            <div>
+            <!-- List View -->
+            <div v-else>
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b">
@@ -442,7 +756,7 @@ function handleDeleteSuccess(): void {
                     </thead>
                     <tbody class="divide-y divide-border/50">
                         <tr
-                            v-for="opportunity in props.opportunities.data"
+                            v-for="opportunity in props.opportunities?.data"
                             :key="opportunity.uuid"
                             class="transition-colors hover:bg-muted/30"
                         >
@@ -520,7 +834,7 @@ function handleDeleteSuccess(): void {
 
                 <!-- Empty state -->
                 <div
-                    v-if="props.opportunities.data.length === 0"
+                    v-if="!props.opportunities?.data.length"
                     class="flex flex-col items-center justify-center py-16 text-center"
                 >
                     <div class="mb-4 rounded-full bg-muted/50 p-4">
@@ -538,16 +852,19 @@ function handleDeleteSuccess(): void {
                     </p>
                     <Link
                         v-if="!hasActiveFilter"
-                        :href="create(props.school.uuid).url"
+                        :href="create().url"
                         class="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                     >
                         <Plus class="h-4 w-4" />
                         Nova Oportunidade
                     </Link>
                 </div>
-            </div>
 
-            <TablePagination :paginator="props.opportunities" />
+                <TablePagination
+                    v-if="props.opportunities"
+                    :paginator="props.opportunities"
+                />
+            </div>
         </div>
 
         <!-- Delete confirmation modal -->
@@ -558,7 +875,6 @@ function handleDeleteSuccess(): void {
             :message="`Tem certeza que deseja excluir a oportunidade de ${opportunityToDelete.student?.name ?? 'este aluno'}?`"
             :action="
                 destroy({
-                    school_uuid: props.school.uuid,
                     opportunity: opportunityToDelete.uuid,
                 }).url
             "

@@ -25,6 +25,7 @@ class Opportunity extends Model implements Auditable
     protected $fillable = [
         'uuid',
         'school_id',
+        'school_unit_id',
         'student_id',
         'guardian_id',
         'grade_id',
@@ -57,6 +58,11 @@ class Opportunity extends Model implements Auditable
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
+    }
+
+    public function schoolUnit(): BelongsTo
+    {
+        return $this->belongsTo(SchoolUnit::class);
     }
 
     public function student(): BelongsTo

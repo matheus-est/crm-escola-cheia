@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\Opportunity;
 
+use App\Enums\OpportunityStatus;
 use App\Enums\SchoolYearStatus;
 use App\Enums\TaskType;
 use App\Models\Grade;
+use App\Models\LeadSource;
 use App\Models\Opportunity;
+use App\Models\SchoolUnit;
 use App\Models\SchoolYear;
+use App\Models\Segment;
 use App\Models\User;
 use App\Services\Guardian\GuardianService;
 use App\Services\Student\StudentService;
@@ -25,7 +29,7 @@ class OpportunityService
         protected readonly TaskService $taskService,
     ) {}
 
-    public function list(array $filters = []): LengthAwarePaginator
+    public function list(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = Opportunity::query();
 
@@ -54,12 +58,87 @@ class OpportunityService
             }
         }
 
-        $perPage = isset($filters['per_page']) ? (int) $filters['per_page'] : 15;
+        if (array_key_exists('lead_source_id', $filters) && $filters['lead_source_id'] !== null && $filters['lead_source_id'] !== '') {
+            $val = $filters['lead_source_id'];
+            $id = is_numeric($val) ? (int) $val : LeadSource::where('uuid', $val)->value('id');
+            if ($id !== null) {
+                $query->where('lead_source_id', $id);
+            }
+        }
+
+        if (array_key_exists('registration_type', $filters) && $filters['registration_type'] !== null && $filters['registration_type'] !== '') {
+            $query->where('registration_type', $filters['registration_type']);
+        }
+
+        if (array_key_exists('segment_id', $filters) && $filters['segment_id'] !== null && $filters['segment_id'] !== '') {
+            $val = $filters['segment_id'];
+            $id = is_numeric($val) ? (int) $val : Segment::where('uuid', $val)->value('id');
+            if ($id !== null) {
+                $query->where('segment_id', $id);
+            }
+        }
+
+        if (array_key_exists('school_unit_id', $filters) && $filters['school_unit_id'] !== null && $filters['school_unit_id'] !== '') {
+            $val = $filters['school_unit_id'];
+            $id = is_numeric($val) ? (int) $val : SchoolUnit::where('uuid', $val)->value('id');
+            if ($id !== null) {
+                $query->where('school_unit_id', $id);
+            }
+        }
+
+        if (array_key_exists('date_from', $filters) && $filters['date_from'] !== null && $filters['date_from'] !== '') {
+            $query->whereDate('opportunities.created_at', '>=', $filters['date_from']);
+        }
+
+        if (array_key_exists('date_to', $filters) && $filters['date_to'] !== null && $filters['date_to'] !== '') {
+            $query->whereDate('opportunities.created_at', '<=', $filters['date_to']);
+        }
+
+        if (array_key_exists('per_page', $filters)) {
+            $perPage = (int) $filters['per_page'];
+        }
+
+        $page = (int) ($filters['page'] ?? 1);
 
         return $query
-            ->with(['student', 'guardian', 'grade', 'schoolYear', 'responsibleUser'])
+            ->with(['student', 'guardian', 'grade', 'segment', 'schoolYear', 'responsibleUser', 'schoolUnit'])
             ->orderByDesc('created_at')
-            ->paginate($perPage);
+            ->paginate($perPage, ['*'], 'page', $page);
+    }
+
+    public function listByStatus(array $filters = [], int $perPage = 10): array
+    {
+        // Resolve UUIDs to IDs once, before the loop
+        $resolvedFilters = $filters;
+
+        if (array_key_exists('lead_source_id', $filters) && $filters['lead_source_id'] !== null && $filters['lead_source_id'] !== '') {
+            $resolvedFilters['lead_source_id'] = LeadSource::where('uuid', $filters['lead_source_id'])->value('id');
+        }
+
+        if (array_key_exists('segment_id', $filters) && $filters['segment_id'] !== null && $filters['segment_id'] !== '') {
+            $resolvedFilters['segment_id'] = Segment::where('uuid', $filters['segment_id'])->value('id');
+        }
+
+        if (array_key_exists('school_unit_id', $filters) && $filters['school_unit_id'] !== null && $filters['school_unit_id'] !== '') {
+            $resolvedFilters['school_unit_id'] = SchoolUnit::where('uuid', $filters['school_unit_id'])->value('id');
+        }
+
+        $columns = [];
+
+        foreach (OpportunityStatus::cases() as $case) {
+            $statusFilters = $resolvedFilters;
+            $statusFilters['status'] = $case->value;
+            $statusFilters['page'] = (int) ($filters['page_'.$case->value] ?? 1);
+
+            // Remove the individual page_{status} keys so they don't interfere
+            foreach (OpportunityStatus::cases() as $c) {
+                unset($statusFilters['page_'.$c->value]);
+            }
+
+            $columns[$case->value] = $this->list($statusFilters, $perPage);
+        }
+
+        return $columns;
     }
 
     public function create(array $data): Opportunity
@@ -108,6 +187,7 @@ class OpportunityService
                 'responsible_user_id' => $data['responsible_user_id'] ?? null,
                 'registration_type' => $data['registration_type'] ?? null,
                 'segment_id' => $data['segment_id'] ?? null,
+                'school_unit_id' => $data['school_unit_id'] ?? null,
                 'history' => $data['history'] ?? null,
                 'indications' => $data['indications'] ?? null,
             ]);
@@ -130,6 +210,10 @@ class OpportunityService
 
         $opportunity->fill($data);
         $opportunity->save();
+
+        if (array_key_exists('student_birth_date', $data) && $data['student_birth_date'] !== null && $opportunity->student !== null) {
+            $opportunity->student->update(['date_of_birth' => $data['student_birth_date']]);
+        }
 
         return $opportunity;
     }

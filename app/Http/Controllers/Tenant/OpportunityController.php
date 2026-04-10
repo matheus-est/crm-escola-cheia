@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Opportunity\StoreOpportunityRequest;
 use App\Http\Requests\Opportunity\UpdateOpportunityRequest;
+use App\Http\Requests\Opportunity\UpdateOpportunityStatusRequest;
+use App\Http\Resources\OpportunityResource;
 use App\Http\Resources\OutcomeResource;
 use App\Http\Resources\TaskResource;
 use App\Models\Grade;
@@ -14,11 +16,13 @@ use App\Models\Guardian;
 use App\Models\LeadSource;
 use App\Models\Opportunity;
 use App\Models\Outcome;
+use App\Models\SchoolUnit;
 use App\Models\SchoolYear;
 use App\Models\Segment;
 use App\Models\Student;
 use App\Models\Task;
 use App\Services\Opportunity\OpportunityService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,31 +41,48 @@ class OpportunityController extends Controller
         Gate::authorize('viewAny', Opportunity::class);
 
         $school = Auth::user()->currentSchool();
+        $view = $request->input('view', 'kanban');
+
+        $grades = Grade::query()->orderBy('name')->get(['uuid', 'name']);
+        $schoolYears = SchoolYear::query()->orderBy('name')->get(['uuid', 'name']);
+        $leadSources = LeadSource::query()->orderBy('name')->get(['uuid', 'name']);
+        $responsibleUsers = $school->users()->orderBy('name')->get(['users.uuid', 'users.name']);
+        $segments = Segment::query()->orderBy('name')->get(['uuid', 'name']);
+        $schoolUnits = SchoolUnit::query()->orderBy('name')->get(['uuid', 'name']);
+
+        if ($view === 'kanban') {
+            $kanbanColumns = $this->opportunityService->listByStatus($request->all());
+
+            $wrappedColumns = [];
+            foreach ($kanbanColumns as $status => $paginator) {
+                $wrappedColumns[$status] = OpportunityResource::collection($paginator);
+            }
+
+            return Inertia::render('opportunities/Index', [
+                'view' => 'kanban',
+                'opportunities' => null,
+                'kanban_columns' => $wrappedColumns,
+                'grades' => $grades,
+                'schoolYears' => $schoolYears,
+                'leadSources' => $leadSources,
+                'responsibleUsers' => $responsibleUsers,
+                'segments' => $segments,
+                'schoolUnits' => $schoolUnits,
+            ]);
+        }
 
         $opportunities = $this->opportunityService->list($request->all());
 
-        $opportunities->load([
-            'student',
-            'guardian',
-            'grade',
-            'schoolYear',
-            'responsibleUser',
-        ]);
-
-        $grades = Grade::query()->orderBy('name')->get();
-        $schoolYears = SchoolYear::query()->orderBy('name')->get();
-        $leadSources = LeadSource::query()->orderBy('name')->get();
-        $responsibleUsers = $school->users()->orderBy('name')->get();
-        $segments = Segment::query()->orderBy('name')->get();
-
         return Inertia::render('opportunities/Index', [
-            'school' => $school,
-            'opportunities' => $opportunities,
+            'view' => 'list',
+            'opportunities' => OpportunityResource::collection($opportunities),
+            'kanban_columns' => null,
             'grades' => $grades,
             'schoolYears' => $schoolYears,
             'leadSources' => $leadSources,
             'responsibleUsers' => $responsibleUsers,
             'segments' => $segments,
+            'schoolUnits' => $schoolUnits,
         ]);
     }
 
@@ -111,6 +132,8 @@ class OpportunityController extends Controller
     {
         Gate::authorize('view', $opportunity);
 
+        $opportunity->load(['student', 'guardian', 'grade', 'schoolYear', 'leadSource', 'segment', 'responsibleUser', 'schoolUnit']);
+
         $tasks = Task::query()
             ->where('opportunity_id', $opportunity->id)
             ->with(['assignedUser', 'outcome'])
@@ -125,11 +148,51 @@ class OpportunityController extends Controller
         $school = Auth::user()->currentSchool();
         $users = $school->users()->orderBy('name')->get();
 
+        $status = $opportunity->status->value;
+
+        $stageOrder = ['cadastro_inicial' => 0, 'agendamento' => 1, 'visita' => 2, 'matricula' => 3];
+        $currentOrder = $stageOrder[$status] ?? -1;
+
+        $stages = [
+            ['label' => 'Cadastro Inicial', 'slug' => 'cadastro_inicial'],
+            ['label' => 'Agendamento', 'slug' => 'agendamento'],
+            ['label' => 'Visita', 'slug' => 'visita'],
+            ['label' => 'Matrícula', 'slug' => 'matricula'],
+        ];
+
+        if ($status === 'recusado') {
+            $funnelStages = array_map(fn (array $s): array => array_merge($s, ['state' => 'pending']), $stages);
+        } else {
+            $funnelStages = array_map(function (array $stage) use ($stageOrder, $currentOrder, $status): array {
+                $order = $stageOrder[$stage['slug']];
+                $state = match (true) {
+                    $order < $currentOrder => 'completed',
+                    $order === $currentOrder && $status === 'matricula' => 'completed',
+                    $order === $currentOrder => 'active',
+                    default => 'pending',
+                };
+
+                return array_merge($stage, ['state' => $state]);
+            }, $stages);
+        }
+
+        $daysInStage = (int) ($opportunity->updated_at?->diffInDays(now()) ?? 0);
+
+        $opportunityData = $opportunity->toArray();
+        if (array_key_exists('guardian', $opportunityData)
+            && $opportunityData['guardian'] !== null
+            && array_key_exists('cpf', $opportunityData['guardian'])
+            && $opportunityData['guardian']['cpf'] !== null) {
+            $opportunityData['guardian']['cpf'] = $this->maskCpfLgpd($opportunityData['guardian']['cpf']);
+        }
+
         return Inertia::render('opportunities/Show', [
-            'opportunity' => $opportunity->load(['student', 'guardian', 'grade', 'schoolYear', 'leadSource', 'segment', 'responsibleUser']),
-            'tasks' => TaskResource::collection($tasks),
-            'outcomes' => OutcomeResource::collection($outcomes),
-            'users' => $users->map(fn ($u) => ['id' => $u->id, 'uuid' => $u->uuid, 'name' => $u->name]),
+            'opportunity' => $opportunityData,
+            'tasks' => TaskResource::collection($tasks)->resolve(),
+            'outcomes' => OutcomeResource::collection($outcomes)->resolve(),
+            'users' => $users->map(fn ($u) => ['uuid' => $u->uuid, 'name' => $u->name]),
+            'funnel_stages' => $funnelStages,
+            'days_in_stage' => $daysInStage,
         ]);
     }
 
@@ -180,6 +243,14 @@ class OpportunityController extends Controller
             ->with('success', 'Oportunidade atualizada com sucesso.');
     }
 
+    public function updateStatus(UpdateOpportunityStatusRequest $request, Opportunity $opportunity): JsonResponse
+    {
+        Gate::authorize('update', $opportunity);
+        $opportunity->update(['status' => $request->validated()['status']]);
+
+        return response()->json(['status' => $opportunity->status]);
+    }
+
     public function destroy(Opportunity $opportunity): RedirectResponse
     {
         Gate::authorize('delete', $opportunity);
@@ -188,5 +259,11 @@ class OpportunityController extends Controller
 
         return to_route('tenant.opportunities.index')
             ->with('success', 'Oportunidade excluída com sucesso.');
+    }
+
+    private function maskCpfLgpd(string $cpf): string
+    {
+        // Input: "123.456.789-00"  →  Output: "***.456.789-**"
+        return preg_replace('/^\d{3}(\.\d{3}\.\d{3}-)\d{2}$/', '***$1**', $cpf) ?? $cpf;
     }
 }

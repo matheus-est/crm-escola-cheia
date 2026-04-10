@@ -30,6 +30,7 @@ class UpdateOpportunityRequest extends FormRequest
             'segment_id' => ['nullable', 'exists:segments,id'],
             'student_name' => ['nullable', 'string', 'max:255'],
             'student_cpf' => ['nullable', 'string', 'size:14', new CpfRule],
+            'student_birth_date' => ['nullable', 'date'],
             'guardian_name' => ['nullable', 'string', 'max:255'],
             'guardian_cpf' => ['nullable', 'string', 'size:14', new CpfRule],
             'guardian_phone' => ['nullable', 'string', 'max:20'],

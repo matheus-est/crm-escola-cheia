@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\StudentStoreRequest;
 use App\Http\Requests\Student\StudentUpdateRequest;
+use App\Models\Guardian;
 use App\Models\Student;
 use App\Services\Student\StudentService;
 use Illuminate\Http\JsonResponse;
@@ -66,12 +67,23 @@ class StudentController extends Controller
     {
         Gate::authorize('viewAny', Student::class);
 
+        $isGuardian = Guardian::where('cpf', $cpf)->exists();
+        if ($isGuardian) {
+            return response()->json([
+                'error' => 'found_as_guardian',
+                'message' => 'O CPF informado pertence a um responsável cadastrado.',
+            ], 409);
+        }
+
         $student = $this->studentService->lookup($cpf);
 
         if ($student === null) {
             return response()->json(['message' => 'Aluno não encontrado.'], 404);
         }
 
-        return response()->json($student);
+        return response()->json(array_merge(
+            $student->toArray(),
+            ['guardian' => $student->guardians->first()?->toArray()]
+        ));
     }
 }

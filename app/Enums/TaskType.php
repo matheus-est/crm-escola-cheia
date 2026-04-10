@@ -24,4 +24,20 @@ enum TaskType: string
             default => false,
         };
     }
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::RetornoLigacao => 'Retorno de Ligação',
+            self::Agendamento => 'Agendamento',
+            self::LembreteAgenda => 'Lembrete de Agenda',
+            self::Reagendamento => 'Reagendamento',
+            self::DoubleCheck => 'Double Check',
+            self::ProvavelMatricula => 'Provável Matrícula',
+            self::Evento => 'Evento',
+            self::LembreteEvento => 'Lembrete de Evento',
+            self::ReagendamentoEvento => 'Reagendamento de Evento',
+            self::DoubleCheckEvento => 'Double Check Evento',
+        };
+    }
 }

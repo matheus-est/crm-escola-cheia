@@ -16,10 +16,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useCepLookup } from '@/composables/useCepLookup';
-import { useCpfLookup } from '@/composables/useCpfLookup';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { validate_cpf } from '@/routes/tenant/guardians';
 import { index, update } from '@/routes/tenant/opportunities';
 import type { BreadcrumbItem } from '@/types';
 import type {
@@ -71,106 +69,9 @@ const tabs: { value: Tab; label: string; icon: Component }[] = [
     { value: 'aluno', label: 'Aluno / Responsável', icon: User },
 ];
 
-// Student CPF lookup
-const foundStudent = ref<Student | null>(props.opportunity.student ?? null);
-
-const {
-    isLoading: isLoadingStudent,
-    error: studentCpfError,
-    triggerLookup: lookupStudent,
-} = useCpfLookup({
-    type: 'student',
-    onFound: (data) => {
-        foundStudent.value = data as Student;
-    },
-    onNotFound: () => {
-        foundStudent.value = null;
-    },
-});
-
-function handleStudentCpfInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const d = input.value.replace(/\D/g, '').slice(0, 11);
-    let m = d;
-    if (d.length > 3) m = `${d.slice(0, 3)}.${d.slice(3)}`;
-    if (d.length > 6) m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
-    if (d.length > 9)
-        m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
-    input.value = m;
-    lookupStudent(m);
-}
-
-// Guardian CPF validate-cpf
-const guardianCpfInvalidError = ref<string | null>(null);
-const isValidatingGuardianCpf = ref(false);
-
 function fillInput(id: string, value: string): void {
     const el = document.getElementById(id) as HTMLInputElement | null;
     if (el) el.value = value;
-}
-
-function handleGuardianCpfInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const d = input.value.replace(/\D/g, '').slice(0, 11);
-    let m = d;
-    if (d.length > 3) m = `${d.slice(0, 3)}.${d.slice(3)}`;
-    if (d.length > 6) m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
-    if (d.length > 9)
-        m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
-    input.value = m;
-    guardianCpfInvalidError.value = null;
-}
-
-async function handleGuardianCpfBlur(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const cpf = input.value.replace(/\D/g, '');
-
-    if (cpf.length !== 11) {
-        if (cpf.length > 0) {
-            guardianCpfInvalidError.value = 'CPF inválido';
-        }
-        return;
-    }
-
-    isValidatingGuardianCpf.value = true;
-    guardianCpfInvalidError.value = null;
-
-    try {
-        const response = await fetch(validate_cpf(cpf).url, {
-            headers: { Accept: 'application/json' },
-        });
-
-        if (response.ok) {
-            const data = (await response.json()) as {
-                valid: boolean;
-                exists: boolean;
-                guardian?: Guardian;
-            };
-
-            if (!data.valid) {
-                guardianCpfInvalidError.value = 'CPF inválido';
-            } else if (data.exists && data.guardian) {
-                guardianCpfInvalidError.value = null;
-                const g = data.guardian;
-                fillInput('guardian_name', g.name ?? '');
-                fillInput('guardian_phone', g.phone ?? '');
-                fillInput('guardian_email', g.email ?? '');
-                fillInput('zip_code', g.zip_code ?? '');
-                fillInput('street', g.street ?? '');
-                fillInput('number', g.number ?? '');
-                fillInput('complement', g.complement ?? '');
-                fillInput('neighborhood', g.neighborhood ?? '');
-                fillInput('city', g.city ?? '');
-                fillInput('state', g.state ?? '');
-            } else {
-                guardianCpfInvalidError.value = null;
-            }
-        }
-    } catch {
-        // silent — network errors do not block submission
-    } finally {
-        isValidatingGuardianCpf.value = false;
-    }
 }
 
 function handleGuardianPhoneInput(event: Event): void {
@@ -194,6 +95,7 @@ function handleZipCodeInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const d = input.value.replace(/\D/g, '').slice(0, 8);
     input.value = d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+    cepError.value = null;
 }
 
 function handleZipCodeBlur(event: Event): void {
@@ -205,9 +107,6 @@ function handleZipCodeBlur(event: Event): void {
         fillInput('state', state);
     });
 }
-
-const historyValue = ref(props.opportunity.history ?? '');
-const indicationsValue = ref(props.opportunity.indications ?? '');
 
 function handleSuccess(): void {
     toast.success('Oportunidade atualizada com sucesso.');
@@ -447,9 +346,9 @@ function handleError(): void {
                                         name="history"
                                         rows="5"
                                         placeholder="Histórico da oportunidade..."
-                                        :disabled="isTerminal"
-                                        v-model="historyValue"
-                                        class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                        readonly
+                                        :value="props.opportunity.history ?? ''"
+                                        class="flex w-full cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                                     ></textarea>
                                     <InputError :message="errors.history" />
                                 </div>
@@ -464,7 +363,9 @@ function handleError(): void {
                                         rows="5"
                                         placeholder="Indicações / referências..."
                                         :disabled="isTerminal"
-                                        v-model="indicationsValue"
+                                        :default-value="
+                                            props.opportunity.indications ?? ''
+                                        "
                                         class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                     ></textarea>
                                     <InputError :message="errors.indications" />
@@ -488,15 +389,16 @@ function handleError(): void {
                                                 >*</span
                                             >
                                         </Label>
-                                        <Input
+                                        <input
                                             id="student_name"
                                             name="student_name"
                                             placeholder="Nome completo do aluno"
-                                            :default-value="
+                                            :value="
                                                 props.opportunity.student
                                                     ?.name ?? ''
                                             "
-                                            :disabled="isTerminal"
+                                            readonly
+                                            class="h-9 w-full min-w-0 cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground md:text-sm dark:bg-input/30"
                                         />
                                         <InputError
                                             :message="errors.student_name"
@@ -507,30 +409,17 @@ function handleError(): void {
                                         <Label for="student-cpf"
                                             >CPF do Aluno</Label
                                         >
-                                        <div class="relative">
-                                            <Input
-                                                id="student-cpf"
-                                                name="student_cpf"
-                                                placeholder="000.000.000-00"
-                                                class="pr-8"
-                                                :disabled="isTerminal"
-                                                :default-value="
-                                                    props.opportunity.student
-                                                        ?.cpf ?? ''
-                                                "
-                                                @input="handleStudentCpfInput"
-                                            />
-                                            <span
-                                                v-if="isLoadingStudent"
-                                                class="absolute top-2.5 right-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
-                                            ></span>
-                                        </div>
-                                        <p
-                                            v-if="studentCpfError"
-                                            class="text-xs text-destructive"
-                                        >
-                                            {{ studentCpfError }}
-                                        </p>
+                                        <input
+                                            id="student-cpf"
+                                            name="student_cpf"
+                                            placeholder="000.000.000-00"
+                                            :value="
+                                                props.opportunity.student
+                                                    ?.cpf ?? ''
+                                            "
+                                            readonly
+                                            class="h-9 w-full min-w-0 cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground md:text-sm dark:bg-input/30"
+                                        />
                                     </div>
                                     <div class="space-y-2">
                                         <Label for="student_birth_date"
@@ -542,7 +431,7 @@ function handleError(): void {
                                             type="date"
                                             :default-value="
                                                 props.opportunity.student
-                                                    ?.data_nascimento ?? ''
+                                                    ?.birth_date ?? ''
                                             "
                                         />
                                         <InputError
@@ -677,15 +566,16 @@ function handleError(): void {
                                         <Label for="guardian_name"
                                             >Nome do Responsável</Label
                                         >
-                                        <Input
+                                        <input
                                             id="guardian_name"
                                             name="guardian_name"
                                             placeholder="Nome completo do responsável"
-                                            :default-value="
+                                            :value="
                                                 props.opportunity.guardian
                                                     ?.name ?? ''
                                             "
-                                            :disabled="isTerminal"
+                                            readonly
+                                            class="h-9 w-full min-w-0 cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground md:text-sm dark:bg-input/30"
                                         />
                                         <InputError
                                             :message="errors.guardian_name"
@@ -696,31 +586,17 @@ function handleError(): void {
                                         <Label for="guardian-cpf"
                                             >CPF do Responsável</Label
                                         >
-                                        <div class="relative">
-                                            <Input
-                                                id="guardian-cpf"
-                                                name="guardian_cpf"
-                                                placeholder="000.000.000-00"
-                                                class="pr-8"
-                                                :disabled="isTerminal"
-                                                :default-value="
-                                                    props.opportunity.guardian
-                                                        ?.cpf ?? ''
-                                                "
-                                                @input="handleGuardianCpfInput"
-                                                @blur="handleGuardianCpfBlur"
-                                            />
-                                            <span
-                                                v-if="isValidatingGuardianCpf"
-                                                class="absolute top-2.5 right-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
-                                            ></span>
-                                        </div>
-                                        <p
-                                            v-if="guardianCpfInvalidError"
-                                            class="text-xs text-destructive"
-                                        >
-                                            {{ guardianCpfInvalidError }}
-                                        </p>
+                                        <input
+                                            id="guardian-cpf"
+                                            name="guardian_cpf"
+                                            placeholder="000.000.000-00"
+                                            :value="
+                                                props.opportunity.guardian
+                                                    ?.cpf ?? ''
+                                            "
+                                            readonly
+                                            class="h-9 w-full min-w-0 cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground md:text-sm dark:bg-input/30"
+                                        />
                                     </div>
 
                                     <div class="space-y-2">
@@ -921,11 +797,7 @@ function handleError(): void {
                         <Button
                             v-if="!isTerminal"
                             type="submit"
-                            :disabled="
-                                processing ||
-                                !!guardianCpfInvalidError ||
-                                isValidatingGuardianCpf
-                            "
+                            :disabled="processing || !!cepError || isLoadingCep"
                             class="bg-green-600 text-sm text-white hover:bg-green-700"
                         >
                             {{

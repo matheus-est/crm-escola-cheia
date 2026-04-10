@@ -29,6 +29,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { show } from '@/routes/tenant/opportunities';
 import type { BreadcrumbItem } from '@/types';
 import type { PaginatedTasks } from '@/types/crm';
 
@@ -381,7 +382,11 @@ function formatDate(dateStr?: string | null): string {
                             <td class="px-4 py-4 text-right">
                                 <Link
                                     v-if="task.opportunity"
-                                    :href="`/tenant/opportunities/${task.opportunity.uuid}`"
+                                    :href="
+                                        show({
+                                            opportunity: task.opportunity.uuid,
+                                        }).url
+                                    "
                                     class="inline-flex h-9 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
                                 >
                                     Ver Oportunidade

@@ -18,7 +18,6 @@ import { useCepLookup } from '@/composables/useCepLookup';
 import { useCpfLookup } from '@/composables/useCpfLookup';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { validate_cpf } from '@/routes/tenant/guardians';
 import { index, store } from '@/routes/tenant/opportunities';
 import type { BreadcrumbItem } from '@/types';
 import type {
@@ -60,10 +59,6 @@ const tabs: { value: Tab; label: string; icon: Component }[] = [
     { value: 'aluno', label: 'Aluno / Responsável', icon: User },
 ];
 
-const guardianFilledByStudent = ref(false);
-const guardianCpfInvalidError = ref<string | null>(null);
-const isValidatingGuardianCpf = ref(false);
-
 function fillInput(id: string, value: string): void {
     const el = document.getElementById(id) as
         | HTMLInputElement
@@ -96,9 +91,21 @@ const {
         const student = data as Student;
         fillInput('student_name', student.name ?? '');
         if (student.guardian) {
-            guardianFilledByStudent.value = true;
             fillGuardianFields(student.guardian);
         }
+    },
+    onNotFound: () => {},
+});
+
+const {
+    isLoading: isLoadingGuardian,
+    error: guardianCpfError,
+    triggerLookup: lookupGuardian,
+} = useCpfLookup({
+    type: 'guardian',
+    onFound: (data) => {
+        const guardian = data as Guardian;
+        fillGuardianFields(guardian);
     },
     onNotFound: () => {},
 });
@@ -124,54 +131,7 @@ function handleGuardianCpfInput(event: Event): void {
     if (d.length > 9)
         m = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
     input.value = m;
-    guardianCpfInvalidError.value = null;
-}
-
-async function handleGuardianCpfBlur(event: Event): Promise<void> {
-    if (guardianFilledByStudent.value) {
-        guardianFilledByStudent.value = false;
-        return;
-    }
-
-    const input = event.target as HTMLInputElement;
-    const cpf = input.value.replace(/\D/g, '');
-
-    if (cpf.length !== 11) {
-        if (cpf.length > 0) {
-            guardianCpfInvalidError.value = 'CPF inválido';
-        }
-        return;
-    }
-
-    isValidatingGuardianCpf.value = true;
-    guardianCpfInvalidError.value = null;
-
-    try {
-        const response = await fetch(validate_cpf(cpf).url, {
-            headers: { Accept: 'application/json' },
-        });
-
-        if (response.ok) {
-            const data = (await response.json()) as {
-                valid: boolean;
-                exists: boolean;
-                guardian?: Guardian;
-            };
-
-            if (!data.valid) {
-                guardianCpfInvalidError.value = 'CPF inválido';
-            } else if (data.exists && data.guardian) {
-                guardianCpfInvalidError.value = null;
-                fillGuardianFields(data.guardian);
-            } else {
-                guardianCpfInvalidError.value = null;
-            }
-        }
-    } catch {
-        // silent — network errors do not block submission
-    } finally {
-        isValidatingGuardianCpf.value = false;
-    }
+    lookupGuardian(m);
 }
 
 function handleGuardianPhoneInput(event: Event): void {
@@ -195,6 +155,7 @@ function handleZipCodeInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const d = input.value.replace(/\D/g, '').slice(0, 8);
     input.value = d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+    cepError.value = null;
 }
 
 function handleZipCodeBlur(event: Event): void {
@@ -308,8 +269,8 @@ function handleError(): void {
                                         <SelectContent>
                                             <SelectItem
                                                 v-for="user in props.users"
-                                                :key="user.id"
-                                                :value="user.id"
+                                                :key="user.uuid"
+                                                :value="user.uuid"
                                             >
                                                 {{ user.name }}
                                             </SelectItem>
@@ -333,8 +294,8 @@ function handleError(): void {
                                         <SelectContent>
                                             <SelectItem
                                                 v-for="ls in props.leadSources"
-                                                :key="ls.id"
-                                                :value="ls.id"
+                                                :key="ls.uuid"
+                                                :value="ls.uuid"
                                             >
                                                 {{ ls.name }}
                                             </SelectItem>
@@ -511,8 +472,8 @@ function handleError(): void {
                                             <SelectContent>
                                                 <SelectItem
                                                     v-for="grade in props.grades"
-                                                    :key="grade.id"
-                                                    :value="grade.id"
+                                                    :key="grade.uuid"
+                                                    :value="grade.uuid"
                                                 >
                                                     {{ grade.name }}
                                                 </SelectItem>
@@ -534,8 +495,8 @@ function handleError(): void {
                                             <SelectContent>
                                                 <SelectItem
                                                     v-for="segment in props.segments"
-                                                    :key="segment.id"
-                                                    :value="segment.id"
+                                                    :key="segment.uuid"
+                                                    :value="segment.uuid"
                                                 >
                                                     {{ segment.name }}
                                                 </SelectItem>
@@ -562,8 +523,8 @@ function handleError(): void {
                                             <SelectContent>
                                                 <SelectItem
                                                     v-for="sy in props.schoolYears"
-                                                    :key="sy.id"
-                                                    :value="sy.id"
+                                                    :key="sy.uuid"
+                                                    :value="sy.uuid"
                                                 >
                                                     {{ sy.name }}
                                                 </SelectItem>
@@ -620,18 +581,17 @@ function handleError(): void {
                                                 placeholder="000.000.000-00"
                                                 class="pr-8"
                                                 @input="handleGuardianCpfInput"
-                                                @blur="handleGuardianCpfBlur"
                                             />
                                             <span
-                                                v-if="isValidatingGuardianCpf"
+                                                v-if="isLoadingGuardian"
                                                 class="absolute top-2.5 right-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
                                             ></span>
                                         </div>
                                         <p
-                                            v-if="guardianCpfInvalidError"
+                                            v-if="guardianCpfError"
                                             class="text-xs text-destructive"
                                         >
-                                            {{ guardianCpfInvalidError }}
+                                            {{ guardianCpfError }}
                                         </p>
                                     </div>
 
@@ -789,8 +749,12 @@ function handleError(): void {
                             type="submit"
                             :disabled="
                                 processing ||
-                                !!guardianCpfInvalidError ||
-                                isValidatingGuardianCpf
+                                !!guardianCpfError ||
+                                isLoadingGuardian ||
+                                !!studentCpfError ||
+                                isLoadingStudent ||
+                                !!cepError ||
+                                isLoadingCep
                             "
                             class="bg-green-600 text-sm text-white hover:bg-green-700"
                         >

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Guardian\GuardianStoreRequest;
 use App\Http\Requests\Guardian\GuardianUpdateRequest;
 use App\Models\Guardian;
+use App\Models\Student;
 use App\Rules\CpfRule;
 use App\Services\Guardian\GuardianService;
 use Illuminate\Http\JsonResponse;
@@ -90,6 +91,14 @@ class GuardianController extends Controller
 
         if (! $valid) {
             return response()->json(['valid' => false, 'exists' => false]);
+        }
+
+        $isStudent = Student::where('cpf', $cpf)->exists();
+        if ($isStudent) {
+            return response()->json([
+                'error' => 'found_as_student',
+                'message' => 'O CPF informado pertence a um aluno cadastrado.',
+            ], 409);
         }
 
         $guardian = $this->guardianService->lookup($cpf);

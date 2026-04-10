@@ -8,7 +8,7 @@
 ## CURRENT STATE
 
 **Last session:** 2026-04-10
-**Next task:** 6 — Notifications module
+**Next task:** 6 — Notifications module (or continue 4.x improvements)
 
 ### Completed
 
@@ -67,6 +67,15 @@
 - [x] 7.6F — EventType module frontend: EventTypeFormDialog · EventTypeToggleDialog (password-confirmed) · EventTypes.vue settings page · crm.ts EventType interface + PaginatedEventTypes (with links) · events/Create.vue+Edit.vue event_type_uuid Select · EventController edit() loads current event_type even if inactive — 2026-04-10\n- [x] ADJ-SY — SchoolYears.vue: inline form replaced with SchoolYearFormDialog (dialog pattern); applyFilters preserveScroll→preserveUrl fix — 2026-04-10
 - [x] ADJ-GR — Grades.vue: inline form replaced with GradeFormDialog (dialog pattern); applyFilters router.post→router.get with preserveUrl fix — 2026-04-10\n- [x] ADJ-F9 — events/Create.vue + Edit.vue: has_no_date checkbox hidden-input pattern fixed (v-if="hasNoDate" hidden value="1"); overlay divs removed; shadcn Input used for date field; Unidade field has bg-muted/50; dead code (Plus/Search/Card/filteredRooms/toggleRoom/isRoomSelected) removed from Create.vue — 2026-04-10
 - [x] 5.4 — Reviewer pass on Stage 5: StoreTaskRequest prepareForValidation (assigned_user_uuid→id) · OutcomeProcessorService nested DB::transaction removed · Opportunity interface + renitente_count · Show.vue as any casts removed · DECISIONS_LOG entry — 2026-04-10
+- [x] ADJ-KAN — KanbanColumn.vue: VueDraggable drag-and-drop between columns with PATCH update_status; terminal columns (matricula/recusado) locked (pull/put=false) — 2026-04-10
+- [x] ADJ-BIRTH — Student interface: data_nascimento→birth_date; Edit.vue student_birth_date default-value fixed — 2026-04-10
+- [x] ADJ-CEP — Create.vue + Edit.vue: submit disabled on cepError/isLoadingCep; handleZipCodeInput clears cepError on input — 2026-04-10
+- [x] 4.9B — Opportunity status view backend: migration school_unit_id · Opportunity model schoolUnit relation · OpportunityService list() new filters (lead_source, registration_type, segment, school_unit, date_from/to) + listByStatus() kanban · OpportunityController index() kanban/list view · OpportunityResource · opportunities.index route GET-only — 22 tests — 2026-04-10
+- [x] 4.9F — Opportunity Index kanban/list view frontend: lib/opportunityStatus.ts · KanbanColumn/KanbanBoard/OpportunityCard components · Index.vue view toggle + new filters (lead_source, segment, school_unit, registration_type, date_from/to) + applyFilters router.get preserveUrl + destroy no school_uuid · SchoolUnit uuid + Opportunity school_unit + KanbanColumns types in crm.ts — 2026-04-10
+- [x] ADJ-OPP — Opportunity adjustments: vue-draggable-plus kanban drag (PATCH status endpoint + VueDraggable @add handler) · student birth_date fix (resource + UpdateRequest + service + Edit.vue data_nascimento→birth_date) · CEP inválido blocks submit · Student.guardian? in crm.ts · Create.vue selects uuid fix — 2026-04-10
+- [x] ADJ-CPF — Opportunity form CPF improvements: mod-11 client-side validation in useCpfLookup (no network call on invalid CPF); StudentController::lookup() returns guardian in JSON; guardian CPF field uses second useCpfLookup instance (type: guardian) replacing manual fetch/blur pattern; student onFound fills guardian fields from student.guardian — 2026-04-10
+- [x] ADJ-UX1 — Opportunity UX fixes: Edit.vue 5 readonly fields (history/student_name/student_cpf/guardian_name/guardian_cpf) with bg-muted/50 cursor-not-allowed, removed useCpfLookup + dead vars; OpportunityCard.vue + tasks/Index.vue link to show instead of edit; Index.vue Nova Oportunidade button moved into header flex row — 2026-04-10
+- [x] ADJ-SHOW — Show.vue redesenho: pipeline header (funnel_stages + days_in_stage) · bloco lead (guardian+student side-by-side) · sidebar 3 abas (Histórico/Próximas Tarefas/Mais Informações) · timeline teal · cards Endereço+Indicação · TaskType.label() · TaskResource task_type · OpportunityController::show() schoolUnit+funnel_stages+days_in_stage · FunnelStage in crm.ts — 2026-04-10
 - [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
 
 ---
@@ -124,9 +133,13 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-10 | `EventTypeToggleDialog.vue` | Password-confirmation toggle uses `router.post` with `onError: (errors: Record<string, string>)` — no `any`; mirrors `ConfirmRestoreModal` pattern |
 | 2026-04-10 | `ActiveSchoolControllerTest.php` | `SetActiveTenant` global middleware aborts 403 for non-cross-tenant users with no school in session — use `$this->withoutMiddleware(SetActiveTenant::class)` when testing validation that lives past the middleware |
 | 2026-04-10 | `SchoolFactory`, all test helpers | `schools.slug` is NOT NULL — `SchoolFactory` and every `School::create()` in tests must include `'slug'`; observer no longer auto-generates it |
-| 2026-04-09 | \`SchoolStoreRequest\`, \`SchoolUpdateRequest\`, \`OpportunityService\` | Masked fields (CEP, CNPJ, CPF, phone) must be stored with display mask — never strip non-digits before persisting; strip only for API calls or mod-11 validation |\n| 2026-04-10 | \`SchoolYearStoreRequest\`, tests | Column rename (inicio→start, fim→end) must be applied consistently to requests, tests, TS interfaces AND a nullable migration must be created when docs say \"nullable migration\" — check all four touch points |
-
----
+| 2026-04-09 | `SchoolStoreRequest`, `SchoolUpdateRequest`, `OpportunityService` | Masked fields (CEP, CNPJ, CPF, phone) must be stored with display mask — never strip non-digits before persisting; strip only for API calls or mod-11 validation |
+| 2026-04-10 | `SchoolYearStoreRequest`, tests | Column rename (inicio→start, fim→end) must be applied consistently to requests, tests, TS interfaces AND a nullable migration must be created when docs say "nullable migration" — check all four touch points |
+| 2026-04-10 | `OpportunityService::list()` | Use is_numeric() to detect already-resolved IDs vs UUID strings — avoids double DB lookup in listByStatus() loop |
+| 2026-04-10 | `KanbanColumn.vue` | IntersectionObserver sentinel `ref` must be declared as `ref<HTMLDivElement | null>(null)` and checked in onMounted — router.reload only:kanban_columns, append items via watch on current_page |
+| 2026-04-10 | `Student` model | DB column is `date_of_birth` (cast to `date`) — API exposes it as `birth_date`; `UpdateOpportunityRequest` uses `student_birth_date`, service maps to `date_of_birth` on update |
+| 2026-04-10 | `useCpfLookup.ts`, `Create.vue`, `Edit.vue` | Guardian CPF handled via second `useCpfLookup` instance (type: `guardian`) — never via manual `fetch`/`@blur`; mod-11 validation runs client-side before any network call |
+| 2026-04-10 | `opportunities/Edit.vue` | Student/guardian name+CPF fields are always `readonly` (native `<input>` with `:value`) — `useCpfLookup` must NOT be used in Edit; CPF lookup only belongs in Create |
 
 ## AGENT INSTRUCTIONS
 

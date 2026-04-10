@@ -15,6 +15,7 @@ class TaskResource extends JsonResource
         return [
             'uuid' => $this->uuid,
             'type' => $this->type,
+            'task_type' => $this->type ? ['name' => $this->type->label()] : null,
             'is_schedule' => $this->type?->isSchedule() ?? false,
             'status' => $this->status,
             'notes' => $this->notes,

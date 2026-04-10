@@ -4,9 +4,10 @@ export interface Student {
     uuid: string;
     name: string;
     cpf: string;
-    data_nascimento: string | null;
+    birth_date?: string | null;
     created_at: string;
     updated_at: string;
+    guardian?: Guardian | null;
 }
 
 export interface Guardian {
@@ -46,6 +47,7 @@ export interface PaginatedGuardians {
 
 export interface SchoolUnit {
     id: string;
+    uuid: string;
     school_id: string;
     name: string;
     zip_code: string | null;
@@ -182,6 +184,7 @@ export interface Opportunity {
     guardian?: Guardian | null;
     grade?: Grade | null;
     school_year?: SchoolYear | null;
+    school_unit?: SchoolUnit | null;
     lead_source?: LeadSource | null;
     responsible_user?: { uuid: string; name: string } | null;
     created_at: string;
@@ -196,6 +199,16 @@ export interface PaginatedOpportunities {
     total: number;
     links: Array<{ url: string | null; label: string; active: boolean }>;
 }
+
+export type KanbanColumn = {
+    data: Opportunity[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+};
+
+export type KanbanColumns = Record<string, KanbanColumn>;
 
 export interface TenantUser {
     id: number;
@@ -233,9 +246,16 @@ export interface Outcome {
     opens_window: string | null;
 }
 
+export interface FunnelStage {
+    label: string;
+    slug: string;
+    state: 'completed' | 'active' | 'pending';
+}
+
 export interface Task {
     uuid: string;
     type: TaskType;
+    task_type?: { name: string } | null;
     status: TaskStatus;
     is_schedule: boolean;
     notes: string | null;
