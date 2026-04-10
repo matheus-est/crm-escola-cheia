@@ -255,8 +255,8 @@ function handleDetach(opportunityUuid: string): void {
                             v-show="activeTab === 'sobre'"
                             class="space-y-6 p-6"
                         >
-                            <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="space-y-2 sm:col-span-2">
+                            <div class="grid gap-4 sm:grid-cols-5">
+                                <div class="space-y-2 sm:col-span-5">
                                     <Label for="title">
                                         Título do Evento
                                         <span class="text-destructive">*</span>
@@ -271,7 +271,57 @@ function handleDetach(opportunityUuid: string): void {
                                     <InputError :message="errors.title" />
                                 </div>
 
-                                <div class="space-y-2">
+                                <div class="space-y-2 sm:col-span-2">
+                                    <Label for="grade_uuid">Série</Label>
+                                    <Select
+                                        name="grade_uuid"
+                                        :default-value="
+                                            props.event.grade?.uuid ?? undefined
+                                        "
+                                    >
+                                        <SelectTrigger id="grade_uuid">
+                                            <SelectValue
+                                                placeholder="Selecione..."
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="grade in props.grades"
+                                                :key="grade.uuid"
+                                                :value="grade.uuid"
+                                            >
+                                                {{ grade.name }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError :message="errors.grade_uuid" />
+                                </div>
+
+                                <div class="space-y-2 sm:col-span-1">
+                                    <Label for="max_capacity"
+                                        >Nº Máximo de Inscritos</Label
+                                    >
+                                    <Input
+                                        id="max_capacity"
+                                        type="number"
+                                        name="max_capacity"
+                                        min="1"
+                                        :default-value="
+                                            props.event.max_capacity !== null
+                                                ? String(
+                                                      props.event.max_capacity,
+                                                  )
+                                                : ''
+                                        "
+                                        placeholder="Ex: 50"
+                                        class="max-w-[6rem]"
+                                    />
+                                    <InputError
+                                        :message="errors.max_capacity"
+                                    />
+                                </div>
+
+                                <div class="space-y-2 sm:col-span-2">
                                     <Label for="event_type"
                                         >Tipo do Evento</Label
                                     >
@@ -301,34 +351,8 @@ function handleDetach(opportunityUuid: string): void {
                                     <InputError :message="errors.event_type" />
                                 </div>
 
-                                <div class="space-y-2">
-                                    <Label for="grade_uuid">Série</Label>
-                                    <Select
-                                        name="grade_uuid"
-                                        :default-value="
-                                            props.event.grade?.uuid ?? undefined
-                                        "
-                                    >
-                                        <SelectTrigger id="grade_uuid">
-                                            <SelectValue
-                                                placeholder="Selecione..."
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem
-                                                v-for="grade in props.grades"
-                                                :key="grade.uuid"
-                                                :value="grade.uuid"
-                                            >
-                                                {{ grade.name }}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <InputError :message="errors.grade_uuid" />
-                                </div>
-
                                 <div
-                                    class="flex items-center gap-2 sm:col-span-2"
+                                    class="flex items-center gap-2 sm:col-span-5"
                                 >
                                     <input
                                         type="hidden"
@@ -353,7 +377,7 @@ function handleDetach(opportunityUuid: string): void {
                                     </Label>
                                 </div>
 
-                                <div class="space-y-2">
+                                <div class="space-y-2 sm:col-span-2">
                                     <Label for="event_date"
                                         >Data do Evento</Label
                                     >
@@ -371,7 +395,7 @@ function handleDetach(opportunityUuid: string): void {
                                     <InputError :message="errors.event_date" />
                                 </div>
 
-                                <div class="space-y-2">
+                                <div class="space-y-2 sm:col-span-2">
                                     <Label for="location">Local</Label>
                                     <Input
                                         id="location"
@@ -384,30 +408,7 @@ function handleDetach(opportunityUuid: string): void {
                                     <InputError :message="errors.location" />
                                 </div>
 
-                                <div class="space-y-2">
-                                    <Label for="max_capacity"
-                                        >Número Máximo De Inscritos</Label
-                                    >
-                                    <Input
-                                        id="max_capacity"
-                                        type="number"
-                                        name="max_capacity"
-                                        min="1"
-                                        :default-value="
-                                            props.event.max_capacity !== null
-                                                ? String(
-                                                      props.event.max_capacity,
-                                                  )
-                                                : ''
-                                        "
-                                        placeholder="Ex: 50"
-                                    />
-                                    <InputError
-                                        :message="errors.max_capacity"
-                                    />
-                                </div>
-
-                                <div class="space-y-2">
+                                <div class="space-y-2 sm:col-span-1">
                                     <Label>Unidade</Label>
                                     <Input
                                         :value="props.school_name"

@@ -116,6 +116,19 @@ function handleCnpjInput(e: Event) {
         lookupCnpj(masked, (data) => {
             legalNameValue.value = data.legal_name;
             fillInput('trade_name', data.trade_name);
+            if (slugUnlocked.value) {
+                const slugSource = data.trade_name || data.legal_name;
+                fillInput(
+                    'slug',
+                    slugSource
+                        .toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .trim()
+                        .replace(/\s+/g, '-'),
+                );
+            }
             if (data.zip_code) {
                 const d = data.zip_code.replace(/\D/g, '');
                 fillInput(
@@ -458,7 +471,7 @@ function detachUser(userUuid: string) {
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-6">
+                                        <div class="space-y-2 sm:col-span-4">
                                             <Label for="unit-street"
                                                 >Logradouro</Label
                                             >
@@ -499,21 +512,20 @@ function detachUser(userUuid: string) {
                                         </div>
 
                                         <div class="space-y-2 sm:col-span-2">
-                                            <Label for="unit-complement"
-                                                >Complemento</Label
-                                            >
+                                            <Label for="unit-state">UF</Label>
                                             <Input
-                                                id="unit-complement"
-                                                name="units[0][complement]"
-                                                placeholder="Sala, Andar, etc."
+                                                id="unit-state"
+                                                name="units[0][state]"
+                                                placeholder="UF"
+                                                maxlength="2"
                                                 :default-value="
                                                     props.school.units?.[0]
-                                                        ?.complement ?? ''
+                                                        ?.state ?? ''
                                                 "
                                             />
                                             <InputError
                                                 :message="
-                                                    errors['units.0.complement']
+                                                    errors['units.0.state']
                                                 "
                                             />
                                         </div>
@@ -540,26 +552,27 @@ function detachUser(userUuid: string) {
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-2">
-                                            <Label for="unit-state">UF</Label>
+                                        <div class="space-y-2 sm:col-span-3">
+                                            <Label for="unit-complement"
+                                                >Complemento</Label
+                                            >
                                             <Input
-                                                id="unit-state"
-                                                name="units[0][state]"
-                                                placeholder="UF"
-                                                maxlength="2"
+                                                id="unit-complement"
+                                                name="units[0][complement]"
+                                                placeholder="Sala, Andar, etc."
                                                 :default-value="
                                                     props.school.units?.[0]
-                                                        ?.state ?? ''
+                                                        ?.complement ?? ''
                                                 "
                                             />
                                             <InputError
                                                 :message="
-                                                    errors['units.0.state']
+                                                    errors['units.0.complement']
                                                 "
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-10">
+                                        <div class="space-y-2 sm:col-span-9">
                                             <Label for="unit-city"
                                                 >Cidade</Label
                                             >

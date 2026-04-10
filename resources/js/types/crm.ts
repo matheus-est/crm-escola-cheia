@@ -21,6 +21,7 @@ export interface Guardian {
     state: string | null;
     city: string | null;
     neighborhood: string | null;
+    complement: string | null;
     created_at: string;
     updated_at: string;
 }

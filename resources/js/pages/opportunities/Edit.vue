@@ -158,6 +158,7 @@ async function handleGuardianCpfBlur(event: Event): Promise<void> {
                 fillInput('zip_code', g.zip_code ?? '');
                 fillInput('street', g.street ?? '');
                 fillInput('number', g.number ?? '');
+                fillInput('complement', g.complement ?? '');
                 fillInput('neighborhood', g.neighborhood ?? '');
                 fillInput('city', g.city ?? '');
                 fillInput('state', g.state ?? '');
@@ -283,7 +284,7 @@ function handleError(): void {
                             v-show="activeTab === 'cadastro'"
                             class="space-y-6"
                         >
-                            <div class="grid gap-4 sm:grid-cols-4">
+                            <div class="grid gap-4 sm:grid-cols-2">
                                 <!-- Tipo de Cadastro -->
                                 <div class="space-y-2">
                                     <Label for="registration_type"
@@ -530,6 +531,23 @@ function handleError(): void {
                                         >
                                             {{ studentCpfError }}
                                         </p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <Label for="student_birth_date"
+                                            >Data de Nascimento</Label
+                                        >
+                                        <Input
+                                            id="student_birth_date"
+                                            name="student_birth_date"
+                                            type="date"
+                                            :default-value="
+                                                props.opportunity.student
+                                                    ?.data_nascimento ?? ''
+                                            "
+                                        />
+                                        <InputError
+                                            :message="errors.student_birth_date"
+                                        />
                                     </div>
                                 </div>
 
@@ -786,7 +804,7 @@ function handleError(): void {
                                         />
                                     </div>
 
-                                    <div class="space-y-2 sm:col-span-6">
+                                    <div class="space-y-2 sm:col-span-4">
                                         <Label for="street">Logradouro</Label>
                                         <Input
                                             id="street"
@@ -817,6 +835,22 @@ function handleError(): void {
                                     </div>
 
                                     <div class="space-y-2 sm:col-span-2">
+                                        <Label for="state">UF</Label>
+                                        <Input
+                                            id="state"
+                                            name="state"
+                                            placeholder="UF"
+                                            maxlength="2"
+                                            :default-value="
+                                                props.opportunity.guardian
+                                                    ?.state ?? ''
+                                            "
+                                            :disabled="isTerminal"
+                                        />
+                                        <InputError :message="errors.state" />
+                                    </div>
+
+                                    <div class="space-y-2 sm:col-span-2">
                                         <Label for="neighborhood">Bairro</Label>
                                         <Input
                                             id="neighborhood"
@@ -833,23 +867,26 @@ function handleError(): void {
                                         />
                                     </div>
 
-                                    <div class="space-y-2 sm:col-span-2">
-                                        <Label for="state">UF</Label>
+                                    <div class="space-y-2 sm:col-span-3">
+                                        <Label for="complement"
+                                            >Complemento</Label
+                                        >
                                         <Input
-                                            id="state"
-                                            name="state"
-                                            placeholder="UF"
-                                            maxlength="2"
+                                            id="complement"
+                                            name="complement"
+                                            placeholder="Sala, Andar, etc."
                                             :default-value="
                                                 props.opportunity.guardian
-                                                    ?.state ?? ''
+                                                    ?.complement ?? ''
                                             "
                                             :disabled="isTerminal"
                                         />
-                                        <InputError :message="errors.state" />
+                                        <InputError
+                                            :message="errors.complement"
+                                        />
                                     </div>
 
-                                    <div class="space-y-2 sm:col-span-10">
+                                    <div class="space-y-2 sm:col-span-9">
                                         <Label for="city">Cidade</Label>
                                         <Input
                                             id="city"

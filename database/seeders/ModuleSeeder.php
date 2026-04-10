@@ -141,7 +141,7 @@ class ModuleSeeder extends Seeder
                 'name' => 'Salas',
                 'slug' => 'rooms',
                 'icon' => 'DoorOpen',
-                'url' => '/tenant/tenant/tenant-settings/rooms',
+                'url' => '/tenant/tenant-settings/rooms',
                 'description' => 'Gestão de salas do tenant',
                 'order' => 4,
                 'show_in_menu' => true,

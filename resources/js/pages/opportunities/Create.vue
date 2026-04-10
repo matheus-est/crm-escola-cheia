@@ -80,6 +80,7 @@ function fillGuardianFields(guardian: Guardian): void {
     fillInput('zip_code', guardian.zip_code ?? '');
     fillInput('street', guardian.street ?? '');
     fillInput('number', guardian.number ?? '');
+    fillInput('complement', guardian.complement ?? '');
     fillInput('neighborhood', guardian.neighborhood ?? '');
     fillInput('city', guardian.city ?? '');
     fillInput('state', guardian.state ?? '');
@@ -269,7 +270,7 @@ function handleError(): void {
                             v-show="activeTab === 'cadastro'"
                             class="space-y-6 p-6"
                         >
-                            <div class="grid gap-4 sm:grid-cols-4">
+                            <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="space-y-2">
                                     <Label for="registration_type"
                                         >Tipo de Cadastro</Label
@@ -477,6 +478,19 @@ function handleError(): void {
                                         >
                                             {{ studentCpfError }}
                                         </p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <Label for="student_birth_date"
+                                            >Data de Nascimento</Label
+                                        >
+                                        <Input
+                                            id="student_birth_date"
+                                            name="student_birth_date"
+                                            type="date"
+                                        />
+                                        <InputError
+                                            :message="errors.student_birth_date"
+                                        />
                                     </div>
                                 </div>
 
@@ -687,7 +701,7 @@ function handleError(): void {
                                         />
                                     </div>
 
-                                    <div class="space-y-2 sm:col-span-6">
+                                    <div class="space-y-2 sm:col-span-4">
                                         <Label for="street">Logradouro</Label>
                                         <Input
                                             id="street"
@@ -708,6 +722,17 @@ function handleError(): void {
                                     </div>
 
                                     <div class="space-y-2 sm:col-span-2">
+                                        <Label for="state">UF</Label>
+                                        <Input
+                                            id="state"
+                                            name="state"
+                                            placeholder="UF"
+                                            maxlength="2"
+                                        />
+                                        <InputError :message="errors.state" />
+                                    </div>
+
+                                    <div class="space-y-2 sm:col-span-2">
                                         <Label for="neighborhood">Bairro</Label>
                                         <Input
                                             id="neighborhood"
@@ -719,18 +744,21 @@ function handleError(): void {
                                         />
                                     </div>
 
-                                    <div class="space-y-2 sm:col-span-2">
-                                        <Label for="state">UF</Label>
+                                    <div class="space-y-2 sm:col-span-3">
+                                        <Label for="complement"
+                                            >Complemento</Label
+                                        >
                                         <Input
-                                            id="state"
-                                            name="state"
-                                            placeholder="UF"
-                                            maxlength="2"
+                                            id="complement"
+                                            name="complement"
+                                            placeholder="Sala, Andar, etc."
                                         />
-                                        <InputError :message="errors.state" />
+                                        <InputError
+                                            :message="errors.complement"
+                                        />
                                     </div>
 
-                                    <div class="space-y-2 sm:col-span-10">
+                                    <div class="space-y-2 sm:col-span-9">
                                         <Label for="city">Cidade</Label>
                                         <Input
                                             id="city"

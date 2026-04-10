@@ -96,6 +96,17 @@ function handleCnpjInput(e: Event) {
         lookupCnpj(masked, (data) => {
             legalNameValue.value = data.legal_name;
             fillInput('trade_name', data.trade_name);
+            const slugSource = data.trade_name || data.legal_name;
+            fillInput(
+                'slug',
+                slugSource
+                    .toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .trim()
+                    .replace(/\s+/g, '-'),
+            );
             if (data.zip_code) {
                 const d = data.zip_code.replace(/\D/g, '');
                 fillInput(
@@ -332,7 +343,7 @@ const handleError = () => {
                                             </p>
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-6">
+                                        <div class="space-y-2 sm:col-span-4">
                                             <Label for="street"
                                                 >Logradouro</Label
                                             >
@@ -363,17 +374,16 @@ const handleError = () => {
                                         </div>
 
                                         <div class="space-y-2 sm:col-span-2">
-                                            <Label for="complement"
-                                                >Complemento</Label
-                                            >
+                                            <Label for="state">UF</Label>
                                             <Input
-                                                id="complement"
-                                                name="units[0][complement]"
-                                                placeholder="Sala, Andar, etc."
+                                                id="state"
+                                                name="units[0][state]"
+                                                placeholder="UF"
+                                                maxlength="2"
                                             />
                                             <InputError
                                                 :message="
-                                                    errors['units.0.complement']
+                                                    errors['units.0.state']
                                                 "
                                             />
                                         </div>
@@ -396,22 +406,23 @@ const handleError = () => {
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-2">
-                                            <Label for="state">UF</Label>
+                                        <div class="space-y-2 sm:col-span-3">
+                                            <Label for="complement"
+                                                >Complemento</Label
+                                            >
                                             <Input
-                                                id="state"
-                                                name="units[0][state]"
-                                                placeholder="UF"
-                                                maxlength="2"
+                                                id="complement"
+                                                name="units[0][complement]"
+                                                placeholder="Sala, Andar, etc."
                                             />
                                             <InputError
                                                 :message="
-                                                    errors['units.0.state']
+                                                    errors['units.0.complement']
                                                 "
                                             />
                                         </div>
 
-                                        <div class="space-y-2 sm:col-span-10">
+                                        <div class="space-y-2 sm:col-span-9">
                                             <Label for="city">Cidade</Label>
                                             <Input
                                                 id="city"

@@ -215,8 +215,8 @@ function handleError(): void {
                             </div>
 
                             <!-- Linha 2: Unidade + Série + Nº Máximo + Tipo -->
-                            <div class="grid grid-cols-4 gap-4">
-                                <div class="space-y-2">
+                            <div class="grid grid-cols-6 gap-4">
+                                <div class="col-span-1 space-y-2">
                                     <Label>Unidade</Label>
                                     <Input
                                         :value="props.school_name"
@@ -225,7 +225,7 @@ function handleError(): void {
                                     />
                                 </div>
 
-                                <div class="space-y-2">
+                                <div class="col-span-2 space-y-2">
                                     <Label for="grade_uuid">Série</Label>
                                     <Select name="grade_uuid">
                                         <SelectTrigger id="grade_uuid">
@@ -246,7 +246,7 @@ function handleError(): void {
                                     <InputError :message="errors.grade_uuid" />
                                 </div>
 
-                                <div class="space-y-2">
+                                <div class="col-span-1 space-y-2">
                                     <Label for="max_capacity"
                                         >Nº Máximo de Inscritos</Label
                                     >
@@ -256,13 +256,14 @@ function handleError(): void {
                                         name="max_capacity"
                                         min="1"
                                         placeholder="Ex: 50"
+                                        class="max-w-[6rem]"
                                     />
                                     <InputError
                                         :message="errors.max_capacity"
                                     />
                                 </div>
 
-                                <div class="space-y-2">
+                                <div class="col-span-2 space-y-2">
                                     <Label for="event_type"
                                         >Tipo do Evento</Label
                                     >
