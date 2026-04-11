@@ -74,6 +74,19 @@
 
 ---
 
+## Module 7 — Events / EventType (Stage 7)
+
+| Date | File | Rule |
+|---|---|---|
+| 2026-04-09 | `StoreEventRequest`, `UpdateEventRequest` | `room_uuids`/`grade_uuid` are UUID-based in the request — `EventService` resolves to IDs before `attach()`; controller passes only `uuid` (not `id`) in Room/Grade props |
+| 2026-04-10 | `EventType` migration | `event_type` column on `events` was originally `string(60)` (provisional values); migrated to FK `event_type_id` referencing `event_types` table in 7.6B |
+| 2026-04-10 | `EventTypeScope` | Shows own tenant records + records where `is_system=true`; `EventType` uses `EventTypeScope`, NOT `BelongsToTenant` — services must use `app('tenant.school_id')` explicitly |
+| 2026-04-10 | `EventTypeController` | Double guard against `is_system=true`: controller throws `ValidationException` (HTTP-safe), service throws `\DomainException` (never reached from controller, but provides defence-in-depth for direct service calls) |
+| 2026-04-11 | `EventTypeFactory` | Factory has no `school_id`/`is_system` defaults — always pass `['school_id' => $school->id]` explicitly in tests |
+| 2026-04-11 | `CreateLembreteEventoCommand` | Iterates events→opportunities; open-task check does NOT need to exclude a triggering task (unlike `CreateLembreteAgendaCommand`) — different architecture: source is event, not task |
+
+---
+
 ## Infrastructure — Queue / Horizon (2026-04-08)
 
 | Date | Decision |

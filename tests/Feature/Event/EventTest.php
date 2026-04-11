@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\TaskStatus;
 use App\Enums\TaskType;
 use App\Models\Event;
+use App\Models\EventType;
 use App\Models\Grade;
 use App\Models\Opportunity;
 use App\Models\Role;
@@ -521,5 +522,56 @@ it('POST store com grade_uuid valido armazena corretamente', function (): void {
         'school_id' => $school->id,
         'title' => 'Evento com Grade',
         'grade_id' => $grade->id,
+    ]);
+});
+
+it('store persists event_type_id from event_type_uuid', function (): void {
+    $school = makeSchoolForEventTests();
+    $user = eventGestorUser($school);
+    $eventType = EventType::factory()->create(['school_id' => $school->id]);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $payload = [
+        'title' => 'Evento com tipo',
+        'event_date' => now()->addDays(3)->format('Y-m-d'),
+        'has_no_date' => '0',
+        'event_type_uuid' => $eventType->uuid,
+    ];
+
+    $this->actingAs($user)
+        ->post(route('tenant.events.store'), $payload)
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('events', [
+        'title' => 'Evento com tipo',
+        'event_type_id' => $eventType->id,
+    ]);
+});
+
+it('update without event_type_uuid preserves existing event_type_id', function (): void {
+    $school = makeSchoolForEventTests();
+    $user = eventGestorUser($school);
+    $eventType = EventType::factory()->create(['school_id' => $school->id]);
+    $event = Event::factory()->create([
+        'school_id' => $school->id,
+        'event_type_id' => $eventType->id,
+    ]);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $payload = [
+        'title' => 'Título atualizado',
+        'has_no_date' => '1',
+        // no event_type_uuid sent
+    ];
+
+    $this->actingAs($user)
+        ->put(route('tenant.events.update', $event->uuid), $payload)
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('events', [
+        'id' => $event->id,
+        'event_type_id' => $eventType->id,
     ]);
 });

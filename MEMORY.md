@@ -40,7 +40,7 @@
 - [x] 5.1 — TaskType · TaskStatus · OutcomeActionType enums · Task model + observer + factory · TaskPolicy · TaskService (list/create/complete/cancel) · OutcomeProcessorService stub · RenitenteCycleService stub · StoreTaskRequest · CompleteTaskRequest · TaskController · TaskResource · routes · renitente_count on opportunities — 18 tests — 2026-04-08
 - [x] 5.2 — OpportunityController::show · OutcomeResource · TaskResource is_schedule · opportunities.show route · OpportunityShowTest (5 tests) — 148 tests — 2026-04-08
 - [x] 5.3 — Show.vue (opportunity detail + active task panel + task history) · OutcomeModal.vue (fetch-based tabulation) · TaskCreateModal.vue (useForm) · Index.vue Eye link + fixed Wayfinder calls · task.ts lib · Task/Outcome/TaskType types in crm.ts — 2026-04-08
-- [x] 4.8 — CpfRule (mod-11) · GuardianController::validateCpf · tenant route guardians.validate_cpf · CpfRule in Store/UpdateOpportunityRequest · OpportunityService::create() phone→telefone + address fields + segment_id + null-cpf guard · guardians.cpf nullable migration — 180 tests — 2026-04-08
+- [x] 4.8 — CpfRule (mod-11) · GuardianController::validateCpf · tenant route guardians.validate_cpf · CpfRule in Store/UpdateOpportunityRequest · OpportunityService::create() phone→telefone + address fields + segment_id — 180 tests — 2026-04-08
 - [x] 7.1 — Frontend Events (Index · Create · Edit with opportunities section) — 2026-04-09
 - [x] ADJ.1 — ActiveSchoolService: `school_current_id` salvo incondicionalmente (removido guard `count > 1`) — 2026-04-09
 - [x] ADJ.2 — Room: migration remove `description`/`is_active` + add `is_external` · model/requests/service/factory/tests/TS updated — 2026-04-09
@@ -63,7 +63,7 @@
 - [x] ADJ-B4 — StoreOpportunityRequest: task_type rule · OpportunityService injects TaskService + creates task on opportunity create — 2026-04-09
 - [x] ADJ-B5 — Masked fields stored as-is: migration fix_masked_field_columns (schools.cnpj varchar(18), school_units cep/logradouro/bairro/cidade nullable) · SchoolStoreRequest+UpdateRequest normalize CNPJ to masked format · OpportunityService remove CEP strip · CLAUDE.md rule added — 2026-04-09
 - [x] ADJ-EN — Portuguese→English field rename cleanup: auth.ts · TenantSwitcher.vue · Schools/Index.vue · SchoolYears.vue · Grades.vue · SchoolObserver · WelcomeSchoolUserMail · StudentUpdateRequest · 15+ test files (razao_social→legal_name, nome→name, telefone→phone, cep→zip_code, logradouro→street, bairro→neighborhood, cidade→city, estado→state, numero→number) — 197 tests passing — 2026-04-09
-- [x] FIX-A — SchoolYear inicio/fim→start/end: StoreRequest+UpdateRequest+tests+crm.ts SchoolYear interface · SchoolYearFactory created · guardians.cpf nullable migration added · boilerplate Settings tests deleted — 2026-04-10
+- [x] FIX-A — SchoolYear inicio/fim→start/end: StoreRequest+UpdateRequest+tests+crm.ts SchoolYear interface · SchoolYearFactory created · boilerplate Settings tests deleted — 2026-04-10
 - [x] 7.6B — EventType module backend: migration create_event_types + alter_events_event_type_to_fk · EventType model/observer/policy/service/requests/controller/resource/factory · EventTypeSeeder (Palestra/Workshop/Visita per tenant) · ModuleSeeder+PermissionSeeder+RoleSeeder updated · Event model event_type_id FK + eventType() relation · StoreEventRequest+UpdateEventRequest prepareForValidation UUID→ID — 2026-04-10
 - [x] 7.6F — EventType module frontend: EventTypeFormDialog · EventTypeToggleDialog (password-confirmed) · EventTypes.vue settings page · crm.ts EventType interface + PaginatedEventTypes (with links) · events/Create.vue+Edit.vue event_type_uuid Select · EventController edit() loads current event_type even if inactive — 2026-04-10\n- [x] ADJ-SY — SchoolYears.vue: inline form replaced with SchoolYearFormDialog (dialog pattern); applyFilters preserveScroll→preserveUrl fix — 2026-04-10
 - [x] ADJ-GR — Grades.vue: inline form replaced with GradeFormDialog (dialog pattern); applyFilters router.post→router.get with preserveUrl fix — 2026-04-10\n- [x] ADJ-F9 — events/Create.vue + Edit.vue: has_no_date checkbox hidden-input pattern fixed (v-if="hasNoDate" hidden value="1"); overlay divs removed; shadcn Input used for date field; Unidade field has bg-muted/50; dead code (Plus/Search/Card/filteredRooms/toggleRoom/isRoomSelected) removed from Create.vue — 2026-04-10
@@ -95,13 +95,17 @@
 - [x] FIX-ROOM-UX — RoomFormDialog.vue: dual-hidden-input v-if pattern para is_external (mesma solução do has_no_date em Events) + :model-value controlado no Checkbox + watch(props.open) para reset · RoomDeleteDialog.vue: novo componente com confirmação por senha (padrão EventTypeToggleDialog) · Rooms.vue: substitui div inline por RoomDeleteDialog · RoomController::destroy(): Hash::check + ValidationException — 2026-04-11
 - [x] CLAUDE-DB-RULE — CLAUDE.md: bullet explícito proibindo agentes de rodar comandos destrutivos de banco adicionado como primeiro item da seção Database safety — 2026-04-11
 - [x] TEST-FIX — tests/TestCase.php: withoutMiddleware(EnforceSingleSession) em setUp() · tests/Pest.php: Cache::flush() em beforeEach() — corrige 419 CSRF sistêmico causado por EnforceSingleSession verificar cache vazio — 2026-04-11
-- [x] MIGRATE-FIX — migration 2026_04_08_000001_make_guardian_cpf_nullable: guardians.cpf → nullable (migration estava faltando) — 2026-04-11
+- [x] REVIEW-7 — Reviewer pass Stage 7: TestCase also disables VerifyCsrfToken · EventTest 2 new tests (event_type_id persisted + preserved on update) · EventTypeController destroy/toggleActive use ValidationException instead of back()->withErrors() — 258 tests — 2026-04-11
 - [x] FACTORY-FIX — EventFactory: event_type → event_type_id (alinhado com FK migration) — 2026-04-11
 - [x] EVENT-FIX — EventController::attachOpportunity(): captura DomainException opportunity_has_open_task e converte para ValidationException 422 — 2026-04-11
 - [x] MIDDLEWARE-FIX — SetActiveTenant: fallback cross-tenant só roda se tenant.school_id não estiver bound (evita sobrescrever valor setado em testes/commands) — 2026-04-11
 - [x] REQUEST-FIX — StoreOpportunityRequest::prepareForValidation(): segment_id mantém UUID original se não encontrado (evita nullable bypass da validação exists) — 2026-04-11
 - [x] 6 — Notifications module: TaskAssignedNotification + TaskOverdueNotification + NotifyOverdueTasksCommand + NotificationController + echo.ts + useNotifications.ts + NotificationBell.vue + shadcn Popover components — 256 tests — 2026-04-11
-- [ ] 7–11 — Events · Form · Calendar · Reports · LGPD
+- [x] 7 — Events module complete: Event + EventType backend/frontend + reviewer pass — 257 tests — APPROVED 2026-04-11
+- [ ] 8 — Form module (public lead capture form)
+- [ ] 9 — Calendar
+- [ ] 10 — Reports
+- [ ] 11 — LGPD
 
 
 ---
@@ -127,7 +131,7 @@
 | 2026-04-07 | Tenant routes use prefix `/t` — no `{school_uuid}` in URL; tenant resolved from session via `SetActiveTenant` → `currentSchool()` |
 | 2026-04-07 | `BelongsToTenant` auto-sets `school_id` via `creating` event — controllers and services never set it manually; `LeadSource` (no BelongsToTenant) still uses `app('tenant.school_id')` explicitly |
 | 2026-04-07 | `useCpfLookup` no longer needs `schoolUuid` — lookup routes are `/t/students/lookup/{cpf}` |
-| 2026-04-08 | `guardians.cpf` is nullable — guardian can be created without CPF from opportunity form |
+| 2026-04-08 | `guardians.cpf` is **NOT NULL** — responsável SEMPRE deve ter CPF; nunca criar migration para torná-lo nullable |
 | 2026-04-09 | Event requests use `room_uuids`/`grade_uuid` (UUID-based) — service resolves to IDs before `attach()`; controller passes only `uuid` (not `id`) in Room/Grade props |
 | 2026-04-09 | `event_type` column is `string(60)` — values provisórios (palestra/workshop/visita) — aguardando confirmação do cliente |
 | 2026-04-10 | Brand identity: Operis blue `#2D3AE0`, font Eurostile LT Pro Unicode — assets in `public/images/operis-avatar-*.png`, `public/fonts/`, background `public/images/auth-bg.jpg`; semantic amber (warnings, status badges) preserved untouched |
@@ -150,7 +154,7 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-07 | `*.vue` (tenant) | Wayfinder functions for tenant routes take NO school_uuid — `index()`, `store()`, `update({ opportunity })` — school is in session |
 | 2026-04-05 | `*Service.php` | Non-blocking warnings: add `hasClosed*` helper on service; controller checks after `create()` and flashes `warning` vs `success` — never block creation |
 | 2026-04-05 | `*.vue` (ui) | No `Textarea` component in `ui/` — use plain `<textarea>` with inline Tailwind classes matching shadcn Input style |
-| 2026-04-08 | `OpportunityService::create()` | Pass guardian fields through `array_filter` removing nulls/empty before `findOrCreate()` — guardian `cpf` is nullable but not all guardians arrive with CPF |
+| 2026-04-08 | `OpportunityService::create()` | Pass guardian fields through `array_filter` removing nulls/empty before `findOrCreate()` — guardian `cpf` é obrigatório (NOT NULL) |
 | 2026-04-09 | `opportunities/Create.vue` | `Guardian` interface uses English field names (`phone`, `zip_code`, `street`, `number`, `neighborhood`, `city`, `state`) — use these in `fillGuardianFields()`, never the old Portuguese names |
 | 2026-04-11 | ALL test files | Root cause of 419 CSRF: `EnforceSingleSession` middleware checks cache for active session; empty cache = `null !== $sessionId` → logout + session.invalidate() → CSRF token gone. Fix: `Cache::flush()` in `Pest.php beforeEach()` + `withoutMiddleware(EnforceSingleSession)` in `TestCase::setUp()`. Also: `config:cache` makes tests ignore phpunit.xml → run `php artisan config:clear` before testing |
 | 2026-04-09 | `*.vue` (forms) | Boolean checkbox in Inertia `<Form>`: add `<input type="hidden" name="field" value="0" />` BEFORE the Checkbox — unchecked sends 0, checked overrides with 1 |

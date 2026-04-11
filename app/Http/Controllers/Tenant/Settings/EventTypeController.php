@@ -13,6 +13,7 @@ use App\Services\EventType\EventTypeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -63,7 +64,9 @@ class EventTypeController extends Controller
         Gate::authorize('delete', $eventType);
 
         if ($eventType->is_system === true) {
-            return back()->withErrors(['eventType' => 'Tipos de evento padrão não podem ser modificados.']);
+            throw ValidationException::withMessages([
+                'name' => [__('Tipos de evento do sistema não podem ser excluídos.')],
+            ]);
         }
 
         $this->eventTypeService->deactivate($eventType);
@@ -76,7 +79,9 @@ class EventTypeController extends Controller
         Gate::authorize('delete', $eventType);
 
         if ($eventType->is_system === true) {
-            return back()->withErrors(['eventType' => 'Tipos de evento padrão não podem ser modificados.']);
+            throw ValidationException::withMessages([
+                'name' => [__('Tipos de evento do sistema não podem ser alterados.')],
+            ]);
         }
 
         $this->eventTypeService->toggleActive($eventType);
