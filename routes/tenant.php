@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\EventController;
 use App\Http\Controllers\Tenant\GuardianController;
+use App\Http\Controllers\Tenant\NotificationController;
 use App\Http\Controllers\Tenant\OpportunityController;
 use App\Http\Controllers\Tenant\Settings\EventTypeController;
 use App\Http\Controllers\Tenant\Settings\GradeController;
@@ -135,4 +136,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
             ->name('settings.event_types.toggle_active');
         Route::delete('/tenant-settings/event-types/{eventType}', [EventTypeController::class, 'destroy'])
             ->name('settings.event_types.destroy');
+        // Notificações
+        Route::prefix('notifications')->name('notifications.')->group(function (): void {
+            Route::get('count', [NotificationController::class, 'unreadCount'])->name('unread_count');
+            Route::get('/', [NotificationController::class, 'index'])->name('index');
+            Route::patch('read-all', [NotificationController::class, 'markAllAsRead'])->name('mark_all_read');
+            Route::patch('{id}/read', [NotificationController::class, 'markAsRead'])->name('mark_read');
+        });
     });

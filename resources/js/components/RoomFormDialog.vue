@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -31,10 +31,14 @@ const emit = defineEmits<{
 const isExternalCreate = ref(false);
 const isExternalEdit = ref(props.room?.is_external ?? false);
 
-function fillInput(id: string, value: string): void {
-    const el = document.getElementById(id) as HTMLInputElement | null;
-    if (el) el.value = value;
-}
+watch(
+    () => props.open,
+    (val) => {
+        if (val) {
+            isExternalEdit.value = props.room?.is_external ?? false;
+        }
+    },
+);
 
 function handleSuccess(): void {
     emit('success');
@@ -110,14 +114,18 @@ function handleClose(): void {
 
                 <div class="flex items-center gap-2">
                     <input type="hidden" name="is_external" value="0" />
+                    <input
+                        v-if="isExternalCreate"
+                        type="hidden"
+                        name="is_external"
+                        value="1"
+                    />
                     <Checkbox
                         id="room-is_external"
-                        name="is_external"
-                        :default-checked="false"
+                        :model-value="isExternalCreate"
                         @update:checked="
                             (val: boolean) => {
                                 isExternalCreate = val;
-                                if (val) fillInput('room-capacity', '');
                             }
                         "
                     />
@@ -189,14 +197,19 @@ function handleClose(): void {
 
                 <div class="flex items-center gap-2">
                     <input type="hidden" name="is_external" value="0" />
-                    <Checkbox
-                        id="room-edit-is_external"
+                    <input
+                        v-if="isExternalEdit"
+                        type="hidden"
                         name="is_external"
-                        :default-checked="props.room.is_external"
+                        value="1"
+                    />
+                    <Checkbox
+                        :key="props.room.uuid"
+                        id="room-edit-is_external"
+                        :model-value="isExternalEdit"
                         @update:checked="
                             (val: boolean) => {
                                 isExternalEdit = val;
-                                if (val) fillInput('room-edit-capacity', '');
                             }
                         "
                     />

@@ -14,3 +14,9 @@ $schedule = app(Schedule::class);
 $schedule->command('audit-logs:purge')->dailyAt('01:00');
 
 $schedule->command('horizon:snapshot')->everyFiveMinutes();
+
+$schedule->command('tasks:create-lembrete-agenda')->everyThirtyMinutes();
+
+$schedule->command('tasks:create-lembrete-evento')->everyThirtyMinutes();
+
+$schedule->command('notifications:notify-overdue-tasks')->everyThirtyMinutes();

@@ -193,7 +193,7 @@ class OpportunityController extends Controller
             }, $stages);
         }
 
-        $daysInStage = (int) ($opportunity->created_at?->diffInDays(now()) ?? 0);
+        $daysInStage = (int) (($opportunity->status_changed_at ?? $opportunity->created_at)?->diffInDays(now()) ?? 0);
 
         $opportunityData = $opportunity->toArray();
         if (array_key_exists('guardian', $opportunityData)

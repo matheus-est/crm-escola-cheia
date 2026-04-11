@@ -10,6 +10,7 @@ use App\Models\Opportunity;
 use App\Models\Outcome;
 use App\Models\Task;
 use App\Services\Task\OutcomeProcessorService;
+use App\Services\Task\TaskService;
 use Illuminate\Validation\ValidationException;
 
 it('moves to Visita and creates Provável Matrícula task on compareceu_agendamento', function () {
@@ -167,6 +168,7 @@ it('rolls back transaction if an action fails', function () {
         'school_id' => $opportunity->school_id,
         'opportunity_id' => $opportunity->id,
         'type' => TaskType::ProvavelMatricula->value,
+        'status' => TaskStatus::Open->value,
     ]);
 
     $outcome = Outcome::create([
@@ -189,10 +191,11 @@ it('rolls back transaction if an action fails', function () {
         'order' => 2,
     ]);
 
-    $service = app(OutcomeProcessorService::class);
+    // Use TaskService::complete() which wraps actions in DB::transaction()
+    $taskService = app(TaskService::class);
 
     try {
-        $service->process($task, $outcome);
+        $taskService->complete($task, $outcome, []);
     } catch (ValidationException $e) {
         // Expected
     }
@@ -255,6 +258,6 @@ it('throws DomainException when trying to move a terminal opportunity to another
 
     $service = app(OutcomeProcessorService::class);
 
-    expect(fn() => $service->process($task, $outcome))
+    expect(fn () => $service->process($task, $outcome))
         ->toThrow(\DomainException::class, 'opportunity_status_terminal');
 });

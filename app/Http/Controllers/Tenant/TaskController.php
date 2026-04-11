@@ -11,10 +11,12 @@ use App\Http\Resources\TaskResource;
 use App\Models\Opportunity;
 use App\Models\Outcome;
 use App\Models\Task;
+use App\Models\User;
 use App\Services\Task\TaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -30,16 +32,31 @@ class TaskController extends Controller
     {
         Gate::authorize('viewAny', Task::class);
 
-        $tasks = $this->taskService->list($request->only([
-            'opportunity_uuid',
-            'status',
-            'type',
-            'assigned_user_id',
-        ]));
+        $school = Auth::user()->currentSchool();
+        $users = $school->users()->orderBy('name')->get(['users.uuid', 'users.name']);
+
+        $assignedUserId = null;
+        if ($request->filled('assigned_user_uuid')) {
+            $user = User::query()->where('uuid', $request->input('assigned_user_uuid'))->first();
+            $assignedUserId = $user?->id;
+        }
+
+        $filters = [
+            'opportunity_uuid' => $request->input('opportunity_uuid'),
+            'status' => $request->input('status'),
+            'type' => $request->input('type'),
+            'assigned_user_id' => $assignedUserId,
+            'date_from' => $request->input('date_from'),
+            'date_to' => $request->input('date_to'),
+            'is_schedule' => $request->input('is_schedule'),
+        ];
+
+        $tasks = $this->taskService->list($filters);
 
         return Inertia::render('tasks/Index', [
             'tasks' => TaskResource::collection($tasks),
-            'filters' => $request->only(['opportunity_uuid', 'status', 'type', 'assigned_user_id']),
+            'filters' => $request->only(['opportunity_uuid', 'status', 'type', 'assigned_user_uuid', 'date_from', 'date_to', 'is_schedule']),
+            'users' => $users,
         ]);
     }
 

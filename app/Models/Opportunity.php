@@ -35,6 +35,7 @@ class Opportunity extends Model implements Auditable
         'segment_id',
         'renitente_count',
         'status',
+        'status_changed_at',
         'observations',
         'history',
         'indications',
@@ -47,6 +48,7 @@ class Opportunity extends Model implements Auditable
             'status' => OpportunityStatus::class,
             'registration_type' => RegistrationType::class,
             'renitente_count' => 'integer',
+            'status_changed_at' => 'datetime',
         ];
     }
 

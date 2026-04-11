@@ -73,9 +73,9 @@ it('POST store persiste campos de endereço do guardian', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->post(route('tenant.opportunities.store'), [
-            'grade_id' => $grade->id,
-            'school_year_id' => $schoolYear->id,
+        ->postJson(route('tenant.opportunities.store'), [
+            'grade_id' => $grade->uuid,
+            'school_year_id' => $schoolYear->uuid,
             'student_name' => 'Aluno Endereço',
             'guardian_name' => 'Responsável Endereço',
             'guardian_phone' => '(11) 98765-4321',
@@ -112,10 +112,9 @@ it('POST store com guardian_cpf inválido retorna 422', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.opportunities.store'), [
-            'grade_id' => $grade->id,
-            'school_year_id' => $schoolYear->id,
+        ->postJson(route('tenant.opportunities.store'), [
+            'grade_id' => $grade->uuid,
+            'school_year_id' => $schoolYear->uuid,
             'student_name' => 'Aluno CPF Inválido',
             'guardian_cpf' => '111.111.111-11',
         ])
@@ -132,10 +131,9 @@ it('POST store com student_cpf inválido retorna 422', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($user)
-        ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.opportunities.store'), [
-            'grade_id' => $grade->id,
-            'school_year_id' => $schoolYear->id,
+        ->postJson(route('tenant.opportunities.store'), [
+            'grade_id' => $grade->uuid,
+            'school_year_id' => $schoolYear->uuid,
             'student_name' => 'Aluno CPF Inválido',
             'student_cpf' => '000.000.000-00',
         ])

@@ -22,7 +22,7 @@ class EventFactory extends Factory
             'uuid' => Str::uuid()->toString(),
             'school_id' => School::factory(),
             'title' => $this->faker->sentence(3),
-            'event_type' => null,
+            'event_type_id' => null,
             'has_no_date' => false,
             'grade_id' => null,
             'event_date' => now()->addDays(7),

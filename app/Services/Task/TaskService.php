@@ -9,6 +9,7 @@ use App\Enums\TaskType;
 use App\Models\Opportunity;
 use App\Models\Outcome;
 use App\Models\Task;
+use App\Notifications\TaskAssignedNotification;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -47,6 +48,22 @@ class TaskService
             $query->where('assigned_user_id', (int) $filters['assigned_user_id']);
         }
 
+        if (array_key_exists('date_from', $filters) && $filters['date_from'] !== null) {
+            $query->where('due_at', '>=', $filters['date_from']);
+        }
+
+        if (array_key_exists('date_to', $filters) && $filters['date_to'] !== null) {
+            $query->where('due_at', '<=', $filters['date_to']);
+        }
+
+        if (array_key_exists('is_schedule', $filters) && $filters['is_schedule'] !== null) {
+            $scheduleTypes = collect(TaskType::cases())
+                ->filter(fn (TaskType $t) => $t->isSchedule())
+                ->map(fn (TaskType $t) => $t->value)
+                ->all();
+            $query->whereIn('type', $scheduleTypes);
+        }
+
         return $query->orderByDesc('created_at')->paginate(20);
     }
 
@@ -61,7 +78,16 @@ class TaskService
             throw new \DomainException('opportunity_has_open_task');
         }
 
-        return Task::create([...$data, 'opportunity_id' => $opportunity->id]);
+        $task = Task::create([...$data, 'opportunity_id' => $opportunity->id]);
+
+        if ($task->assigned_user_id !== null) {
+            $task->load(['opportunity.student', 'assignedUser']);
+            $task->assignedUser->notify(
+                new TaskAssignedNotification($task)
+            );
+        }
+
+        return $task;
     }
 
     /**
@@ -80,6 +106,8 @@ class TaskService
                 'outcome_id' => $outcome->id,
                 'completed_at' => now(),
                 'notes' => $payload['notes'] ?? null,
+                'refusal_category' => $payload['refusal_category'] ?? null,
+                'refusal_detail' => $payload['refusal_detail'] ?? null,
             ]);
 
             return $this->outcomeProcessorService->process($task, $outcome, $payload);

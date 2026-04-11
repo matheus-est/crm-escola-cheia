@@ -12,6 +12,8 @@ use App\Services\Room\RoomService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -56,8 +58,14 @@ class RoomController extends Controller
         return back()->with('success', 'Sala atualizada com sucesso.');
     }
 
-    public function destroy(Room $room): RedirectResponse
+    public function destroy(Request $request, Room $room): RedirectResponse
     {
+        if (! Hash::check($request->string('password')->value(), auth()->user()->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['Senha incorreta.'],
+            ]);
+        }
+
         Gate::authorize('delete', $room);
 
         $this->roomService->delete($room);

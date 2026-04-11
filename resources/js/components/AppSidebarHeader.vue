@@ -3,6 +3,7 @@ import { usePage } from '@inertiajs/vue3';
 import { ChevronsUpDown } from 'lucide-vue-next';
 import AppearanceToggle from '@/components/AppearanceToggle.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import NotificationBell from '@/components/NotificationBell.vue';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -42,6 +43,7 @@ const user = page.props.auth.user;
 
         <div class="ml-auto flex items-center gap-1">
             <AppearanceToggle />
+            <NotificationBell />
 
             <DropdownMenu>
                 <DropdownMenuTrigger as-child>

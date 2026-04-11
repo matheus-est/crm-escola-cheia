@@ -70,7 +70,7 @@ class EventController extends Controller
 
         $school = Auth::user()->currentSchool();
 
-        $event->load(['opportunities.student', 'rooms', 'grade']);
+        $event->load(['opportunities.student', 'rooms', 'grade', 'eventType']);
 
         return Inertia::render('events/Edit', [
             'event' => $event,
@@ -142,9 +142,13 @@ class EventController extends Controller
         try {
             $task = $this->eventService->attachOpportunity($event, $opportunity);
         } catch (\DomainException $e) {
-            throw ValidationException::withMessages([
-                'opportunity_uuid' => [$e->getMessage()],
-            ]);
+            if ($e->getMessage() === 'opportunity_has_open_task') {
+                throw ValidationException::withMessages([
+                    'opportunity_uuid' => [__('opportunity_has_open_task')],
+                ]);
+            }
+
+            throw $e;
         }
 
         if ($request->expectsJson()) {

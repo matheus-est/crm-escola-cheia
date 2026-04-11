@@ -29,6 +29,16 @@ class SetActiveTenant
 
         if ($school === null) {
             if ($user->isCrossTenant()) {
+                if (! app()->bound('tenant.school_id')) {
+                    $fallback = School::query()
+                        ->where('status', SchoolStatus::Active)
+                        ->first();
+
+                    if ($fallback !== null) {
+                        app()->instance('tenant.school_id', $fallback->id);
+                    }
+                }
+
                 return $next($request);
             }
             abort(403);

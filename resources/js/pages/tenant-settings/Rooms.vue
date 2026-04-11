@@ -4,6 +4,7 @@ import { DoorOpen, Filter, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import PerPageSelect from '@/components/PerPageSelect.vue';
+import RoomDeleteDialog from '@/components/RoomDeleteDialog.vue';
 import RoomFormDialog from '@/components/RoomFormDialog.vue';
 import TablePagination from '@/components/TablePagination.vue';
 import {
@@ -17,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { destroy, index } from '@/routes/tenant/settings/rooms/index';
+import { index } from '@/routes/tenant/settings/rooms/index';
 import type { BreadcrumbItem } from '@/types';
 import type { PaginatedRooms, Room } from '@/types/crm';
 
@@ -107,30 +108,10 @@ function openDeleteConfirm(room: Room): void {
     showDeleteConfirm.value = true;
 }
 
-function cancelDelete(): void {
+function handleDeleteSuccess(): void {
     showDeleteConfirm.value = false;
     roomToDelete.value = null;
-}
-
-function confirmDelete(): void {
-    if (!roomToDelete.value) return;
-
-    router.delete(
-        destroy({
-            room: roomToDelete.value.uuid,
-        }).url,
-        {
-            onSuccess: () => {
-                showDeleteConfirm.value = false;
-                roomToDelete.value = null;
-                toast.success('Sala excluída com sucesso.');
-                router.reload({ preserveUrl: true });
-            },
-            onError: () => {
-                toast.error('Erro ao excluir a sala.');
-            },
-        },
-    );
+    router.reload({ preserveUrl: true });
 }
 </script>
 
@@ -353,31 +334,11 @@ function confirmDelete(): void {
             @success="handleDialogSuccess"
         />
 
-        <!-- Delete confirmation dialog -->
-        <div
-            v-if="showDeleteConfirm && roomToDelete"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        >
-            <div
-                class="w-full max-w-sm rounded-lg border bg-card p-6 shadow-lg"
-            >
-                <h3 class="text-base font-semibold">Confirmar Exclusão</h3>
-                <p class="mt-2 text-sm text-muted-foreground">
-                    Tem certeza que deseja excluir a sala
-                    <span class="font-medium text-foreground">{{
-                        roomToDelete.name
-                    }}</span
-                    >? Esta ação não pode ser desfeita.
-                </p>
-                <div class="mt-6 flex justify-end gap-3">
-                    <Button variant="outline" @click="cancelDelete">
-                        Cancelar
-                    </Button>
-                    <Button variant="destructive" @click="confirmDelete">
-                        Excluir
-                    </Button>
-                </div>
-            </div>
-        </div>
+        <!-- Delete dialog -->
+        <RoomDeleteDialog
+            v-model:open="showDeleteConfirm"
+            :room="roomToDelete"
+            @success="handleDeleteSuccess"
+        />
     </AppLayout>
 </template>

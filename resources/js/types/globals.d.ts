@@ -1,3 +1,4 @@
+import type Pusher from 'pusher-js';
 import type { AppPageProps } from './index';
 
 // Extend ImportMeta interface for Vite...
@@ -22,5 +23,11 @@ declare module 'vue' {
         $inertia: typeof Router;
         $page: Page;
         $headManager: ReturnType<typeof createHeadManager>;
+    }
+}
+
+declare global {
+    interface Window {
+        Pusher: typeof Pusher;
     }
 }

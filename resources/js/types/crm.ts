@@ -362,3 +362,17 @@ export type PaginatedEventTypes = {
     total: number;
     links: Array<{ url: string | null; label: string; active: boolean }>;
 };
+
+export interface CrmNotification {
+    id: string;
+    type: string;
+    data: {
+        task_uuid: string;
+        task_type_label: string;
+        opportunity_uuid: string;
+        opportunity_student_name: string;
+        due_at?: string;
+    };
+    read_at: string | null;
+    created_at: string;
+}

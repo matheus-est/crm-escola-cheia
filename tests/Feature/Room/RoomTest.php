@@ -169,7 +169,7 @@ it('destroy faz soft-delete da sala e redireciona', function (): void {
 
     $this->actingAs($user)
         ->withHeaders(['HTTP_REFERER' => route('tenant.settings.rooms.index')])
-        ->delete(route('tenant.settings.rooms.destroy', $room))
+        ->deleteJson(route('tenant.settings.rooms.destroy', $room), ['password' => 'password'])
         ->assertRedirect(route('tenant.settings.rooms.index'));
 
     $this->assertSoftDeleted('rooms', ['id' => $room->id]);
@@ -225,6 +225,6 @@ it('comercial não pode excluir sala (403)', function (): void {
 
     $this->actingAs($user)
         ->withHeader('Accept', 'application/json')
-        ->delete(route('tenant.settings.rooms.destroy', $room))
+        ->deleteJson(route('tenant.settings.rooms.destroy', $room), ['password' => 'password'])
         ->assertStatus(403);
 });

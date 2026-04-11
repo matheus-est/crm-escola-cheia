@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -30,33 +31,42 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { show } from '@/routes/tenant/opportunities';
+import { index } from '@/routes/tenant/tasks';
 import type { BreadcrumbItem } from '@/types';
 import type { PaginatedTasks } from '@/types/crm';
 
 interface Filters {
     status: string;
     type: string;
+    assigned_user_uuid: string;
+    date_from: string;
+    date_to: string;
 }
 
 const props = defineProps<{
     tasks: PaginatedTasks;
     filters: Filters;
+    users: Array<{ uuid: string; name: string }>;
 }>();
 
-const breadcrumbItems: BreadcrumbItem[] = [
-    { title: 'Tarefas', href: '/tenant/tasks' },
-];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Tarefas', href: '#' }];
 
 const localFilters = ref<Filters>({
-    status: props.filters.status || '',
-    type: props.filters.type || '',
+    status: props.filters.status ?? '',
+    type: props.filters.type ?? '',
+    assigned_user_uuid: props.filters.assigned_user_uuid ?? '',
+    date_from: props.filters.date_from ?? '',
+    date_to: props.filters.date_to ?? '',
 });
 
 const filterCount = computed(() =>
-    [localFilters.value.status ? 1 : 0, localFilters.value.type ? 1 : 0].reduce(
-        (a, b) => a + b,
-        0,
-    ),
+    [
+        localFilters.value.status ? 1 : 0,
+        localFilters.value.type ? 1 : 0,
+        localFilters.value.assigned_user_uuid ? 1 : 0,
+        localFilters.value.date_from ? 1 : 0,
+        localFilters.value.date_to ? 1 : 0,
+    ].reduce((a, b) => a + b, 0),
 );
 
 const hasActiveFilter = computed(() => filterCount.value > 0);
@@ -69,21 +79,32 @@ function updateFilterType(value: string): void {
     localFilters.value.type = value === 'all' ? '' : value;
 }
 
+function updateFilterUser(value: string): void {
+    localFilters.value.assigned_user_uuid = value === 'all' ? '' : value;
+}
+
 function applyFilters(): void {
     router.get(
-        '/tenant/tasks',
+        index().url,
         {
-            status: localFilters.value.status,
-            type: localFilters.value.type,
+            status: localFilters.value.status || undefined,
+            type: localFilters.value.type || undefined,
+            assigned_user_uuid:
+                localFilters.value.assigned_user_uuid || undefined,
+            date_from: localFilters.value.date_from || undefined,
+            date_to: localFilters.value.date_to || undefined,
         },
-        { preserveScroll: true, preserveState: true },
+        { preserveUrl: true, preserveState: true },
     );
 }
 
 function clearFilters(): void {
     localFilters.value.status = '';
     localFilters.value.type = '';
-    router.visit('/tenant/tasks');
+    localFilters.value.assigned_user_uuid = '';
+    localFilters.value.date_from = '';
+    localFilters.value.date_to = '';
+    router.visit(index().url);
 }
 
 // — Table Helpers —
@@ -109,16 +130,16 @@ function statusLabel(status: string): string {
 
 function typeLabel(type: string): string {
     const labels: Record<string, string> = {
-        retorno_ligacao: 'Retorno Ligação',
+        retorno_ligacao: 'Retorno de Ligação',
         agendamento: 'Agendamento',
-        lembrete_agenda: 'Lembrete Agenda',
+        lembrete_agenda: 'Lembrete de Agendamento',
         reagendamento: 'Reagendamento',
         double_check: 'Double Check',
         provavel_matricula: 'Provável Matrícula',
         evento: 'Evento',
-        lembrete_evento: 'Lembrete Evento',
-        reagendamento_evento: 'Reagendamento Evento',
-        double_check_evento: 'Double Check Evento',
+        lembrete_evento: 'Lembrete de Evento',
+        reagendamento_evento: 'Reagendamento de Evento',
+        double_check_evento: 'Double Check de Evento',
     };
     return labels[type] || type;
 }
@@ -148,7 +169,7 @@ function formatDate(dateStr?: string | null): string {
                 <Accordion
                     type="single"
                     collapsible
-                    class="w-[340px]"
+                    class="w-72"
                     defaultValue="closed"
                 >
                     <AccordionItem value="filter" class="border-none">
@@ -237,26 +258,105 @@ function formatDate(dateStr?: string | null): string {
                                                 <SelectItem value="all"
                                                     >Todos</SelectItem
                                                 >
-                                                <SelectItem value="call"
-                                                    >Ligação</SelectItem
+                                                <SelectItem
+                                                    value="retorno_ligacao"
+                                                    >Retorno de
+                                                    Ligação</SelectItem
                                                 >
-                                                <SelectItem value="whatsapp"
-                                                    >WhatsApp</SelectItem
+                                                <SelectItem value="agendamento"
+                                                    >Agendamento</SelectItem
                                                 >
-                                                <SelectItem value="email"
-                                                    >E-mail</SelectItem
+                                                <SelectItem
+                                                    value="lembrete_agenda"
+                                                    >Lembrete de
+                                                    Agendamento</SelectItem
                                                 >
-                                                <SelectItem value="meeting"
-                                                    >Reunião</SelectItem
+                                                <SelectItem
+                                                    value="reagendamento"
+                                                    >Reagendamento</SelectItem
                                                 >
-                                                <SelectItem value="tour"
-                                                    >Visita</SelectItem
+                                                <SelectItem value="double_check"
+                                                    >Double Check</SelectItem
                                                 >
-                                                <SelectItem value="follow_up"
-                                                    >Follow-up</SelectItem
+                                                <SelectItem
+                                                    value="provavel_matricula"
+                                                    >Provável
+                                                    Matrícula</SelectItem
+                                                >
+                                                <SelectItem value="evento"
+                                                    >Evento</SelectItem
+                                                >
+                                                <SelectItem
+                                                    value="lembrete_evento"
+                                                    >Lembrete de
+                                                    Evento</SelectItem
+                                                >
+                                                <SelectItem
+                                                    value="reagendamento_evento"
+                                                    >Reagendamento de
+                                                    Evento</SelectItem
+                                                >
+                                                <SelectItem
+                                                    value="double_check_evento"
+                                                    >Double Check de
+                                                    Evento</SelectItem
                                                 >
                                             </SelectContent>
                                         </Select>
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <Label for="filter-user"
+                                            >Responsável</Label
+                                        >
+                                        <Select
+                                            :default-value="
+                                                localFilters.assigned_user_uuid ||
+                                                'all'
+                                            "
+                                            @update:model-value="
+                                                updateFilterUser
+                                            "
+                                        >
+                                            <SelectTrigger
+                                                id="filter-user"
+                                                class="h-8"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Todos"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all"
+                                                    >Todos</SelectItem
+                                                >
+                                                <SelectItem
+                                                    v-for="user in props.users"
+                                                    :key="user.uuid"
+                                                    :value="user.uuid"
+                                                >
+                                                    {{ user.name }}
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <Label>Período</Label>
+                                        <div class="flex gap-2">
+                                            <Input
+                                                v-model="localFilters.date_from"
+                                                type="date"
+                                                class="h-8 text-xs"
+                                                placeholder="De"
+                                            />
+                                            <Input
+                                                v-model="localFilters.date_to"
+                                                type="date"
+                                                class="h-8 text-xs"
+                                                placeholder="Até"
+                                            />
+                                        </div>
                                     </div>
 
                                     <div
@@ -269,7 +369,7 @@ function formatDate(dateStr?: string | null): string {
                                             class="h-8 text-muted-foreground"
                                             @click="clearFilters"
                                         >
-                                            Limpar
+                                            Limpar filtros
                                         </Button>
                                         <Button
                                             type="submit"

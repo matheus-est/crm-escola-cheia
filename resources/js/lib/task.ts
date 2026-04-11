@@ -18,4 +18,12 @@ export const refusalCategoryLabels: Record<string, string> = {
     fatores_internos: 'Fatores Internos',
     pedagogicos: 'Pedagógicos',
     administrativos: 'Administrativos',
+    sem_interesse: 'Sem Interesse',
+    questoes_financeiras: 'Questões Financeiras',
+    optou_por_concorrente: 'Optou por Concorrente',
+    sem_retorno: 'Sem Retorno',
 };
+
+export function refusalCategoryLabel(key: string): string {
+    return refusalCategoryLabels[key] ?? key;
+}

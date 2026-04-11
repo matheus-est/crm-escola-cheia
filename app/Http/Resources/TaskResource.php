@@ -19,6 +19,8 @@ class TaskResource extends JsonResource
             'is_schedule' => $this->type?->isSchedule() ?? false,
             'status' => $this->status,
             'notes' => $this->notes,
+            'refusal_category' => $this->refusal_category,
+            'refusal_detail' => $this->refusal_detail,
             'scheduled_at' => $this->scheduled_at,
             'due_at' => $this->due_at,
             'completed_at' => $this->completed_at,

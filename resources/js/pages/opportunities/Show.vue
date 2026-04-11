@@ -22,7 +22,7 @@ import OutcomeModal from '@/components/Task/OutcomeModal.vue';
 import TaskCreateModal from '@/components/Task/TaskCreateModal.vue';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { taskTypeLabels } from '@/lib/task';
+import { refusalCategoryLabel, taskTypeLabels } from '@/lib/task';
 import { edit, index } from '@/routes/tenant/opportunities';
 import type { BreadcrumbItem } from '@/types';
 import type {
@@ -481,6 +481,33 @@ function taskLabel(task: Task): string {
                                                         task.notes
                                                     }}</span>
                                                 </div>
+                                                <template
+                                                    v-if="
+                                                        task.outcome
+                                                            ?.is_refusal &&
+                                                        task.refusal_category
+                                                    "
+                                                >
+                                                    <p
+                                                        class="mt-1 text-xs font-medium text-destructive"
+                                                    >
+                                                        {{
+                                                            refusalCategoryLabel(
+                                                                task.refusal_category,
+                                                            )
+                                                        }}
+                                                    </p>
+                                                    <p
+                                                        v-if="
+                                                            task.refusal_detail
+                                                        "
+                                                        class="text-xs text-muted-foreground"
+                                                    >
+                                                        {{
+                                                            task.refusal_detail
+                                                        }}
+                                                    </p>
+                                                </template>
                                             </div>
                                         </div>
                                         <div class="shrink-0 text-right">

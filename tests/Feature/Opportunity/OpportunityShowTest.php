@@ -179,3 +179,47 @@ it('GET show inclui tasks e outcomes nas props Inertia', function (): void {
             ->has('opportunity')
         );
 });
+
+it('GET show retorna days_in_stage baseado em status_changed_at quando presente', function (): void {
+    $school = showMakeSchool();
+    $user = showMakeUser('Gestor', $school);
+    $opportunity = showMakeOpportunity($school);
+
+    // Set status_changed_at to 3 days ago
+    Opportunity::withoutTenantScope()
+        ->where('id', $opportunity->id)
+        ->update(['status_changed_at' => now()->subDays(3)]);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->withoutVite()
+        ->actingAs($user)
+        ->get("/tenant/opportunities/{$opportunity->uuid}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('opportunities/Show', false)
+            ->where('days_in_stage', 3)
+        );
+});
+
+it('GET show retorna days_in_stage baseado em created_at quando status_changed_at é nulo', function (): void {
+    $school = showMakeSchool();
+    $user = showMakeUser('Gestor', $school);
+    $opportunity = showMakeOpportunity($school);
+
+    // Ensure status_changed_at is null and created_at is 2 days ago
+    Opportunity::withoutTenantScope()
+        ->where('id', $opportunity->id)
+        ->update(['created_at' => now()->subDays(2), 'status_changed_at' => null]);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->withoutVite()
+        ->actingAs($user)
+        ->get("/tenant/opportunities/{$opportunity->uuid}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('opportunities/Show', false)
+            ->where('days_in_stage', 2)
+        );
+});

@@ -7,8 +7,8 @@
 
 ## CURRENT STATE
 
-**Last session:** 2026-04-10
-**Next task:** 6 — Notifications module (or continue 4.x improvements)
+**Last session:** 2026-04-11
+**Next task:** 8 — Form module (or next in sequence)
 **Last rebrand:** 2026-04-10 — Identidade visual migrada para Operis CRM (azul `#2D3AE0`, Eurostile)
 
 ### Completed
@@ -81,7 +81,27 @@
 - [x] ADJ-SHOW2 — Show.vue layout adjustments: days_in_stage uses created_at; responsible_user name in pipeline header; Edit button moved into pipeline card below progress bar; guardian/student names shown to the RIGHT of contact/data info with User icon and border-l separator; usePage/authUser/Auth imports removed — 2026-04-10
 - [x] REBRAND — Operis visual rebrand: Eurostile fonts · blue brand palette (hsl 234) · favicon.svg 8-petal wheel · AppLogoIcon.vue · AppLogo.vue PNG fallback · AuthSplitLayout.vue slate/blue overlay · Login.vue new headline+Target icon — 2026-04-10
 - [x] REBRAND — Identidade visual Operis CRM: paleta azul `#2D3AE0`, Eurostile, logos/favicon nativos, login redesenhado — 2026-04-10
-- [ ] 6–11 — Notifications · Events · Form · Calendar · Reports · LGPD
+- [x] 5.5-A2 — OpportunityObserver::updated(): cancela tasks abertas em status terminal (matricula/recusado) · sets status_changed_at via updateQuietly — 2026-04-10
+- [x] 5.5-B1 — tasks.refusal_category + refusal_detail columns · Task $fillable · TaskService::complete() persists · TaskResource exposes · crm.ts Task interface — 2026-04-10
+- [x] 5.5-B2 — opportunities.status_changed_at column · Opportunity fillable+cast · OpportunityController::show() usa status_changed_at ?? created_at para days_in_stage — 2026-04-10
+- [x] 5.5-C1 — TaskService::list() filtros date_from/date_to/is_schedule — 2026-04-10
+- [x] 5.5-C2 — TaskController::index() passa prop users + expande filtros assigned_user_uuid/date_from/date_to/is_schedule — 2026-04-10
+- [x] 5.5-E1 — CreateLembreteAgendaCommand (tasks:create-lembrete-agenda) · verifica any open task (excl. agendamento pai) · DB::table insert · scheduler everyThirtyMinutes · 5 testes — 2026-04-10
+- [x] 5.5-E2 — CreateLembreteEventoCommand (tasks:create-lembrete-evento) · verifica any open task · DB::table insert · scheduler everyThirtyMinutes · 4 testes — 2026-04-10
+- [x] 5.5-D1 — tasks/Index.vue: preserveUrl fix · w-72 accordion · correct TaskType SelectItems · assigned_user_uuid filter · date_from/date_to date range · Wayfinder index() URL — 2026-04-10
+- [x] 5.5-D2 — Show.vue: refusalCategoryLabel import · refusal_category/refusal_detail block in history timeline · Task interface refusal_category/refusal_detail fields · lib/task.ts refusalCategoryLabel() function + new keys — 2026-04-10
+- [x] FIX-UUID-OPP — StoreOpportunityRequest + UpdateOpportunityRequest: prepareForValidation() UUID→ID para grade_id/segment_id/school_year_id/lead_source_id/responsible_user_id · attributes() com labels em português (Série/Turma, Segmento, Ano Letivo…) — 2026-04-11
+- [x] FIX-ROOM-BOOL — RoomFormDialog.vue: hidden input id + fillInput no @update:checked do Checkbox para enviar is_external corretamente · StoreRoomRequest + UpdateRoomRequest: prepareForValidation() filter_var BOOLEAN + attributes() 'Sala Externa' — 2026-04-11
+- [x] FIX-ROOM-UX — RoomFormDialog.vue: dual-hidden-input v-if pattern para is_external (mesma solução do has_no_date em Events) + :model-value controlado no Checkbox + watch(props.open) para reset · RoomDeleteDialog.vue: novo componente com confirmação por senha (padrão EventTypeToggleDialog) · Rooms.vue: substitui div inline por RoomDeleteDialog · RoomController::destroy(): Hash::check + ValidationException — 2026-04-11
+- [x] CLAUDE-DB-RULE — CLAUDE.md: bullet explícito proibindo agentes de rodar comandos destrutivos de banco adicionado como primeiro item da seção Database safety — 2026-04-11
+- [x] TEST-FIX — tests/TestCase.php: withoutMiddleware(EnforceSingleSession) em setUp() · tests/Pest.php: Cache::flush() em beforeEach() — corrige 419 CSRF sistêmico causado por EnforceSingleSession verificar cache vazio — 2026-04-11
+- [x] MIGRATE-FIX — migration 2026_04_08_000001_make_guardian_cpf_nullable: guardians.cpf → nullable (migration estava faltando) — 2026-04-11
+- [x] FACTORY-FIX — EventFactory: event_type → event_type_id (alinhado com FK migration) — 2026-04-11
+- [x] EVENT-FIX — EventController::attachOpportunity(): captura DomainException opportunity_has_open_task e converte para ValidationException 422 — 2026-04-11
+- [x] MIDDLEWARE-FIX — SetActiveTenant: fallback cross-tenant só roda se tenant.school_id não estiver bound (evita sobrescrever valor setado em testes/commands) — 2026-04-11
+- [x] REQUEST-FIX — StoreOpportunityRequest::prepareForValidation(): segment_id mantém UUID original se não encontrado (evita nullable bypass da validação exists) — 2026-04-11
+- [x] 6 — Notifications module: TaskAssignedNotification + TaskOverdueNotification + NotifyOverdueTasksCommand + NotificationController + echo.ts + useNotifications.ts + NotificationBell.vue + shadcn Popover components — 256 tests — 2026-04-11
+- [ ] 7–11 — Events · Form · Calendar · Reports · LGPD
 
 
 ---
@@ -132,7 +152,7 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-05 | `*.vue` (ui) | No `Textarea` component in `ui/` — use plain `<textarea>` with inline Tailwind classes matching shadcn Input style |
 | 2026-04-08 | `OpportunityService::create()` | Pass guardian fields through `array_filter` removing nulls/empty before `findOrCreate()` — guardian `cpf` is nullable but not all guardians arrive with CPF |
 | 2026-04-09 | `opportunities/Create.vue` | `Guardian` interface uses English field names (`phone`, `zip_code`, `street`, `number`, `neighborhood`, `city`, `state`) — use these in `fillGuardianFields()`, never the old Portuguese names |
-| 2026-04-09 | `EventTest.php` | 419 CSRF failures on POST/PUT/DELETE are pre-existing throughout the test suite — GET tests pass; the 419 pattern is systemic, not module-specific |
+| 2026-04-11 | ALL test files | Root cause of 419 CSRF: `EnforceSingleSession` middleware checks cache for active session; empty cache = `null !== $sessionId` → logout + session.invalidate() → CSRF token gone. Fix: `Cache::flush()` in `Pest.php beforeEach()` + `withoutMiddleware(EnforceSingleSession)` in `TestCase::setUp()`. Also: `config:cache` makes tests ignore phpunit.xml → run `php artisan config:clear` before testing |
 | 2026-04-09 | `*.vue` (forms) | Boolean checkbox in Inertia `<Form>`: add `<input type="hidden" name="field" value="0" />` BEFORE the Checkbox — unchecked sends 0, checked overrides with 1 |
 | 2026-04-09 | `RoomController.php` | `back()` em store/update/destroy — RoomFormDialog é usado em múltiplos contextos (Rooms settings + Events form); `to_route()` causaria redirect indesejado |
 | 2026-04-09 | `OpportunityService.php` | Ao injetar novo serviço no construtor, verificar se `syncWithoutDetaching()` pré-existente viola CLAUDE.md — substituir por `exists() + attach()` |
@@ -147,6 +167,11 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-10 | `Student` model | DB column is `date_of_birth` (cast to `date`) — API exposes it as `birth_date`; `UpdateOpportunityRequest` uses `student_birth_date`, service maps to `date_of_birth` on update |
 | 2026-04-10 | `useCpfLookup.ts`, `Create.vue`, `Edit.vue` | Guardian CPF handled via second `useCpfLookup` instance (type: `guardian`) — never via manual `fetch`/`@blur`; mod-11 validation runs client-side before any network call |
 | 2026-04-10 | `opportunities/Edit.vue` | Student/guardian name+CPF fields are always `readonly` (native `<input>` with `:value`) — `useCpfLookup` must NOT be used in Edit; CPF lookup only belongs in Create |
+| 2026-04-10 | `CreateLembrete*Command.php` | "Any open task" check must exclude the triggering task itself (`where('id', '!=', $task->id)`) — otherwise the agendamento being processed always blocks its own lembrete creation |
+| 2026-04-10 | `CreateLembrete*Command.php` | Commands usam `DB::table('tasks')->insert()` com uuid+school_id explícitos — `Task::create()` falha em contexto de command (sem sessão, `app('tenant.school_id')` = null, BelongsToTenant não consegue setar school_id) |
+| 2026-04-11 | `*.vue` (boolean checkboxes) | `fillInput()` DOM mutation NÃO funciona com Inertia `<Form>` — o componente faz snapshot do FormData no submit e ignora mutações diretas em `.value`. Usar sempre o padrão dual-hidden-input + `v-if`: `<input type="hidden" name="x" value="0" /><input v-if="flag" type="hidden" name="x" value="1" />` com `<Checkbox :model-value="flag" @update:checked="flag = val" />` |
+| 2026-04-11 | `useNotifications.ts`, `NotificationBell.vue` | Chamadas de notificação usam `fetch` puro (mesmo padrão `useCpfLookup`) — nunca `useForm`/`router`. CSRF via `<meta name="csrf-token">` para PATCH. Echo private channel usa ID numérico do user: `App.Models.User.{id}` |
+| 2026-04-11 | `NotifyOverdueTasksCommand.php` | Command usa `Task::withoutGlobalScopes()` + `DB::table` para `notified_overdue_at` — sem sessão, BelongsToTenant inativo; mesmo padrão `CreateLembreteAgendaCommand` |
 
 ## AGENT INSTRUCTIONS
 

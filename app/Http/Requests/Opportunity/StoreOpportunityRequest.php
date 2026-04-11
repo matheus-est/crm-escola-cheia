@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Requests\Opportunity;
 
 use App\Enums\TaskType;
+use App\Models\Grade;
+use App\Models\LeadSource;
+use App\Models\SchoolYear;
+use App\Models\Segment;
+use App\Models\User;
 use App\Rules\CpfRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -14,6 +19,40 @@ class StoreOpportunityRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('grade_id')) {
+            $this->merge([
+                'grade_id' => Grade::query()->where('uuid', $this->input('grade_id'))->value('id'),
+            ]);
+        }
+
+        if ($this->filled('segment_id')) {
+            $resolved = Segment::query()->where('uuid', $this->input('segment_id'))->value('id');
+            if ($resolved !== null) {
+                $this->merge(['segment_id' => $resolved]);
+            }
+        }
+
+        if ($this->filled('school_year_id')) {
+            $this->merge([
+                'school_year_id' => SchoolYear::query()->where('uuid', $this->input('school_year_id'))->value('id'),
+            ]);
+        }
+
+        if ($this->filled('lead_source_id')) {
+            $this->merge([
+                'lead_source_id' => LeadSource::query()->where('uuid', $this->input('lead_source_id'))->value('id'),
+            ]);
+        }
+
+        if ($this->filled('responsible_user_id')) {
+            $this->merge([
+                'responsible_user_id' => User::query()->where('uuid', $this->input('responsible_user_id'))->value('id'),
+            ]);
+        }
     }
 
     public function rules(): array
@@ -43,6 +82,23 @@ class StoreOpportunityRequest extends FormRequest
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', 'size:2'],
             'task_type' => ['nullable', Rule::enum(TaskType::class)],
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'grade_id' => 'Série/Turma',
+            'segment_id' => 'Segmento',
+            'school_year_id' => 'Ano Letivo',
+            'lead_source_id' => 'Origem do Lead',
+            'responsible_user_id' => 'Responsável pelo Atendimento',
+            'student_name' => 'Nome do Aluno',
+            'student_cpf' => 'CPF do Aluno',
+            'guardian_name' => 'Nome do Responsável',
+            'guardian_cpf' => 'CPF do Responsável',
+            'registration_type' => 'Tipo de Cadastro',
+            'task_type' => 'Tarefa Vinculada',
         ];
     }
 }

@@ -174,7 +174,6 @@ function handleAttach(opportunityUuid: string): void {
         attach({ event: props.event.uuid }).url,
         { opportunity_uuid: opportunityUuid },
         {
-            preserveUrl: true,
             onSuccess: () => {
                 void fetchAvailableOpportunities();
                 toast.success('Oportunidade vinculada com sucesso.');

@@ -15,6 +15,7 @@ use App\Models\Segment;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
@@ -161,7 +162,7 @@ it('POST store cria uma Task e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($gestor)
-        ->post(route('tenant.tasks.store'), [
+        ->postJson(route('tenant.tasks.store'), [
             'opportunity_uuid' => $opportunity->uuid,
             'type' => TaskType::RetornoLigacao->value,
             'due_at' => now()->addDay()->toDateTimeString(),
@@ -182,8 +183,7 @@ it('POST store retorna 422 se opportunity_uuid ausente', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($gestor)
-        ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.tasks.store'), [
+        ->postJson(route('tenant.tasks.store'), [
             'type' => TaskType::RetornoLigacao->value,
         ])
         ->assertStatus(422)
@@ -198,8 +198,7 @@ it('POST store retorna 422 se type ausente', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($gestor)
-        ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.tasks.store'), [
+        ->postJson(route('tenant.tasks.store'), [
             'opportunity_uuid' => $opportunity->uuid,
         ])
         ->assertStatus(422)
@@ -216,8 +215,7 @@ it('POST store retorna 422 se oportunidade já tem tarefa aberta', function (): 
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($gestor)
-        ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.tasks.store'), [
+        ->postJson(route('tenant.tasks.store'), [
             'opportunity_uuid' => $opportunity->uuid,
             'type' => TaskType::RetornoLigacao->value,
         ])
@@ -234,7 +232,7 @@ it('POST store retorna 403 para usuário sem role de criação de tarefas', func
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($admin)
-        ->post(route('tenant.tasks.store'), [
+        ->postJson(route('tenant.tasks.store'), [
             'opportunity_uuid' => $opportunity->uuid,
             'type' => TaskType::RetornoLigacao->value,
         ])
@@ -366,8 +364,7 @@ it('POST complete retorna 422 se task não está aberta', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($gestor)
-        ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.tasks.complete', $task->uuid), [
+        ->postJson(route('tenant.tasks.complete', $task->uuid), [
             'outcome_uuid' => $outcome->uuid,
         ])
         ->assertStatus(422);
@@ -392,8 +389,7 @@ it('POST complete exige refusal_category e refusal_detail quando outcome é recu
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($gestor)
-        ->withHeader('Accept', 'application/json')
-        ->post(route('tenant.tasks.complete', $task->uuid), [
+        ->postJson(route('tenant.tasks.complete', $task->uuid), [
             'outcome_uuid' => $outcome->uuid,
         ])
         ->assertStatus(422)
@@ -470,7 +466,7 @@ it('POST cancel cancela a tarefa e redireciona', function (): void {
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($gestor)
-        ->post(route('tenant.tasks.cancel', $task->uuid))
+        ->postJson(route('tenant.tasks.cancel', $task->uuid))
         ->assertRedirect(route('tenant.tasks.index'));
 
     $this->assertDatabaseHas('tasks', [
@@ -488,7 +484,7 @@ it('POST cancel retorna 403 para Comercial (sem permissão)', function (): void 
     app()->instance('tenant.school_id', $school->id);
 
     $this->actingAs($comercial)
-        ->post(route('tenant.tasks.cancel', $task->uuid))
+        ->postJson(route('tenant.tasks.cancel', $task->uuid))
         ->assertStatus(403);
 });
 
@@ -513,4 +509,24 @@ it('Task de outra escola retorna 404 ao tentar completar', function (): void {
             'outcome_uuid' => $outcome->uuid,
         ])
         ->assertStatus(404);
+});
+
+// ---------------------------------------------------------------------------
+// users prop in index
+// ---------------------------------------------------------------------------
+
+it('GET index inclui prop users na resposta Inertia', function (): void {
+    $school = taskMakeSchool();
+    $user = taskMakeUser('Master', $school);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->withoutVite()
+        ->actingAs($user)
+        ->get(route('tenant.tasks.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('tasks/Index', false)
+            ->has('users')
+        );
 });

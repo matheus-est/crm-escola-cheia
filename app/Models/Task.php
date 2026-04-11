@@ -29,10 +29,13 @@ class Task extends Model implements Auditable
         'type',
         'status',
         'notes',
+        'refusal_category',
+        'refusal_detail',
         'scheduled_at',
         'due_at',
         'completed_at',
         'cancelled_at',
+        'notified_overdue_at',
     ];
 
     protected function casts(): array
@@ -44,6 +47,7 @@ class Task extends Model implements Auditable
             'due_at' => 'datetime',
             'completed_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'notified_overdue_at' => 'datetime',
         ];
     }
 

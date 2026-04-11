@@ -328,7 +328,9 @@ function handleDeleteSuccess(): void {
                                                 :default-value="
                                                     localFilters.status || 'all'
                                                 "
-                                                @update:model-value="updateStatus"
+                                                @update:model-value="
+                                                    updateStatus
+                                                "
                                             >
                                                 <SelectTrigger
                                                     id="filter-status"
@@ -339,12 +341,28 @@ function handleDeleteSuccess(): void {
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="all">Todos</SelectItem>
-                                                    <SelectItem value="cadastro_inicial">Cadastro Inicial</SelectItem>
-                                                    <SelectItem value="agendamento">Agendamento</SelectItem>
-                                                    <SelectItem value="visita">Visita</SelectItem>
-                                                    <SelectItem value="matricula">Matrícula</SelectItem>
-                                                    <SelectItem value="recusado">Recusado</SelectItem>
+                                                    <SelectItem value="all"
+                                                        >Todos</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="cadastro_inicial"
+                                                        >Cadastro
+                                                        Inicial</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="agendamento"
+                                                        >Agendamento</SelectItem
+                                                    >
+                                                    <SelectItem value="visita"
+                                                        >Visita</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="matricula"
+                                                        >Matrícula</SelectItem
+                                                    >
+                                                    <SelectItem value="recusado"
+                                                        >Recusado</SelectItem
+                                                    >
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -358,9 +376,12 @@ function handleDeleteSuccess(): void {
                                             </Label>
                                             <Select
                                                 :default-value="
-                                                    localFilters.grade_id || 'all'
+                                                    localFilters.grade_id ||
+                                                    'all'
                                                 "
-                                                @update:model-value="updateGrade"
+                                                @update:model-value="
+                                                    updateGrade
+                                                "
                                             >
                                                 <SelectTrigger
                                                     id="filter-grade"
@@ -371,7 +392,9 @@ function handleDeleteSuccess(): void {
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="all">Todas</SelectItem>
+                                                    <SelectItem value="all"
+                                                        >Todas</SelectItem
+                                                    >
                                                     <SelectItem
                                                         v-for="grade in props.grades"
                                                         :key="grade.uuid"
@@ -395,9 +418,12 @@ function handleDeleteSuccess(): void {
                                             </Label>
                                             <Select
                                                 :default-value="
-                                                    localFilters.school_year_id || 'all'
+                                                    localFilters.school_year_id ||
+                                                    'all'
                                                 "
-                                                @update:model-value="updateSchoolYear"
+                                                @update:model-value="
+                                                    updateSchoolYear
+                                                "
                                             >
                                                 <SelectTrigger
                                                     id="filter-school-year"
@@ -408,7 +434,9 @@ function handleDeleteSuccess(): void {
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="all">Todos</SelectItem>
+                                                    <SelectItem value="all"
+                                                        >Todos</SelectItem
+                                                    >
                                                     <SelectItem
                                                         v-for="sy in props.schoolYears"
                                                         :key="sy.uuid"
@@ -429,9 +457,12 @@ function handleDeleteSuccess(): void {
                                             </Label>
                                             <Select
                                                 :default-value="
-                                                    localFilters.responsible_user_id || 'all'
+                                                    localFilters.responsible_user_id ||
+                                                    'all'
                                                 "
-                                                @update:model-value="updateResponsibleUser"
+                                                @update:model-value="
+                                                    updateResponsibleUser
+                                                "
                                             >
                                                 <SelectTrigger
                                                     id="filter-responsible"
@@ -442,7 +473,9 @@ function handleDeleteSuccess(): void {
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="all">Todos</SelectItem>
+                                                    <SelectItem value="all"
+                                                        >Todos</SelectItem
+                                                    >
                                                     <SelectItem
                                                         v-for="user in props.responsibleUsers"
                                                         :key="user.uuid"
@@ -466,9 +499,12 @@ function handleDeleteSuccess(): void {
                                             </Label>
                                             <Select
                                                 :default-value="
-                                                    localFilters.lead_source_id || 'all'
+                                                    localFilters.lead_source_id ||
+                                                    'all'
                                                 "
-                                                @update:model-value="updateLeadSource"
+                                                @update:model-value="
+                                                    updateLeadSource
+                                                "
                                             >
                                                 <SelectTrigger
                                                     id="filter-lead-source"
@@ -479,7 +515,10 @@ function handleDeleteSuccess(): void {
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="all">Todas as origens</SelectItem>
+                                                    <SelectItem value="all"
+                                                        >Todas as
+                                                        origens</SelectItem
+                                                    >
                                                     <SelectItem
                                                         v-for="ls in props.leadSources"
                                                         :key="ls.uuid"
@@ -500,9 +539,12 @@ function handleDeleteSuccess(): void {
                                             </Label>
                                             <Select
                                                 :default-value="
-                                                    localFilters.segment_id || 'all'
+                                                    localFilters.segment_id ||
+                                                    'all'
                                                 "
-                                                @update:model-value="updateSegment"
+                                                @update:model-value="
+                                                    updateSegment
+                                                "
                                             >
                                                 <SelectTrigger
                                                     id="filter-segment"
@@ -513,7 +555,10 @@ function handleDeleteSuccess(): void {
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="all">Todos os segmentos</SelectItem>
+                                                    <SelectItem value="all"
+                                                        >Todos os
+                                                        segmentos</SelectItem
+                                                    >
                                                     <SelectItem
                                                         v-for="segment in props.segments"
                                                         :key="segment.uuid"
@@ -537,9 +582,12 @@ function handleDeleteSuccess(): void {
                                             </Label>
                                             <Select
                                                 :default-value="
-                                                    localFilters.school_unit_id || 'all'
+                                                    localFilters.school_unit_id ||
+                                                    'all'
                                                 "
-                                                @update:model-value="updateSchoolUnit"
+                                                @update:model-value="
+                                                    updateSchoolUnit
+                                                "
                                             >
                                                 <SelectTrigger
                                                     id="filter-school-unit"
@@ -550,7 +598,10 @@ function handleDeleteSuccess(): void {
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="all">Todas as unidades</SelectItem>
+                                                    <SelectItem value="all"
+                                                        >Todas as
+                                                        unidades</SelectItem
+                                                    >
                                                     <SelectItem
                                                         v-for="unit in props.schoolUnits"
                                                         :key="unit.uuid"
@@ -571,9 +622,12 @@ function handleDeleteSuccess(): void {
                                             </Label>
                                             <Select
                                                 :default-value="
-                                                    localFilters.registration_type || 'all'
+                                                    localFilters.registration_type ||
+                                                    'all'
                                                 "
-                                                @update:model-value="updateRegistrationType"
+                                                @update:model-value="
+                                                    updateRegistrationType
+                                                "
                                             >
                                                 <SelectTrigger
                                                     id="filter-registration-type"
@@ -584,9 +638,17 @@ function handleDeleteSuccess(): void {
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="all">Todos os tipos</SelectItem>
-                                                    <SelectItem value="agendamento">Agendamento</SelectItem>
-                                                    <SelectItem value="evento">Evento</SelectItem>
+                                                    <SelectItem value="all"
+                                                        >Todos os
+                                                        tipos</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="agendamento"
+                                                        >Agendamento</SelectItem
+                                                    >
+                                                    <SelectItem value="evento"
+                                                        >Evento</SelectItem
+                                                    >
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -603,16 +665,23 @@ function handleDeleteSuccess(): void {
                                             </Label>
                                             <Input
                                                 id="filter-student-cpf"
-                                                :value="localFilters.student_cpf"
+                                                :value="
+                                                    localFilters.student_cpf
+                                                "
                                                 class="h-8 text-xs"
                                                 placeholder="000.000.000-00"
                                                 @input="
                                                     (e) => {
                                                         const v = formatCpf(
-                                                            (e.target as HTMLInputElement).value,
+                                                            (
+                                                                e.target as HTMLInputElement
+                                                            ).value,
                                                         );
-                                                        (e.target as HTMLInputElement).value = v;
-                                                        localFilters.student_cpf = v;
+                                                        (
+                                                            e.target as HTMLInputElement
+                                                        ).value = v;
+                                                        localFilters.student_cpf =
+                                                            v;
                                                     }
                                                 "
                                             />
@@ -627,16 +696,23 @@ function handleDeleteSuccess(): void {
                                             </Label>
                                             <Input
                                                 id="filter-guardian-cpf"
-                                                :value="localFilters.guardian_cpf"
+                                                :value="
+                                                    localFilters.guardian_cpf
+                                                "
                                                 class="h-8 text-xs"
                                                 placeholder="000.000.000-00"
                                                 @input="
                                                     (e) => {
                                                         const v = formatCpf(
-                                                            (e.target as HTMLInputElement).value,
+                                                            (
+                                                                e.target as HTMLInputElement
+                                                            ).value,
                                                         );
-                                                        (e.target as HTMLInputElement).value = v;
-                                                        localFilters.guardian_cpf = v;
+                                                        (
+                                                            e.target as HTMLInputElement
+                                                        ).value = v;
+                                                        localFilters.guardian_cpf =
+                                                            v;
                                                     }
                                                 "
                                             />
