@@ -121,6 +121,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'restore', 'label' => 'Reativar',   'order' => 6, 'description' => 'Reativar tipo de evento'],
         ],
 
+        'calendar' => [
+            ['name' => 'list', 'label' => 'Listar', 'order' => 1, 'description' => 'Listar entradas da agenda'],
+            ['name' => 'view', 'label' => 'Visualizar', 'order' => 2, 'description' => 'Visualizar agenda'],
+        ],
+
         'rooms' => [
             ['name' => 'view',   'label' => 'Visualizar', 'order' => 1, 'description' => 'Visualizar sala'],
             ['name' => 'list',   'label' => 'Listar',     'order' => 2, 'description' => 'Listar salas'],

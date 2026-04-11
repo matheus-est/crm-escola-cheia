@@ -190,6 +190,16 @@ class ModuleSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'slug' => 'calendar',
+                'name' => 'Agenda',
+                'icon' => 'Calendar',
+                'url' => '/tenant/calendar',
+                'description' => 'Agenda de tarefas e eventos',
+                'order' => 11,
+                'show_in_menu' => true,
+                'is_active' => true,
+            ],
+            [
                 'slug' => 'events',
                 'name' => 'Eventos',
                 'icon' => 'CalendarCheck',

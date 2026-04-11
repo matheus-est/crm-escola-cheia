@@ -8,7 +8,7 @@
 ## CURRENT STATE
 
 **Last session:** 2026-04-11
-**Next task:** 8 — Form module (or next in sequence)
+**Next task:** 8 — Form module (public lead capture); 10 — Reports
 **Last rebrand:** 2026-04-10 — Identidade visual migrada para Operis CRM (azul `#2D3AE0`, Eurostile)
 
 ### Completed
@@ -103,7 +103,7 @@
 - [x] 6 — Notifications module: TaskAssignedNotification + TaskOverdueNotification + NotifyOverdueTasksCommand + NotificationController + echo.ts + useNotifications.ts + NotificationBell.vue + shadcn Popover components — 256 tests — 2026-04-11
 - [x] 7 — Events module complete: Event + EventType backend/frontend + reviewer pass — 257 tests — APPROVED 2026-04-11
 - [ ] 8 — Form module (public lead capture form)
-- [ ] 9 — Calendar
+- [x] 9 — Calendar — CalendarService · CalendarController (index + entries) · calendar/Index.vue (month/week grid) · 9 tests — APPROVED 2026-04-11
 - [ ] 10 — Reports
 - [ ] 11 — LGPD
 
@@ -176,6 +176,8 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-11 | `*.vue` (boolean checkboxes) | `fillInput()` DOM mutation NÃO funciona com Inertia `<Form>` — o componente faz snapshot do FormData no submit e ignora mutações diretas em `.value`. Usar sempre o padrão dual-hidden-input + `v-if`: `<input type="hidden" name="x" value="0" /><input v-if="flag" type="hidden" name="x" value="1" />` com `<Checkbox :model-value="flag" @update:checked="flag = val" />` |
 | 2026-04-11 | `useNotifications.ts`, `NotificationBell.vue` | Chamadas de notificação usam `fetch` puro (mesmo padrão `useCpfLookup`) — nunca `useForm`/`router`. CSRF via `<meta name="csrf-token">` para PATCH. Echo private channel usa ID numérico do user: `App.Models.User.{id}` |
 | 2026-04-11 | `NotifyOverdueTasksCommand.php` | Command usa `Task::withoutGlobalScopes()` + `DB::table` para `notified_overdue_at` — sem sessão, BelongsToTenant inativo; mesmo padrão `CreateLembreteAgendaCommand` |
+
+| 2026-04-11 | `calendar/Index.vue` | Calendar fetch uses raw `fetch()` (not `useForm`/`router`) — CSRF token read via `document.querySelector` cast to `HTMLMetaElement | null`; entries endpoint hardcoded to `/tenant/calendar/entries` (JSON, not Inertia page) |
 
 ## AGENT INSTRUCTIONS
 

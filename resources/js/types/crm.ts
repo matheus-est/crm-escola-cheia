@@ -376,3 +376,14 @@ export interface CrmNotification {
     read_at: string | null;
     created_at: string;
 }
+
+export interface CalendarEntry {
+    uuid: string;
+    title: string;
+    date: string;
+    type: 'task' | 'event';
+    sub_type: string;
+    status: string | null;
+    link_uuid: string;
+    assigned_user: string | null;
+}

@@ -12,6 +12,7 @@ use App\Http\Controllers\Tenant\Settings\LeadSourceController;
 use App\Http\Controllers\Tenant\Settings\RoomController;
 use App\Http\Controllers\Tenant\Settings\SchoolYearController;
 use App\Http\Controllers\Tenant\StudentController;
+use App\Http\Controllers\Tenant\CalendarController;
 use App\Http\Controllers\Tenant\TaskController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -136,6 +137,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
             ->name('settings.event_types.toggle_active');
         Route::delete('/tenant-settings/event-types/{eventType}', [EventTypeController::class, 'destroy'])
             ->name('settings.event_types.destroy');
+        // Agenda
+        Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+        Route::get('/calendar/entries', [CalendarController::class, 'entries'])->name('calendar.entries');
+
         // Notificações
         Route::prefix('notifications')->name('notifications.')->group(function (): void {
             Route::get('count', [NotificationController::class, 'unreadCount'])->name('unread_count');
