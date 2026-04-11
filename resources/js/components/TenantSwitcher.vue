@@ -26,6 +26,13 @@ function handleSwitch(uuid: string): void {
         storeActiveSchool().url,
         { school_uuid: uuid },
         {
+            onSuccess: () => {
+                router.visit(window.location.href, {
+                    replace: true,
+                    preserveState: false,
+                    preserveScroll: false,
+                });
+            },
             onFinish: () => {
                 processing.value = false;
             },

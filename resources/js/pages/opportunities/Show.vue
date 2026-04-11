@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import {
     BookOpen,
     Building2,
@@ -24,7 +24,6 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { taskTypeLabels } from '@/lib/task';
 import { edit, index } from '@/routes/tenant/opportunities';
-import type { Auth } from '@/types';
 import type { BreadcrumbItem } from '@/types';
 import type {
     FunnelStage,
@@ -48,10 +47,6 @@ const breadcrumbItems: BreadcrumbItem[] = [
     { title: props.opportunity.student?.name ?? 'Oportunidade', href: '#' },
     { title: 'Detalhes', href: '#' },
 ];
-
-// ── Auth user ────────────────────────────────────────────────────────────────
-const page = usePage();
-const authUser = computed(() => (page.props as { auth: Auth }).auth.user);
 
 // ── Tab state ────────────────────────────────────────────────────────────────
 const activeTab = ref<'historico' | 'tarefas' | 'info'>('historico');
@@ -151,9 +146,7 @@ function taskLabel(task: Task): string {
         <Head :title="opportunity.student?.name ?? 'Oportunidade'" />
 
         <div class="space-y-6">
-            <!-- ─── SEÇÃO 1: Pipeline de Etapas ─────────────────────────────── -->
             <div class="rounded-lg border bg-card p-5">
-                <!-- Cabeçalho: label | dias | usuário -->
                 <div class="mb-5 flex items-center justify-between">
                     <span class="font-medium text-gray-700"
                         >Etapa da Oportunidade</span
@@ -166,34 +159,24 @@ function taskLabel(task: Task): string {
                     </div>
                     <div class="flex items-center gap-2">
                         <div
-                            v-if="authUser.avatar"
-                            class="h-8 w-8 overflow-hidden rounded-full"
-                        >
-                            <img
-                                :src="authUser.avatar"
-                                :alt="authUser.name"
-                                class="h-full w-full object-cover"
-                            />
-                        </div>
-                        <div
-                            v-else
                             class="flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-xs font-semibold text-white uppercase"
                         >
-                            {{ authUser.name.charAt(0) }}
+                            {{
+                                opportunity.responsible_user?.name?.charAt(0) ??
+                                '?'
+                            }}
                         </div>
                         <span class="text-sm font-medium">{{
-                            authUser.name
+                            opportunity.responsible_user?.name ?? '—'
                         }}</span>
                     </div>
                 </div>
 
-                <!-- Etapas -->
                 <div class="flex items-start">
                     <template
                         v-for="(stage, idx) in funnel_stages"
                         :key="stage.slug"
                     >
-                        <!-- Círculo + rótulo -->
                         <div class="flex flex-col items-center">
                             <div
                                 class="flex h-8 w-8 items-center justify-center rounded-full border-2"
@@ -229,7 +212,6 @@ function taskLabel(task: Task): string {
                             </span>
                         </div>
 
-                        <!-- Linha conectora (exceto depois da última etapa) -->
                         <div
                             v-if="idx < funnel_stages.length - 1"
                             class="mx-1 mt-4 h-0.5 flex-1"
@@ -241,19 +223,38 @@ function taskLabel(task: Task): string {
                         />
                     </template>
                 </div>
+
+                <div
+                    v-if="!isTerminal(opportunity.status)"
+                    class="mt-4 flex justify-end"
+                >
+                    <Link
+                        :href="edit({ opportunity: opportunity.uuid }).url"
+                        class="inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/50"
+                    >
+                        <Pencil class="h-4 w-4" />
+                        Editar
+                    </Link>
+                </div>
             </div>
 
-            <!-- ─── SEÇÃO 2: Bloco de Informações do Lead ──────────────────── -->
-            <div class="flex items-start gap-4">
-                <div
-                    class="flex flex-1 divide-x divide-gray-200 rounded-lg border bg-card p-5"
-                >
-                    <!-- Painel: Responsável -->
-                    <div class="flex-1 pr-6">
-                        <p class="mb-2 text-xs text-gray-400">Responsável</p>
-                        <p class="mb-3 text-lg font-bold">
-                            {{ opportunity.guardian?.name ?? '—' }}
-                        </p>
+            <div
+                class="flex flex-1 divide-x divide-gray-200 rounded-lg border bg-card p-5"
+            >
+                <!-- Painel: Responsável -->
+                <div class="flex flex-1 items-start gap-4 pr-6">
+                    <!-- left: label + icon + name (stacked) -->
+                    <div class="flex flex-col items-center border-r pr-4">
+                        <p class="mb-1 text-xs text-gray-400">Responsável</p>
+                        <div class="flex items-center gap-2">
+                            <User class="h-5 w-5 shrink-0 text-gray-400" />
+                            <span class="text-base font-semibold">{{
+                                opportunity.guardian?.name ?? '—'
+                            }}</span>
+                        </div>
+                    </div>
+                    <!-- right: contact data only -->
+                    <div class="flex-1 space-y-1.5">
                         <div class="space-y-1.5 text-sm text-gray-600">
                             <div class="flex items-center gap-2">
                                 <Phone class="h-3.5 w-3.5 shrink-0" />
@@ -275,13 +276,22 @@ function taskLabel(task: Task): string {
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Painel: Aluno -->
-                    <div class="flex-1 pl-6">
-                        <p class="mb-2 text-xs text-gray-400">Aluno</p>
-                        <p class="mb-3 text-lg font-bold">
-                            {{ opportunity.student?.name ?? '—' }}
-                        </p>
+                <!-- Painel: Aluno -->
+                <div class="flex flex-1 items-start gap-4 pl-6">
+                    <!-- left: label + icon + name (stacked) -->
+                    <div class="flex flex-col items-center border-r pr-4">
+                        <p class="mb-1 text-xs text-gray-400">Aluno</p>
+                        <div class="flex items-center gap-2">
+                            <User class="h-5 w-5 shrink-0 text-gray-400" />
+                            <span class="text-base font-semibold">{{
+                                opportunity.student?.name ?? '—'
+                            }}</span>
+                        </div>
+                    </div>
+                    <!-- right: student data only -->
+                    <div class="flex-1 space-y-1.5">
                         <div class="space-y-1.5 text-sm text-gray-600">
                             <div class="flex items-center gap-2">
                                 <BookOpen class="h-3.5 w-3.5 shrink-0" />
@@ -305,16 +315,6 @@ function taskLabel(task: Task): string {
                         </div>
                     </div>
                 </div>
-
-                <!-- Botão Editar -->
-                <Link
-                    v-if="!isTerminal(opportunity.status)"
-                    :href="edit({ opportunity: opportunity.uuid }).url"
-                    class="inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/50"
-                >
-                    <Pencil class="h-4 w-4" />
-                    Editar
-                </Link>
             </div>
 
             <!-- ─── Tarefa Ativa ────────────────────────────────────────────── -->

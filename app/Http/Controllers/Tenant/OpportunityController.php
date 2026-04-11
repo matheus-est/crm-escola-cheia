@@ -50,6 +50,21 @@ class OpportunityController extends Controller
         $segments = Segment::query()->orderBy('name')->get(['uuid', 'name']);
         $schoolUnits = SchoolUnit::query()->orderBy('name')->get(['uuid', 'name']);
 
+        $filters = [
+            'status' => $request->input('status', ''),
+            'grade_id' => $request->input('grade_id', ''),
+            'school_year_id' => $request->input('school_year_id', ''),
+            'responsible_user_id' => $request->input('responsible_user_id', ''),
+            'lead_source_id' => $request->input('lead_source_id', ''),
+            'segment_id' => $request->input('segment_id', ''),
+            'school_unit_id' => $request->input('school_unit_id', ''),
+            'registration_type' => $request->input('registration_type', ''),
+            'date_from' => $request->input('date_from', ''),
+            'date_to' => $request->input('date_to', ''),
+            'student_cpf' => $request->input('student_cpf', ''),
+            'guardian_cpf' => $request->input('guardian_cpf', ''),
+        ];
+
         if ($view === 'kanban') {
             $kanbanColumns = $this->opportunityService->listByStatus($request->all());
 
@@ -68,6 +83,7 @@ class OpportunityController extends Controller
                 'responsibleUsers' => $responsibleUsers,
                 'segments' => $segments,
                 'schoolUnits' => $schoolUnits,
+                'filters' => $filters,
             ]);
         }
 
@@ -83,6 +99,7 @@ class OpportunityController extends Controller
             'responsibleUsers' => $responsibleUsers,
             'segments' => $segments,
             'schoolUnits' => $schoolUnits,
+            'filters' => $filters,
         ]);
     }
 
@@ -176,7 +193,7 @@ class OpportunityController extends Controller
             }, $stages);
         }
 
-        $daysInStage = (int) ($opportunity->updated_at?->diffInDays(now()) ?? 0);
+        $daysInStage = (int) ($opportunity->created_at?->diffInDays(now()) ?? 0);
 
         $opportunityData = $opportunity->toArray();
         if (array_key_exists('guardian', $opportunityData)

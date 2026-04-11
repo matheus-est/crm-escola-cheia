@@ -69,6 +69,20 @@ const props = defineProps<{
     responsibleUsers: TenantUser[];
     segments: Segment[];
     schoolUnits: SchoolUnit[];
+    filters?: {
+        status?: string;
+        grade_id?: string;
+        school_year_id?: string;
+        responsible_user_id?: string;
+        lead_source_id?: string;
+        segment_id?: string;
+        school_unit_id?: string;
+        registration_type?: string;
+        date_from?: string;
+        date_to?: string;
+        student_cpf?: string;
+        guardian_cpf?: string;
+    };
 }>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
@@ -86,18 +100,22 @@ const localFilters = ref<{
     registration_type: string;
     date_from: string;
     date_to: string;
+    student_cpf: string;
+    guardian_cpf: string;
     per_page: number;
 }>({
-    status: '',
-    grade_id: '',
-    school_year_id: '',
-    responsible_user_id: '',
-    lead_source_id: '',
-    segment_id: '',
-    school_unit_id: '',
-    registration_type: '',
-    date_from: '',
-    date_to: '',
+    status: (props.filters?.status as OpportunityStatus | '') ?? '',
+    grade_id: props.filters?.grade_id ?? '',
+    school_year_id: props.filters?.school_year_id ?? '',
+    responsible_user_id: props.filters?.responsible_user_id ?? '',
+    lead_source_id: props.filters?.lead_source_id ?? '',
+    segment_id: props.filters?.segment_id ?? '',
+    school_unit_id: props.filters?.school_unit_id ?? '',
+    registration_type: props.filters?.registration_type ?? '',
+    date_from: props.filters?.date_from ?? '',
+    date_to: props.filters?.date_to ?? '',
+    student_cpf: props.filters?.student_cpf ?? '',
+    guardian_cpf: props.filters?.guardian_cpf ?? '',
     per_page: 10,
 });
 
@@ -114,6 +132,8 @@ const currentFilters = computed<Record<string, string | number | undefined>>(
         registration_type: localFilters.value.registration_type || undefined,
         date_from: localFilters.value.date_from || undefined,
         date_to: localFilters.value.date_to || undefined,
+        student_cpf: localFilters.value.student_cpf || undefined,
+        guardian_cpf: localFilters.value.guardian_cpf || undefined,
         per_page: localFilters.value.per_page,
         view: props.view,
     }),
@@ -131,7 +151,9 @@ const hasActiveFilter = computed(
             localFilters.value.school_unit_id ||
             localFilters.value.registration_type ||
             localFilters.value.date_from ||
-            localFilters.value.date_to
+            localFilters.value.date_to ||
+            localFilters.value.student_cpf ||
+            localFilters.value.guardian_cpf
         ),
 );
 
@@ -147,6 +169,8 @@ const filterCount = computed(() =>
         localFilters.value.registration_type ? 1 : 0,
         localFilters.value.date_from ? 1 : 0,
         localFilters.value.date_to ? 1 : 0,
+        localFilters.value.student_cpf ? 1 : 0,
+        localFilters.value.guardian_cpf ? 1 : 0,
     ].reduce((a, b) => a + b, 0),
 );
 
@@ -204,11 +228,22 @@ function applyFilters(): void {
                 localFilters.value.registration_type || undefined,
             date_from: localFilters.value.date_from || undefined,
             date_to: localFilters.value.date_to || undefined,
+            student_cpf: localFilters.value.student_cpf || undefined,
+            guardian_cpf: localFilters.value.guardian_cpf || undefined,
             per_page: localFilters.value.per_page,
             view: props.view,
         },
         { preserveUrl: true },
     );
+}
+
+function formatCpf(value: string): string {
+    return value
+        .replace(/\D/g, '')
+        .slice(0, 11)
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
 }
 
 function clearFilters(): void {
@@ -244,14 +279,13 @@ function handleDeleteSuccess(): void {
         <Head title="Oportunidades" />
 
         <div class="space-y-6">
-            <!-- Page header — line 1: Heading | Filters -->
             <div class="flex items-center justify-between">
                 <Heading title="Oportunidades" />
 
                 <Accordion
                     type="single"
                     collapsible
-                    class="w-72"
+                    class="w-[560px]"
                     defaultValue="closed"
                 >
                     <AccordionItem value="filter" class="border-none">
@@ -279,332 +313,337 @@ function handleDeleteSuccess(): void {
                             >
                                 <form
                                     @submit.prevent="applyFilters"
-                                    class="space-y-4"
+                                    class="space-y-3"
                                 >
-                                    <!-- Status -->
-                                    <div class="space-y-1.5">
-                                        <Label
-                                            for="filter-status"
-                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                        >
-                                            Status
-                                        </Label>
-                                        <Select
-                                            :default-value="
-                                                localFilters.status || 'all'
-                                            "
-                                            @update:model-value="updateStatus"
-                                        >
-                                            <SelectTrigger
-                                                id="filter-status"
-                                                class="h-8"
+                                    <!-- Row 1: Status | Série/Turma -->
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="space-y-1.5">
+                                            <Label
+                                                for="filter-status"
+                                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                             >
-                                                <SelectValue
-                                                    placeholder="Todos"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todos</SelectItem
+                                                Status
+                                            </Label>
+                                            <Select
+                                                :default-value="
+                                                    localFilters.status || 'all'
+                                                "
+                                                @update:model-value="updateStatus"
+                                            >
+                                                <SelectTrigger
+                                                    id="filter-status"
+                                                    class="h-8"
                                                 >
-                                                <SelectItem
-                                                    value="cadastro_inicial"
-                                                    >Cadastro
-                                                    Inicial</SelectItem
+                                                    <SelectValue
+                                                        placeholder="Todos"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Todos</SelectItem>
+                                                    <SelectItem value="cadastro_inicial">Cadastro Inicial</SelectItem>
+                                                    <SelectItem value="agendamento">Agendamento</SelectItem>
+                                                    <SelectItem value="visita">Visita</SelectItem>
+                                                    <SelectItem value="matricula">Matrícula</SelectItem>
+                                                    <SelectItem value="recusado">Recusado</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div class="space-y-1.5">
+                                            <Label
+                                                for="filter-grade"
+                                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                            >
+                                                Série/Turma
+                                            </Label>
+                                            <Select
+                                                :default-value="
+                                                    localFilters.grade_id || 'all'
+                                                "
+                                                @update:model-value="updateGrade"
+                                            >
+                                                <SelectTrigger
+                                                    id="filter-grade"
+                                                    class="h-8"
                                                 >
-                                                <SelectItem value="agendamento"
-                                                    >Agendamento</SelectItem
-                                                >
-                                                <SelectItem value="visita"
-                                                    >Visita</SelectItem
-                                                >
-                                                <SelectItem value="matricula"
-                                                    >Matrícula</SelectItem
-                                                >
-                                                <SelectItem value="recusado"
-                                                    >Recusado</SelectItem
-                                                >
-                                            </SelectContent>
-                                        </Select>
+                                                    <SelectValue
+                                                        placeholder="Todas"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Todas</SelectItem>
+                                                    <SelectItem
+                                                        v-for="grade in props.grades"
+                                                        :key="grade.uuid"
+                                                        :value="grade.uuid"
+                                                    >
+                                                        {{ grade.name }}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
 
-                                    <!-- Série/Turma -->
-                                    <div class="space-y-1.5">
-                                        <Label
-                                            for="filter-grade"
-                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                        >
-                                            Série/Turma
-                                        </Label>
-                                        <Select
-                                            :default-value="
-                                                localFilters.grade_id || 'all'
-                                            "
-                                            @update:model-value="updateGrade"
-                                        >
-                                            <SelectTrigger
-                                                id="filter-grade"
-                                                class="h-8"
+                                    <!-- Row 2: Ano Letivo | Responsável -->
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="space-y-1.5">
+                                            <Label
+                                                for="filter-school-year"
+                                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                             >
-                                                <SelectValue
-                                                    placeholder="Todas"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todas</SelectItem
+                                                Ano Letivo
+                                            </Label>
+                                            <Select
+                                                :default-value="
+                                                    localFilters.school_year_id || 'all'
+                                                "
+                                                @update:model-value="updateSchoolYear"
+                                            >
+                                                <SelectTrigger
+                                                    id="filter-school-year"
+                                                    class="h-8"
                                                 >
-                                                <SelectItem
-                                                    v-for="grade in props.grades"
-                                                    :key="grade.uuid"
-                                                    :value="grade.uuid"
+                                                    <SelectValue
+                                                        placeholder="Todos"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Todos</SelectItem>
+                                                    <SelectItem
+                                                        v-for="sy in props.schoolYears"
+                                                        :key="sy.uuid"
+                                                        :value="sy.uuid"
+                                                    >
+                                                        {{ sy.name }}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div class="space-y-1.5">
+                                            <Label
+                                                for="filter-responsible"
+                                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                            >
+                                                Responsável
+                                            </Label>
+                                            <Select
+                                                :default-value="
+                                                    localFilters.responsible_user_id || 'all'
+                                                "
+                                                @update:model-value="updateResponsibleUser"
+                                            >
+                                                <SelectTrigger
+                                                    id="filter-responsible"
+                                                    class="h-8"
                                                 >
-                                                    {{ grade.name }}
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                                    <SelectValue
+                                                        placeholder="Todos"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Todos</SelectItem>
+                                                    <SelectItem
+                                                        v-for="user in props.responsibleUsers"
+                                                        :key="user.uuid"
+                                                        :value="user.uuid"
+                                                    >
+                                                        {{ user.name }}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
 
-                                    <!-- Ano Letivo -->
-                                    <div class="space-y-1.5">
-                                        <Label
-                                            for="filter-school-year"
-                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                        >
-                                            Ano Letivo
-                                        </Label>
-                                        <Select
-                                            :default-value="
-                                                localFilters.school_year_id ||
-                                                'all'
-                                            "
-                                            @update:model-value="
-                                                updateSchoolYear
-                                            "
-                                        >
-                                            <SelectTrigger
-                                                id="filter-school-year"
-                                                class="h-8"
+                                    <!-- Row 3: Origem | Segmento -->
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="space-y-1.5">
+                                            <Label
+                                                for="filter-lead-source"
+                                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                             >
-                                                <SelectValue
-                                                    placeholder="Todos"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todos</SelectItem
+                                                Origem
+                                            </Label>
+                                            <Select
+                                                :default-value="
+                                                    localFilters.lead_source_id || 'all'
+                                                "
+                                                @update:model-value="updateLeadSource"
+                                            >
+                                                <SelectTrigger
+                                                    id="filter-lead-source"
+                                                    class="h-8"
                                                 >
-                                                <SelectItem
-                                                    v-for="sy in props.schoolYears"
-                                                    :key="sy.uuid"
-                                                    :value="sy.uuid"
+                                                    <SelectValue
+                                                        placeholder="Todas"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Todas as origens</SelectItem>
+                                                    <SelectItem
+                                                        v-for="ls in props.leadSources"
+                                                        :key="ls.uuid"
+                                                        :value="ls.uuid"
+                                                    >
+                                                        {{ ls.name }}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div class="space-y-1.5">
+                                            <Label
+                                                for="filter-segment"
+                                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                            >
+                                                Segmento
+                                            </Label>
+                                            <Select
+                                                :default-value="
+                                                    localFilters.segment_id || 'all'
+                                                "
+                                                @update:model-value="updateSegment"
+                                            >
+                                                <SelectTrigger
+                                                    id="filter-segment"
+                                                    class="h-8"
                                                 >
-                                                    {{ sy.name }}
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                                    <SelectValue
+                                                        placeholder="Todos"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Todos os segmentos</SelectItem>
+                                                    <SelectItem
+                                                        v-for="segment in props.segments"
+                                                        :key="segment.uuid"
+                                                        :value="segment.uuid"
+                                                    >
+                                                        {{ segment.name }}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
 
-                                    <!-- Responsável -->
-                                    <div class="space-y-1.5">
-                                        <Label
-                                            for="filter-responsible"
-                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                        >
-                                            Responsável
-                                        </Label>
-                                        <Select
-                                            :default-value="
-                                                localFilters.responsible_user_id ||
-                                                'all'
-                                            "
-                                            @update:model-value="
-                                                updateResponsibleUser
-                                            "
-                                        >
-                                            <SelectTrigger
-                                                id="filter-responsible"
-                                                class="h-8"
+                                    <!-- Row 4: Unidade | Tipo de Cadastro -->
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="space-y-1.5">
+                                            <Label
+                                                for="filter-school-unit"
+                                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                             >
-                                                <SelectValue
-                                                    placeholder="Todos"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todos</SelectItem
+                                                Unidade
+                                            </Label>
+                                            <Select
+                                                :default-value="
+                                                    localFilters.school_unit_id || 'all'
+                                                "
+                                                @update:model-value="updateSchoolUnit"
+                                            >
+                                                <SelectTrigger
+                                                    id="filter-school-unit"
+                                                    class="h-8"
                                                 >
-                                                <SelectItem
-                                                    v-for="user in props.responsibleUsers"
-                                                    :key="user.uuid"
-                                                    :value="user.uuid"
+                                                    <SelectValue
+                                                        placeholder="Todas"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Todas as unidades</SelectItem>
+                                                    <SelectItem
+                                                        v-for="unit in props.schoolUnits"
+                                                        :key="unit.uuid"
+                                                        :value="unit.uuid"
+                                                    >
+                                                        {{ unit.name }}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div class="space-y-1.5">
+                                            <Label
+                                                for="filter-registration-type"
+                                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                            >
+                                                Tipo de Cadastro
+                                            </Label>
+                                            <Select
+                                                :default-value="
+                                                    localFilters.registration_type || 'all'
+                                                "
+                                                @update:model-value="updateRegistrationType"
+                                            >
+                                                <SelectTrigger
+                                                    id="filter-registration-type"
+                                                    class="h-8"
                                                 >
-                                                    {{ user.name }}
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                                    <SelectValue
+                                                        placeholder="Todos"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Todos os tipos</SelectItem>
+                                                    <SelectItem value="agendamento">Agendamento</SelectItem>
+                                                    <SelectItem value="evento">Evento</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
 
-                                    <!-- Origem do Lead -->
-                                    <div class="space-y-1.5">
-                                        <Label
-                                            for="filter-lead-source"
-                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                        >
-                                            Origem
-                                        </Label>
-                                        <Select
-                                            :default-value="
-                                                localFilters.lead_source_id ||
-                                                'all'
-                                            "
-                                            @update:model-value="
-                                                updateLeadSource
-                                            "
-                                        >
-                                            <SelectTrigger
-                                                id="filter-lead-source"
-                                                class="h-8"
+                                    <!-- Row 5: CPF do Aluno | CPF do Responsável -->
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="space-y-1.5">
+                                            <Label
+                                                for="filter-student-cpf"
+                                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                             >
-                                                <SelectValue
-                                                    placeholder="Todas as origens"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todas as
-                                                    origens</SelectItem
-                                                >
-                                                <SelectItem
-                                                    v-for="ls in props.leadSources"
-                                                    :key="ls.uuid"
-                                                    :value="ls.uuid"
-                                                >
-                                                    {{ ls.name }}
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                                CPF do Aluno
+                                            </Label>
+                                            <Input
+                                                id="filter-student-cpf"
+                                                :value="localFilters.student_cpf"
+                                                class="h-8 text-xs"
+                                                placeholder="000.000.000-00"
+                                                @input="
+                                                    (e) => {
+                                                        const v = formatCpf(
+                                                            (e.target as HTMLInputElement).value,
+                                                        );
+                                                        (e.target as HTMLInputElement).value = v;
+                                                        localFilters.student_cpf = v;
+                                                    }
+                                                "
+                                            />
+                                        </div>
+
+                                        <div class="space-y-1.5">
+                                            <Label
+                                                for="filter-guardian-cpf"
+                                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                            >
+                                                CPF do Responsável
+                                            </Label>
+                                            <Input
+                                                id="filter-guardian-cpf"
+                                                :value="localFilters.guardian_cpf"
+                                                class="h-8 text-xs"
+                                                placeholder="000.000.000-00"
+                                                @input="
+                                                    (e) => {
+                                                        const v = formatCpf(
+                                                            (e.target as HTMLInputElement).value,
+                                                        );
+                                                        (e.target as HTMLInputElement).value = v;
+                                                        localFilters.guardian_cpf = v;
+                                                    }
+                                                "
+                                            />
+                                        </div>
                                     </div>
 
-                                    <!-- Segmento -->
-                                    <div class="space-y-1.5">
-                                        <Label
-                                            for="filter-segment"
-                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                        >
-                                            Segmento
-                                        </Label>
-                                        <Select
-                                            :default-value="
-                                                localFilters.segment_id || 'all'
-                                            "
-                                            @update:model-value="updateSegment"
-                                        >
-                                            <SelectTrigger
-                                                id="filter-segment"
-                                                class="h-8"
-                                            >
-                                                <SelectValue
-                                                    placeholder="Todos os segmentos"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todos os
-                                                    segmentos</SelectItem
-                                                >
-                                                <SelectItem
-                                                    v-for="segment in props.segments"
-                                                    :key="segment.uuid"
-                                                    :value="segment.uuid"
-                                                >
-                                                    {{ segment.name }}
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <!-- Unidade -->
-                                    <div class="space-y-1.5">
-                                        <Label
-                                            for="filter-school-unit"
-                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                        >
-                                            Unidade
-                                        </Label>
-                                        <Select
-                                            :default-value="
-                                                localFilters.school_unit_id ||
-                                                'all'
-                                            "
-                                            @update:model-value="
-                                                updateSchoolUnit
-                                            "
-                                        >
-                                            <SelectTrigger
-                                                id="filter-school-unit"
-                                                class="h-8"
-                                            >
-                                                <SelectValue
-                                                    placeholder="Todas as unidades"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todas as
-                                                    unidades</SelectItem
-                                                >
-                                                <SelectItem
-                                                    v-for="unit in props.schoolUnits"
-                                                    :key="unit.uuid"
-                                                    :value="unit.uuid"
-                                                >
-                                                    {{ unit.name }}
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <!-- Tipo de Cadastro -->
-                                    <div class="space-y-1.5">
-                                        <Label
-                                            for="filter-registration-type"
-                                            class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                                        >
-                                            Tipo de Cadastro
-                                        </Label>
-                                        <Select
-                                            :default-value="
-                                                localFilters.registration_type ||
-                                                'all'
-                                            "
-                                            @update:model-value="
-                                                updateRegistrationType
-                                            "
-                                        >
-                                            <SelectTrigger
-                                                id="filter-registration-type"
-                                                class="h-8"
-                                            >
-                                                <SelectValue
-                                                    placeholder="Todos os tipos"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todos os tipos</SelectItem
-                                                >
-                                                <SelectItem value="agendamento"
-                                                    >Agendamento</SelectItem
-                                                >
-                                                <SelectItem value="evento"
-                                                    >Evento</SelectItem
-                                                >
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <!-- Data de / até -->
+                                    <!-- Período -->
                                     <div class="space-y-1.5">
                                         <Label
                                             class="text-xs font-medium tracking-wide text-muted-foreground uppercase"

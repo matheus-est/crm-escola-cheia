@@ -94,6 +94,14 @@ class OpportunityService
             $query->whereDate('opportunities.created_at', '<=', $filters['date_to']);
         }
 
+        if (! empty($filters['student_cpf'])) {
+            $query->whereHas('student', fn ($q) => $q->where('cpf', 'like', '%'.$filters['student_cpf'].'%'));
+        }
+
+        if (! empty($filters['guardian_cpf'])) {
+            $query->whereHas('guardian', fn ($q) => $q->where('cpf', 'like', '%'.$filters['guardian_cpf'].'%'));
+        }
+
         if (array_key_exists('per_page', $filters)) {
             $perPage = (int) $filters['per_page'];
         }
