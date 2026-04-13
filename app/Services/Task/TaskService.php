@@ -22,7 +22,17 @@ class TaskService
     public function list(array $filters = []): LengthAwarePaginator
     {
         $query = Task::query()
-            ->with(['opportunity.student', 'assignedUser', 'outcome']);
+            ->with([
+                'opportunity.student',
+                'opportunity.guardian',
+                'opportunity.responsibleUser',
+                'opportunity.segment',
+                'opportunity.grade',
+                'opportunity.schoolYear',
+                'opportunity.schoolUnit',
+                'assignedUser',
+                'outcome',
+            ]);
 
         if (array_key_exists('opportunity_uuid', $filters) && $filters['opportunity_uuid'] !== null) {
             $query->whereHas('opportunity', function ($q) use ($filters): void {

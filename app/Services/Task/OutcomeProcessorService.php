@@ -13,6 +13,8 @@ use App\Models\Opportunity;
 use App\Models\Outcome;
 use App\Models\OutcomeAction;
 use App\Models\Task;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class OutcomeProcessorService
@@ -86,7 +88,7 @@ class OutcomeProcessorService
             ]);
         }
 
-        $opportunity->update(['status' => $status->value]);
+        $opportunity->updateQuietly(['status' => $status->value, 'status_changed_at' => now()]);
     }
 
     /** @param array<string, mixed> $actionPayload */
@@ -119,13 +121,16 @@ class OutcomeProcessorService
             $dueAt = now()->addDays((int) $actionPayload['delay_days']);
         }
 
-        Task::create([
+        DB::table('tasks')->insert([
+            'uuid' => (string) Str::uuid(),
             'school_id' => $opportunity->school_id,
             'opportunity_id' => $opportunity->id,
             'type' => $taskType->value,
             'status' => TaskStatus::Open->value,
             'assigned_user_id' => $task->assigned_user_id,
             'due_at' => $dueAt,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 

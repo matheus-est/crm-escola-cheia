@@ -12,7 +12,9 @@ use App\Models\Segment;
 use App\Models\User;
 use App\Rules\CpfRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreOpportunityRequest extends FormRequest
 {
@@ -71,6 +73,7 @@ class StoreOpportunityRequest extends FormRequest
             'segment_id' => ['nullable', 'exists:segments,id'],
             'student_name' => ['required', 'string', 'max:255'],
             'student_cpf' => ['nullable', 'string', 'size:14', new CpfRule],
+            'student_birth_date' => ['nullable', 'date'],
             'guardian_name' => ['nullable', 'string', 'max:255'],
             'guardian_cpf' => ['nullable', 'string', 'size:14', new CpfRule],
             'guardian_phone' => ['nullable', 'string', 'max:20'],
@@ -85,6 +88,67 @@ class StoreOpportunityRequest extends FormRequest
         ];
     }
 
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            $taskType = $this->input('task_type');
+            $registrationType = $this->input('registration_type');
+
+            if ($taskType === null || $registrationType === null) {
+                return;
+            }
+
+            $allowed = array_map(
+                fn (TaskType $t) => $t->value,
+                TaskType::forRegistrationType($registrationType)
+            );
+
+            if (! in_array($taskType, $allowed, true)) {
+                $validator->errors()->add(
+                    'task_type',
+                    'O tipo de tarefa não é compatível com o tipo de cadastro selecionado.'
+                );
+            }
+        });
+
+        $validator->after(function (Validator $validator): void {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            // Uniqueness: same student + same school year + same tenant
+            $studentCpf = $this->input('student_cpf');
+            $schoolYearId = $this->input('school_year_id'); // already integer after prepareForValidation
+            $tenantSchoolId = app('tenant.school_id');
+
+            if ($studentCpf !== null && $schoolYearId !== null && $tenantSchoolId !== null) {
+                $studentId = DB::table('students')
+                    ->where('cpf', $studentCpf)
+                    ->value('id');
+
+                if ($studentId !== null) {
+                    $exists = DB::table('opportunities')
+                        ->where('student_id', $studentId)
+                        ->where('school_year_id', $schoolYearId)
+                        ->where('school_id', $tenantSchoolId)
+                        ->whereNull('deleted_at')
+                        ->exists();
+
+                    if ($exists) {
+                        $validator->errors()->add(
+                            'student_cpf',
+                            'Este aluno já possui uma oportunidade cadastrada para este Ano Letivo.'
+                        );
+                    }
+                }
+            }
+        });
+    }
+
     public function attributes(): array
     {
         return [
@@ -95,6 +159,7 @@ class StoreOpportunityRequest extends FormRequest
             'responsible_user_id' => 'Responsável pelo Atendimento',
             'student_name' => 'Nome do Aluno',
             'student_cpf' => 'CPF do Aluno',
+            'student_birth_date' => 'Data de Nascimento',
             'guardian_name' => 'Nome do Responsável',
             'guardian_cpf' => 'CPF do Responsável',
             'registration_type' => 'Tipo de Cadastro',

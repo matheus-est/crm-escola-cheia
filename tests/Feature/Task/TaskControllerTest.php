@@ -6,6 +6,7 @@ use App\Enums\OpportunityStatus;
 use App\Enums\TaskStatus;
 use App\Enums\TaskType;
 use App\Models\Grade;
+use App\Models\Guardian;
 use App\Models\Opportunity;
 use App\Models\Outcome;
 use App\Models\Role;
@@ -528,5 +529,73 @@ it('GET index inclui prop users na resposta Inertia', function (): void {
         ->assertInertia(fn (Assert $page) => $page
             ->component('tasks/Index', false)
             ->has('users')
+        );
+});
+
+// ---------------------------------------------------------------------------
+// Opportunity relations and outcomes prop in index
+// ---------------------------------------------------------------------------
+
+it('GET index inclui opportunity.guardian.name nos dados das tasks', function (): void {
+    $school = taskMakeSchool();
+    $user = taskMakeUser('Master', $school);
+    $opportunity = taskMakeOpportunity($school);
+
+    // Create a guardian directly (no factory available)
+    $guardian = Guardian::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'name' => 'Responsável Teste',
+        'cpf' => '529.982.247-25',
+    ]);
+    $opportunity->update(['guardian_id' => $guardian->id]);
+
+    taskMakeOpenTask($opportunity, $user);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->withoutVite()
+        ->actingAs($user)
+        ->get(route('tenant.tasks.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('tasks/Index', false)
+            ->has('tasks.data.0.opportunity.guardian.name')
+        );
+});
+
+it('GET index inclui opportunity.responsible_user.name nos dados das tasks', function (): void {
+    $school = taskMakeSchool();
+    $user = taskMakeUser('Master', $school);
+    $opportunity = taskMakeOpportunity($school);
+
+    $opportunity->update(['responsible_user_id' => $user->id]);
+
+    taskMakeOpenTask($opportunity, $user);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->withoutVite()
+        ->actingAs($user)
+        ->get(route('tenant.tasks.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('tasks/Index', false)
+            ->has('tasks.data.0.opportunity.responsible_user.name')
+        );
+});
+
+it('GET index inclui prop outcomes na resposta Inertia', function (): void {
+    $school = taskMakeSchool();
+    $user = taskMakeUser('Master', $school);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->withoutVite()
+        ->actingAs($user)
+        ->get(route('tenant.tasks.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('tasks/Index', false)
+            ->has('outcomes')
         );
 });

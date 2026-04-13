@@ -12,6 +12,8 @@ import {
 import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import TablePagination from '@/components/TablePagination.vue';
+import ExecuteTaskModal from '@/components/Task/ExecuteTaskModal.vue';
+import TaskDetailModal from '@/components/Task/TaskDetailModal.vue';
 import {
     Accordion,
     AccordionContent,
@@ -33,7 +35,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { show } from '@/routes/tenant/opportunities';
 import { index } from '@/routes/tenant/tasks';
 import type { BreadcrumbItem } from '@/types';
-import type { PaginatedTasks } from '@/types/crm';
+import type { Outcome, PaginatedTasks, Task } from '@/types/crm';
 
 interface Filters {
     status: string;
@@ -47,6 +49,7 @@ const props = defineProps<{
     tasks: PaginatedTasks;
     filters: Filters;
     users: Array<{ uuid: string; name: string }>;
+    outcomes: Outcome[];
 }>();
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Tarefas', href: '#' }];
@@ -105,6 +108,34 @@ function clearFilters(): void {
     localFilters.value.date_from = '';
     localFilters.value.date_to = '';
     router.visit(index().url);
+}
+
+// — Modal state —
+const showDetailModal = ref(false);
+const showExecuteModal = ref(false);
+const selectedTask = ref<Task | null>(null);
+
+function openDetailModal(task: Task): void {
+    selectedTask.value = task;
+    showDetailModal.value = true;
+}
+
+function onDetailExecute(): void {
+    showDetailModal.value = false;
+    showExecuteModal.value = true;
+}
+
+function onTaskCompleted(): void {
+    showExecuteModal.value = false;
+    selectedTask.value = null;
+    router.reload({ preserveUrl: true });
+}
+
+function onOpenTaskModal(): void {
+    // backend handles follow-up task creation automatically
+    showExecuteModal.value = false;
+    selectedTask.value = null;
+    router.reload({ preserveUrl: true });
 }
 
 // — Table Helpers —
@@ -426,7 +457,8 @@ function formatDate(dateStr?: string | null): string {
                         <tr
                             v-for="task in props.tasks.data"
                             :key="task.uuid"
-                            class="transition-colors hover:bg-muted/30"
+                            class="cursor-pointer transition-colors hover:bg-muted/30"
+                            @click="openDetailModal(task)"
                         >
                             <td class="px-4 py-4">
                                 <Badge :class="statusClass(task.status)">
@@ -448,12 +480,13 @@ function formatDate(dateStr?: string | null): string {
                                     <span class="font-medium text-foreground">
                                         {{ typeLabel(task.type) }}
                                     </span>
-                                    <span
-                                        class="text-muted-foreground"
-                                        v-if="task.opportunity?.student"
-                                    >
+                                    <span class="text-muted-foreground">
                                         Para:
-                                        {{ task.opportunity.student.name }}
+                                        {{
+                                            task.opportunity?.guardian?.name ??
+                                            task.opportunity?.student?.name ??
+                                            '—'
+                                        }}
                                     </span>
                                 </div>
                             </td>
@@ -473,10 +506,21 @@ function formatDate(dateStr?: string | null): string {
                                 </div>
                             </td>
 
-                            <td class="px-4 py-4 text-muted-foreground">
-                                {{
-                                    task.assigned_user?.name || 'Não atribuído'
-                                }}
+                            <td class="px-4 py-4">
+                                <p class="text-foreground">
+                                    {{
+                                        task.assigned_user?.name ||
+                                        'Não atribuído'
+                                    }}
+                                </p>
+                                <p
+                                    v-if="
+                                        task.opportunity?.responsible_user?.name
+                                    "
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ task.opportunity.responsible_user.name }}
+                                </p>
                             </td>
 
                             <td class="px-4 py-4 text-right">
@@ -488,6 +532,7 @@ function formatDate(dateStr?: string | null): string {
                                         }).url
                                     "
                                     class="inline-flex h-9 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                                    @click.stop
                                 >
                                     Ver Oportunidade
                                     <ChevronRight class="ml-1 h-4 w-4" />
@@ -533,5 +578,33 @@ function formatDate(dateStr?: string | null): string {
 
             <TablePagination :paginator="props.tasks" />
         </div>
+
+        <!-- Modais -->
+        <TaskDetailModal
+            v-if="selectedTask"
+            v-model:open="showDetailModal"
+            :task="selectedTask"
+            :outcomes="
+                (props.outcomes as Outcome[]).filter(
+                    (o) => o.task_type === selectedTask?.type,
+                )
+            "
+            :users="users"
+            @execute="onDetailExecute"
+        />
+
+        <ExecuteTaskModal
+            v-if="selectedTask && showExecuteModal"
+            v-model:open="showExecuteModal"
+            :task="selectedTask"
+            :outcomes="
+                (props.outcomes as Outcome[]).filter(
+                    (o) => o.task_type === selectedTask?.type,
+                )
+            "
+            :users="users"
+            @open-task-modal="onOpenTaskModal"
+            @completed="onTaskCompleted"
+        />
     </AppLayout>
 </template>

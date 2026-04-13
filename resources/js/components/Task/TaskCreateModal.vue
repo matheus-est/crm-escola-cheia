@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
-import { watch } from 'vue';
+import { computed, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -20,19 +20,57 @@ import {
 } from '@/components/ui/select';
 import { taskTypeLabels } from '@/lib/task';
 import { store } from '@/routes/tenant/tasks';
-import type { TaskType } from '@/types/crm';
+import type { RegistrationType, TaskType } from '@/types/crm';
 
 const props = defineProps<{
     open: boolean;
     opportunityUuid: string;
     users: Array<{ id: number; uuid: string; name: string }>;
     defaultType?: TaskType;
+    registrationType?: RegistrationType | null;
+    preselectedType?: TaskType;
 }>();
 
 const emit = defineEmits<{
     'update:open': [value: boolean];
     created: [];
 }>();
+
+const AGENDAMENTO_TYPES: TaskType[] = [
+    'retorno_ligacao',
+    'agendamento',
+    'lembrete_agenda',
+    'reagendamento',
+    'double_check',
+    'provavel_matricula',
+];
+
+const EVENTO_TYPES: TaskType[] = [
+    'evento',
+    'lembrete_evento',
+    'reagendamento_evento',
+    'double_check_evento',
+];
+
+const availableTaskTypes = computed<Array<{ value: TaskType; label: string }>>(
+    () => {
+        const rt = props.registrationType ?? null;
+        if (rt === 'agendamento') {
+            return AGENDAMENTO_TYPES.filter((t) => t in taskTypeLabels).map(
+                (t) => ({ value: t, label: taskTypeLabels[t] }),
+            );
+        }
+        if (rt === 'evento') {
+            return EVENTO_TYPES.filter((t) => t in taskTypeLabels).map((t) => ({
+                value: t,
+                label: taskTypeLabels[t],
+            }));
+        }
+        return (Object.entries(taskTypeLabels) as [TaskType, string][]).map(
+            ([value, label]) => ({ value, label }),
+        );
+    },
+);
 
 const form = useForm<{
     opportunity_uuid: string;
@@ -54,7 +92,9 @@ watch(
         if (val) {
             form.reset();
             form.opportunity_uuid = props.opportunityUuid;
-            if (props.defaultType) {
+            if (props.preselectedType) {
+                form.type = props.preselectedType;
+            } else if (props.defaultType) {
                 form.type = props.defaultType;
             }
         }
@@ -100,11 +140,11 @@ function submit(): void {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem
-                                v-for="(label, value) in taskTypeLabels"
-                                :key="value"
-                                :value="value"
+                                v-for="item in availableTaskTypes"
+                                :key="item.value"
+                                :value="item.value"
                             >
-                                {{ label }}
+                                {{ item.label }}
                             </SelectItem>
                         </SelectContent>
                     </Select>

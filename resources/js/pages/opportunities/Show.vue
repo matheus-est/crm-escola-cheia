@@ -14,13 +14,12 @@ import {
     MessageSquare,
     Pencil,
     Phone,
-    Plus,
     User,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
-import OutcomeModal from '@/components/Task/OutcomeModal.vue';
+import ExecuteTaskModal from '@/components/Task/ExecuteTaskModal.vue';
 import TaskCreateModal from '@/components/Task/TaskCreateModal.vue';
-import { Button } from '@/components/ui/button';
+import TaskDetailModal from '@/components/Task/TaskDetailModal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { refusalCategoryLabel, taskTypeLabels } from '@/lib/task';
 import { edit, index } from '@/routes/tenant/opportunities';
@@ -57,20 +56,28 @@ const activeTask = computed(
 );
 const outcomesForActiveTask = computed(() =>
     activeTask.value
-        ? props.outcomes.filter((o) => o.task_type === activeTask.value!.type)
+        ? props.outcomes.filter(
+              (o) => String(o.task_type) === String(activeTask.value!.type),
+          )
         : [],
 );
 
 const showOutcomeModal = ref(false);
+const showDetailModal = ref(false);
 const showTaskCreateModal = ref(false);
 const pendingWindowType = ref<TaskType | null>(null);
 
-function onTaskCompleted(result: { open_window: string | null }): void {
+function onOpenTaskModal(): void {
     router.reload({ preserveUrl: true });
-    if (result.open_window !== null) {
-        pendingWindowType.value = result.open_window as TaskType;
-        showTaskCreateModal.value = true;
-    }
+}
+
+function onDetailExecute(): void {
+    showDetailModal.value = false;
+    showOutcomeModal.value = true;
+}
+
+function onTaskCompleted(): void {
+    router.reload({ preserveUrl: true });
 }
 
 function onTaskCreated(): void {
@@ -315,46 +322,6 @@ function taskLabel(task: Task): string {
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- ─── Tarefa Ativa ────────────────────────────────────────────── -->
-            <div
-                v-if="activeTask"
-                class="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50/50 p-4"
-            >
-                <div class="flex items-center gap-3">
-                    <div
-                        class="h-2 w-2 animate-pulse rounded-full bg-blue-500"
-                    />
-                    <span class="font-medium">{{ taskLabel(activeTask) }}</span>
-                    <span
-                        v-if="activeTask.due_at"
-                        class="flex items-center gap-1 text-xs text-gray-500"
-                    >
-                        <Clock class="h-3 w-3" />
-                        Vence {{ formatDateOnly(activeTask.due_at) }}
-                    </span>
-                    <span
-                        v-if="activeTask.assigned_user"
-                        class="flex items-center gap-1 text-xs text-gray-500"
-                    >
-                        <User class="h-3 w-3" />
-                        {{ activeTask.assigned_user.name }}
-                    </span>
-                </div>
-                <Button @click="showOutcomeModal = true">Tabular</Button>
-            </div>
-            <div
-                v-else
-                class="flex items-center justify-between gap-4 rounded-lg border border-dashed p-4"
-            >
-                <p class="text-sm text-muted-foreground">
-                    Nenhuma tarefa aberta.
-                </p>
-                <Button variant="outline" @click="showTaskCreateModal = true">
-                    <Plus class="mr-2 h-4 w-4" />
-                    Nova Tarefa
-                </Button>
             </div>
 
             <!-- ─── SEÇÃO 3: Sidebar + Conteúdo ───────────────────────────── -->
@@ -695,12 +662,22 @@ function taskLabel(task: Task): string {
         </div>
 
         <!-- Modais -->
-        <OutcomeModal
+        <TaskDetailModal
+            v-if="activeTask"
+            v-model:open="showDetailModal"
+            :task="activeTask"
+            :outcomes="outcomesForActiveTask"
+            :users="users"
+            @execute="onDetailExecute"
+        />
+
+        <ExecuteTaskModal
             v-if="activeTask"
             v-model:open="showOutcomeModal"
             :task="activeTask"
             :outcomes="outcomesForActiveTask"
             :users="users"
+            @open-task-modal="onOpenTaskModal"
             @completed="onTaskCompleted"
         />
 
@@ -708,7 +685,8 @@ function taskLabel(task: Task): string {
             v-model:open="showTaskCreateModal"
             :opportunity-uuid="opportunity.uuid"
             :users="users"
-            :default-type="pendingWindowType ?? undefined"
+            :registration-type="opportunity.registration_type ?? null"
+            :preselected-type="pendingWindowType ?? undefined"
             @created="onTaskCreated"
         />
     </AppLayout>

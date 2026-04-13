@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\School;
 use App\Models\SchoolYear;
 use App\Models\Segment;
+use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -489,4 +490,147 @@ it('GET index com date_from e date_to filtra por intervalo de datas', function (
         $page->where('view', 'list')
             ->where('opportunities.meta.total', 1);
     });
+});
+
+it('POST store bloqueia duplicata com mesmo aluno e mesmo ano letivo no mesmo tenant', function (): void {
+    $user = opportunityMasterUser();
+    $school = makeSchoolForOpportunityTests();
+    $grade = makeGradeForOpportunity($school);
+    $schoolYear = makeSchoolYearForOpportunity($school);
+
+    // Create a student with CPF in this tenant
+    $student = Student::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'name' => 'Aluno Duplicata',
+        'cpf' => '529.982.247-25',
+    ]);
+
+    // Create an existing opportunity linked to that student
+    Opportunity::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'grade_id' => $grade->id,
+        'school_year_id' => $schoolYear->id,
+        'student_id' => $student->id,
+        'status' => 'cadastro_inicial',
+    ]);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->actingAs($user)
+        ->postJson(route('tenant.opportunities.store'), [
+            'grade_id' => $grade->uuid,
+            'school_year_id' => $schoolYear->uuid,
+            'student_name' => 'Aluno Duplicata',
+            'student_cpf' => '529.982.247-25',
+        ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['student_cpf']);
+});
+
+it('POST store permite mesmo aluno com ano letivo diferente', function (): void {
+    $user = opportunityMasterUser();
+    $school = makeSchoolForOpportunityTests();
+    $grade = makeGradeForOpportunity($school);
+    $schoolYear = makeSchoolYearForOpportunity($school);
+
+    $differentSchoolYear = SchoolYear::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'name' => '2026',
+        'start' => '2026-01-01',
+        'end' => '2026-12-31',
+        'status' => 'planejamento',
+    ]);
+
+    // Create a student with CPF
+    $student = Student::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'name' => 'Aluno Ano Diferente',
+        'cpf' => '153.509.460-56',
+    ]);
+
+    // Existing opportunity for school_year (not differentSchoolYear)
+    Opportunity::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'grade_id' => $grade->id,
+        'school_year_id' => $schoolYear->id,
+        'student_id' => $student->id,
+        'status' => 'cadastro_inicial',
+    ]);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->actingAs($user)
+        ->postJson(route('tenant.opportunities.store'), [
+            'grade_id' => $grade->uuid,
+            'school_year_id' => $differentSchoolYear->uuid,
+            'student_name' => 'Aluno Ano Diferente',
+            'student_cpf' => '153.509.460-56',
+        ])
+        ->assertRedirect(route('tenant.opportunities.index'));
+});
+
+it('POST store permite mesmo aluno e mesmo ano letivo em tenant diferente', function (): void {
+    $userA = opportunityMasterUser();
+    $schoolA = makeSchoolForOpportunityTests();
+    $gradeA = makeGradeForOpportunity($schoolA);
+    $schoolYearA = makeSchoolYearForOpportunity($schoolA);
+
+    $schoolB = makeSchoolForOpportunityTests();
+    $gradeB = makeGradeForOpportunity($schoolB);
+    $schoolYearB = SchoolYear::withoutTenantScope()->create([
+        'school_id' => $schoolB->id,
+        'name' => '2025',
+        'start' => '2025-01-01',
+        'end' => '2025-12-31',
+        'status' => 'planejamento',
+    ]);
+
+    // Student in tenant A with CPF
+    $studentA = Student::withoutTenantScope()->create([
+        'school_id' => $schoolA->id,
+        'name' => 'Aluno Cross Tenant',
+        'cpf' => '919.582.782-03',
+    ]);
+
+    // Existing opportunity in tenant A
+    Opportunity::withoutTenantScope()->create([
+        'school_id' => $schoolA->id,
+        'grade_id' => $gradeA->id,
+        'school_year_id' => $schoolYearA->id,
+        'student_id' => $studentA->id,
+        'status' => 'cadastro_inicial',
+    ]);
+
+    $userB = opportunityMasterUser();
+    $schoolB->users()->attach($userB->id, ['is_active' => true]);
+
+    app()->instance('tenant.school_id', $schoolB->id);
+
+    $this->actingAs($userB)
+        ->postJson(route('tenant.opportunities.store'), [
+            'grade_id' => $gradeB->uuid,
+            'school_year_id' => $schoolYearB->uuid,
+            'student_name' => 'Aluno Cross Tenant',
+            'student_cpf' => '919.582.782-03',
+        ])
+        ->assertRedirect(route('tenant.opportunities.index'));
+});
+
+it('POST store permite cadastro quando CPF do aluno não existe na tabela de alunos', function (): void {
+    $user = opportunityMasterUser();
+    $school = makeSchoolForOpportunityTests();
+    $grade = makeGradeForOpportunity($school);
+    $schoolYear = makeSchoolYearForOpportunity($school);
+
+    app()->instance('tenant.school_id', $school->id);
+
+    // CPF does not exist in students table
+    $this->actingAs($user)
+        ->postJson(route('tenant.opportunities.store'), [
+            'grade_id' => $grade->uuid,
+            'school_year_id' => $schoolYear->uuid,
+            'student_name' => 'Novo Aluno',
+            'student_cpf' => '036.273.750-92',
+        ])
+        ->assertRedirect(route('tenant.opportunities.index'));
 });

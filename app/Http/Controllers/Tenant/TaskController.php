@@ -53,10 +53,16 @@ class TaskController extends Controller
 
         $tasks = $this->taskService->list($filters);
 
+        $outcomes = Outcome::query()
+            ->orderBy('task_type')
+            ->orderBy('name')
+            ->get(['uuid', 'name', 'slug', 'task_type', 'is_refusal', 'opens_window']);
+
         return Inertia::render('tasks/Index', [
             'tasks' => TaskResource::collection($tasks),
             'filters' => $request->only(['opportunity_uuid', 'status', 'type', 'assigned_user_uuid', 'date_from', 'date_to', 'is_schedule']),
             'users' => $users,
+            'outcomes' => $outcomes,
         ]);
     }
 
@@ -101,10 +107,17 @@ class TaskController extends Controller
                 ]);
             }
 
+            if ($e->getMessage() === 'opportunity_status_terminal') {
+                throw ValidationException::withMessages([
+                    'task' => ['A oportunidade já se encontra em status terminal e não pode ser alterada.'],
+                ]);
+            }
+
             throw $e;
         }
 
         return response()->json([
+            'message' => 'Tarefa concluída com sucesso.',
             'open_window' => $result['open_window'] ?? null,
         ]);
     }

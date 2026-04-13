@@ -40,4 +40,30 @@ enum TaskType: string
             self::DoubleCheckEvento => 'Double Check Evento',
         };
     }
+
+    /**
+     * Returns the allowed TaskType cases for a given registration_type.
+     *
+     * @return self[]
+     */
+    public static function forRegistrationType(?string $registrationType): array
+    {
+        return match ($registrationType) {
+            'agendamento' => [
+                self::RetornoLigacao,
+                self::Agendamento,
+                self::LembreteAgenda,
+                self::Reagendamento,
+                self::DoubleCheck,
+                self::ProvavelMatricula,
+            ],
+            'evento' => [
+                self::Evento,
+                self::LembreteEvento,
+                self::ReagendamentoEvento,
+                self::DoubleCheckEvento,
+            ],
+            default => self::cases(),
+        };
+    }
 }

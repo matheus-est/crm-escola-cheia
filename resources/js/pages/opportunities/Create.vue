@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, ClipboardList, User } from 'lucide-vue-next';
-import { type Component, ref } from 'vue';
+import { type Component, computed, ref, watch } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -59,6 +59,56 @@ const tabs: { value: Tab; label: string; icon: Component }[] = [
     { value: 'aluno', label: 'Aluno / Responsável', icon: User },
 ];
 
+// ── Registration type + task type filtering ──────────────────────────────────
+const registrationType = ref<string>('');
+const taskType = ref<string>('');
+
+const ALL_TASK_TYPES = [
+    { value: 'retorno_ligacao', label: 'Retorno de Ligação' },
+    { value: 'agendamento', label: 'Agendamento' },
+    { value: 'lembrete_agenda', label: 'Lembrete de Agenda' },
+    { value: 'reagendamento', label: 'Reagendamento' },
+    { value: 'double_check', label: 'Double Check' },
+    { value: 'provavel_matricula', label: 'Provável Matrícula' },
+    { value: 'evento', label: 'Evento' },
+    { value: 'lembrete_evento', label: 'Lembrete de Evento' },
+    { value: 'reagendamento_evento', label: 'Reagendamento de Evento' },
+    { value: 'double_check_evento', label: 'Double Check Evento' },
+] as const;
+
+const AGENDAMENTO_VALUES = [
+    'retorno_ligacao',
+    'agendamento',
+    'lembrete_agenda',
+    'reagendamento',
+    'double_check',
+    'provavel_matricula',
+];
+
+const EVENTO_VALUES = [
+    'evento',
+    'lembrete_evento',
+    'reagendamento_evento',
+    'double_check_evento',
+];
+
+const availableTaskTypes = computed(() => {
+    if (registrationType.value === 'agendamento') {
+        return ALL_TASK_TYPES.filter((t) =>
+            AGENDAMENTO_VALUES.includes(t.value),
+        );
+    }
+    if (registrationType.value === 'evento') {
+        return ALL_TASK_TYPES.filter((t) => EVENTO_VALUES.includes(t.value));
+    }
+    return ALL_TASK_TYPES;
+});
+
+watch(registrationType, () => {
+    taskType.value = '';
+});
+
+// ── DOM fill helpers ─────────────────────────────────────────────────────────
 function fillInput(id: string, value: string): void {
     const el = document.getElementById(id) as
         | HTMLInputElement
@@ -173,7 +223,11 @@ function handleSuccess(): void {
     router.visit(index().url);
 }
 
-function handleError(): void {
+function handleError(errors: Record<string, string>): void {
+    if ('student_cpf' in errors) {
+        activeTab.value = 'aluno';
+        return;
+    }
     toast.error('Erro ao criar oportunidade. Verifique os campos.');
 }
 </script>
@@ -236,7 +290,19 @@ function handleError(): void {
                                     <Label for="registration_type"
                                         >Tipo de Cadastro</Label
                                     >
-                                    <Select name="registration_type">
+                                    <Select
+                                        name="registration_type"
+                                        :model-value="
+                                            registrationType || undefined
+                                        "
+                                        @update:model-value="
+                                            (v) => {
+                                                registrationType = String(
+                                                    v ?? '',
+                                                );
+                                            }
+                                        "
+                                    >
                                         <SelectTrigger id="registration_type">
                                             <SelectValue
                                                 placeholder="Selecione..."
@@ -310,48 +376,33 @@ function handleError(): void {
                                     <Label for="task_type"
                                         >Tarefa Vinculada</Label
                                     >
-                                    <Select name="task_type">
+                                    <!-- Hidden input carries the value on submit -->
+                                    <input
+                                        type="hidden"
+                                        name="task_type"
+                                        :value="taskType"
+                                    />
+                                    <Select
+                                        :model-value="taskType || undefined"
+                                        @update:model-value="
+                                            (v) => {
+                                                taskType = String(v ?? '');
+                                            }
+                                        "
+                                    >
                                         <SelectTrigger id="task_type">
                                             <SelectValue
                                                 placeholder="Selecione..."
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="retorno_ligacao"
-                                                >Retorno de Ligação</SelectItem
-                                            >
-                                            <SelectItem value="agendamento"
-                                                >Agendamento</SelectItem
-                                            >
-                                            <SelectItem value="lembrete_agenda"
-                                                >Lembrete de Agenda</SelectItem
-                                            >
-                                            <SelectItem value="reagendamento"
-                                                >Reagendamento</SelectItem
-                                            >
-                                            <SelectItem value="double_check"
-                                                >Double Check</SelectItem
-                                            >
                                             <SelectItem
-                                                value="provavel_matricula"
-                                                >Provável Matrícula</SelectItem
+                                                v-for="item in availableTaskTypes"
+                                                :key="item.value"
+                                                :value="item.value"
                                             >
-                                            <SelectItem value="evento"
-                                                >Evento</SelectItem
-                                            >
-                                            <SelectItem value="lembrete_evento"
-                                                >Lembrete de Evento</SelectItem
-                                            >
-                                            <SelectItem
-                                                value="reagendamento_evento"
-                                                >Reagendamento de
-                                                Evento</SelectItem
-                                            >
-                                            <SelectItem
-                                                value="double_check_evento"
-                                                >Double Check de
-                                                Evento</SelectItem
-                                            >
+                                                {{ item.label }}
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <InputError :message="errors.task_type" />
@@ -392,6 +443,13 @@ function handleError(): void {
                             v-show="activeTab === 'aluno'"
                             class="space-y-6 p-6"
                         >
+                            <div
+                                v-if="errors.student_cpf"
+                                class="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300"
+                            >
+                                {{ errors.student_cpf }}
+                            </div>
+
                             <!-- Card Aluno -->
                             <div
                                 class="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
@@ -439,6 +497,9 @@ function handleError(): void {
                                         >
                                             {{ studentCpfError }}
                                         </p>
+                                        <InputError
+                                            :message="errors.student_cpf"
+                                        />
                                     </div>
                                     <div class="space-y-2">
                                         <Label for="student_birth_date"

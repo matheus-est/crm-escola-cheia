@@ -78,6 +78,7 @@ it('POST store persiste campos de endereço do guardian', function (): void {
             'school_year_id' => $schoolYear->uuid,
             'student_name' => 'Aluno Endereço',
             'guardian_name' => 'Responsável Endereço',
+            'guardian_cpf' => '529.982.247-25',
             'guardian_phone' => '(11) 98765-4321',
             'zip_code' => '01310-100',
             'street' => 'Av. Paulista',

@@ -27,6 +27,10 @@ class StudentService
             $existing = $this->lookup($data['cpf']);
 
             if ($existing !== null) {
+                if (array_key_exists('date_of_birth', $data) && $data['date_of_birth'] !== null) {
+                    $existing->update(['date_of_birth' => $data['date_of_birth']]);
+                }
+
                 return $existing;
             }
         }

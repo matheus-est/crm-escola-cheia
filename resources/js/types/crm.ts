@@ -259,14 +259,27 @@ export interface Task {
     status: TaskStatus;
     is_schedule: boolean;
     notes: string | null;
+    created_at: string;
     scheduled_at: string | null;
     due_at: string | null;
     completed_at: string | null;
     cancelled_at: string | null;
+    refusal_category: string | null;
+    refusal_detail: string | null;
     opportunity?: {
         uuid: string;
         status: string;
         student: { name: string } | null;
+        guardian: {
+            name: string;
+            phone: string | null;
+            email: string | null;
+        } | null;
+        responsible_user: { uuid: string; name: string } | null;
+        segment: { name: string } | null;
+        grade: { name: string } | null;
+        school_year: { name: string } | null;
+        school_unit: { name: string } | null;
     } | null;
     assigned_user?: { uuid: string; name: string } | null;
     outcome?: {

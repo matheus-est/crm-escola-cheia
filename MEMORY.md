@@ -7,8 +7,8 @@
 
 ## CURRENT STATE
 
-**Last session:** 2026-04-11
-**Next task:** 8 — Form module (public lead capture); 10 — Reports
+**Last session:** 2026-04-13
+**Next task:** 8 — Form module (public lead capture); 10 — Reports; Stage 5 full flow complete
 **Last rebrand:** 2026-04-10 — Identidade visual migrada para Operis CRM (azul `#2D3AE0`, Eurostile)
 
 ### Completed
@@ -79,6 +79,7 @@
 - [x] ADJ-UX1 — Opportunity UX fixes: Edit.vue 5 readonly fields (history/student_name/student_cpf/guardian_name/guardian_cpf) with bg-muted/50 cursor-not-allowed, removed useCpfLookup + dead vars; OpportunityCard.vue + tasks/Index.vue link to show instead of edit; Index.vue Nova Oportunidade button moved into header flex row — 2026-04-10
 - [x] ADJ-SHOW — Show.vue redesenho: pipeline header (funnel_stages + days_in_stage) · bloco lead (guardian+student side-by-side) · sidebar 3 abas (Histórico/Próximas Tarefas/Mais Informações) · timeline teal · cards Endereço+Indicação · TaskType.label() · TaskResource task_type · OpportunityController::show() schoolUnit+funnel_stages+days_in_stage · FunnelStage in crm.ts — 2026-04-10
 - [x] ADJ-SHOW2 — Show.vue layout adjustments: days_in_stage uses created_at; responsible_user name in pipeline header; Edit button moved into pipeline card below progress bar; guardian/student names shown to the RIGHT of contact/data info with User icon and border-l separator; usePage/authUser/Auth imports removed — 2026-04-10
+- [x] TASK-MODALS — TaskDetailModal.vue + ExecuteTaskModal.vue components; tasks/Index.vue clickable rows + outcome modal integration; Show.vue Ver Tarefa button + dual-modal flow; Task crm.ts interface expanded with guardian/segment/grade/school_year/school_unit/responsible_user on opportunity — 2026-04-13
 - [x] REBRAND — Operis visual rebrand: Eurostile fonts · blue brand palette (hsl 234) · favicon.svg 8-petal wheel · AppLogoIcon.vue · AppLogo.vue PNG fallback · AuthSplitLayout.vue slate/blue overlay · Login.vue new headline+Target icon — 2026-04-10
 - [x] REBRAND — Identidade visual Operis CRM: paleta azul `#2D3AE0`, Eurostile, logos/favicon nativos, login redesenhado — 2026-04-10
 - [x] 5.5-A2 — OpportunityObserver::updated(): cancela tasks abertas em status terminal (matricula/recusado) · sets status_changed_at via updateQuietly — 2026-04-10
@@ -102,8 +103,21 @@
 - [x] REQUEST-FIX — StoreOpportunityRequest::prepareForValidation(): segment_id mantém UUID original se não encontrado (evita nullable bypass da validação exists) — 2026-04-11
 - [x] 6 — Notifications module: TaskAssignedNotification + TaskOverdueNotification + NotifyOverdueTasksCommand + NotificationController + echo.ts + useNotifications.ts + NotificationBell.vue + shadcn Popover components — 256 tests — 2026-04-11
 - [x] 7 — Events module complete: Event + EventType backend/frontend + reviewer pass — 257 tests — APPROVED 2026-04-11
+- [x] BACKEND-FIX — OutcomeProcessorService: createTask() uses DB::table insert (uuid+school_id explicit); moveStatus() uses updateQuietly with status_changed_at — 2026-04-13
+- [x] BACKEND-FIX — CompleteTaskRequest: refusal_category Rule::in expanded to all 8 values — 2026-04-13
+- [x] BACKEND-FIX — TaskType::forRegistrationType() static method added; StoreOpportunityRequest::withValidator() cross-validates task_type vs registration_type — 2026-04-13
+- [x] BACKEND-FIX — TaskController::complete() handles opportunity_status_terminal DomainException + returns message key in JSON — 2026-04-13
+- [x] TESTS — TaskCompletionTest (12 cases) + OpportunityTaskTypeFilterTest (3 cases) + RenitenteCycleServiceTest (+3 cases) — 291 tests total — 2026-04-13
+- [x] FIX-BIRTH-CREATE — StoreOpportunityRequest: student_birth_date rule+attribute · OpportunityService::create() passes date_of_birth to findOrCreate() · StudentService::findOrCreate() updates date_of_birth on existing student · OpportunityBirthDateTest (3 cases) — 302 tests — 2026-04-13
 - [ ] 8 — Form module (public lead capture form)
 - [x] 9 — Calendar — CalendarService · CalendarController (index + entries) · calendar/Index.vue (month/week grid) · 9 tests — APPROVED 2026-04-11
+- [x] ADJ-OW1 — OutcomeModal: emit `open-task-modal` before `completed` when `open_window` is non-null — 2026-04-13
+- [x] ADJ-OW2 — TaskCreateModal: `registrationType`/`preselectedType` props + `availableTaskTypes` computed (filters by agendamento/evento) + watch resets type on preselectedType — 2026-04-13
+- [x] ADJ-OW3 — Show.vue: `onOpenTaskModal` handler + `@open-task-modal` on OutcomeModal + `:registration-type`/`:preselected-type` on TaskCreateModal — 2026-04-13
+- [x] ADJ-OW4 — Create.vue: `registrationType`/`taskType` refs + `availableTaskTypes` computed + watch resets taskType + hidden input for task_type submit + Select bound via model-value — 2026-04-13
+- [x] VAL-DUP-OPP — StoreOpportunityRequest: duplicate opportunity guard (same student CPF + school_year + tenant) added via second `withValidator after()` callback using `DB::table` — 4 new tests — 2026-04-13
+- [x] STAGE5-UI — TaskDetailModal + ExecuteTaskModal: two-step modal flow in tasks/Index.vue + Show.vue; TaskPolicy::complete() fixed for Master/Admin/Operacao; refusal payload conditional; generalError for 403/500 display — 299 tests — 2026-04-13
+- [x] TEST-FIX-ADDR — OpportunityAddressTest: guardian_cpf added to POST store test (NOT NULL constraint fix) — 299 tests — 2026-04-13
 - [ ] 10 — Reports
 - [ ] 11 — LGPD
 
@@ -178,6 +192,11 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-11 | `NotifyOverdueTasksCommand.php` | Command usa `Task::withoutGlobalScopes()` + `DB::table` para `notified_overdue_at` — sem sessão, BelongsToTenant inativo; mesmo padrão `CreateLembreteAgendaCommand` |
 
 | 2026-04-11 | `calendar/Index.vue` | Calendar fetch uses raw `fetch()` (not `useForm`/`router`) — CSRF token read via `document.querySelector` cast to `HTMLMetaElement | null`; entries endpoint hardcoded to `/tenant/calendar/entries` (JSON, not Inertia page) |
+| 2026-04-13 | `TaskDetailModal.vue` | `defineProps<{...}>()` must NOT be assigned to `const props` if the variable is not used in `<script setup>` — linter reports `no-unused-vars`; omit the assignment when only the template uses props |
+| 2026-04-13 | `OutcomeProcessorService::createTask()` | Must use `DB::table('tasks')->insert()` with explicit uuid+school_id — `Task::create()` fails without tenant session (BelongsToTenant cannot set school_id) |
+| 2026-04-13 | `TaskCreateModal.vue` | `preselectedType` takes priority over `defaultType` in the watch; both are optional — `preselectedType` comes from `open_window` flow, `defaultType` from static parent config |
+| 2026-04-13 | `StoreOpportunityRequest.php` | Duplicate-opportunity check uses `DB::table` (not Eloquent) to bypass GlobalScope; student lookup by `cpf` is unscoped — `opportunities.school_id` filter isolates tenants; valid CPF (mod-11) required in tests |
+| 2026-04-13 | `OpportunityService::create()` | `student_birth_date` (request field) must be mapped to `date_of_birth` (DB column) before passing to `StudentService::findOrCreate()` — `array_filter` on null/empty values strips the key, so pass it explicitly and let `findOrCreate` check `array_key_exists` |
 
 ## AGENT INSTRUCTIONS
 

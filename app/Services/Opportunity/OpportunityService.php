@@ -177,6 +177,7 @@ class OpportunityService
         $student = $this->studentService->findOrCreate(array_filter([
             'name' => $data['student_name'],
             'cpf' => $data['student_cpf'] ?? null,
+            'date_of_birth' => $data['student_birth_date'] ?? null,
         ], fn ($v) => $v !== null && $v !== ''));
 
         if ($guardianId !== null) {

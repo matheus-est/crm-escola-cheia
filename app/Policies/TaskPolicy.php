@@ -39,7 +39,15 @@ class TaskPolicy
 
     public function complete(User $user, Task $task): bool
     {
-        return $this->update($user, $task);
+        if (in_array($user->role?->name, ['Master', 'Admin', 'Gestor', 'Operacao'], strict: true)) {
+            return $task->school_id === app('tenant.school_id');
+        }
+
+        if ($user->role?->name === 'Comercial') {
+            return $task->assigned_user_id === $user->id;
+        }
+
+        return false;
     }
 
     public function delete(User $user, Task $task): bool
