@@ -82,6 +82,7 @@ const {
 const {
     isLoading: isLoadingCnpj,
     error: cnpjError,
+    cnpjNotFound,
     lookup: lookupCnpj,
 } = useCnpjLookup();
 
@@ -310,6 +311,13 @@ function detachUser(userUuid: string) {
                                             class="text-xs text-destructive"
                                         >
                                             {{ cnpjError }}
+                                        </p>
+                                        <p
+                                            v-if="cnpjNotFound"
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            CNPJ não encontrado na base pública.
+                                            Preencha os campos manualmente.
                                         </p>
                                         <InputError :message="errors.cnpj" />
                                     </div>

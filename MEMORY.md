@@ -197,6 +197,7 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-13 | `TaskCreateModal.vue` | `preselectedType` takes priority over `defaultType` in the watch; both are optional — `preselectedType` comes from `open_window` flow, `defaultType` from static parent config |
 | 2026-04-13 | `StoreOpportunityRequest.php` | Duplicate-opportunity check uses `DB::table` (not Eloquent) to bypass GlobalScope; student lookup by `cpf` is unscoped — `opportunities.school_id` filter isolates tenants; valid CPF (mod-11) required in tests |
 | 2026-04-13 | `OpportunityService::create()` | `student_birth_date` (request field) must be mapped to `date_of_birth` (DB column) before passing to `StudentService::findOrCreate()` — `array_filter` on null/empty values strips the key, so pass it explicitly and let `findOrCreate` check `array_key_exists` |
+| 2026-04-14 | `useCnpjLookup.ts` | `error` (mod-11 failure) and `cnpjNotFound` (valid CNPJ but API offline/404) are mutually exclusive — never set both; `cnpjNotFound` alone does NOT block submit; both reset when digits < 14 |
 
 ## AGENT INSTRUCTIONS
 
