@@ -9,7 +9,7 @@ export function useNotifications() {
     const loading = ref(false);
 
     async function fetchCount(): Promise<void> {
-        const response = await fetch('/t/notifications/count', {
+        const response = await fetch('/tenant/notifications/count', {
             headers: { Accept: 'application/json' },
         });
         const data = (await response.json()) as { count: number };
@@ -19,7 +19,7 @@ export function useNotifications() {
     async function fetchNotifications(): Promise<void> {
         loading.value = true;
         try {
-            const response = await fetch('/t/notifications', {
+            const response = await fetch('/tenant/notifications', {
                 headers: { Accept: 'application/json' },
             });
             const data = (await response.json()) as { data: CrmNotification[] };
@@ -30,7 +30,7 @@ export function useNotifications() {
     }
 
     async function markRead(id: string): Promise<void> {
-        await fetch(`/t/notifications/${id}/read`, {
+        await fetch(`/tenant/notifications/${id}/read`, {
             method: 'PATCH',
             headers: {
                 Accept: 'application/json',
@@ -50,7 +50,7 @@ export function useNotifications() {
     }
 
     async function markAllRead(): Promise<void> {
-        await fetch('/t/notifications/read-all', {
+        await fetch('/tenant/notifications/read-all', {
             method: 'PATCH',
             headers: {
                 Accept: 'application/json',

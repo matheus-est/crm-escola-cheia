@@ -142,9 +142,9 @@
 | 2026-04-03 | `Segment` is global (no `BelongsToTenant`) — `Grade` uses `BelongsToTenant` |
 | 2026-04-03 | `LeadSource` uses its own `LeadSourceScope` — not `BelongsToTenant`; `school_id null` = system |
 | 2026-04-03 | `useCpfLookup` uses `fetch` — only authorized case outside `useForm` (GET lookup, pure JSON) |
-| 2026-04-07 | Tenant routes use prefix `/t` — no `{school_uuid}` in URL; tenant resolved from session via `SetActiveTenant` → `currentSchool()` |
+| 2026-04-07 | Tenant routes use prefix `/tenant` — no `{school_uuid}` in URL; tenant resolved from session via `SetActiveTenant` → `currentSchool()` |
 | 2026-04-07 | `BelongsToTenant` auto-sets `school_id` via `creating` event — controllers and services never set it manually; `LeadSource` (no BelongsToTenant) still uses `app('tenant.school_id')` explicitly |
-| 2026-04-07 | `useCpfLookup` no longer needs `schoolUuid` — lookup routes are `/t/students/lookup/{cpf}` |
+| 2026-04-07 | `useCpfLookup` no longer needs `schoolUuid` — lookup routes are `/tenant/students/lookup/{cpf}` |
 | 2026-04-08 | `guardians.cpf` is **NOT NULL** — responsável SEMPRE deve ter CPF; nunca criar migration para torná-lo nullable |
 | 2026-04-09 | Event requests use `room_uuids`/`grade_uuid` (UUID-based) — service resolves to IDs before `attach()`; controller passes only `uuid` (not `id`) in Room/Grade props |
 | 2026-04-09 | `event_type` column is `string(60)` — values provisórios (palestra/workshop/visita) — aguardando confirmação do cliente |

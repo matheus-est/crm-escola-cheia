@@ -509,17 +509,11 @@ function formatDate(dateStr?: string | null): string {
                             <td class="px-4 py-4">
                                 <p class="text-foreground">
                                     {{
-                                        task.assigned_user?.name ||
+                                        task.assigned_user?.name ??
+                                        task.opportunity?.responsible_user
+                                            ?.name ??
                                         'Não atribuído'
                                     }}
-                                </p>
-                                <p
-                                    v-if="
-                                        task.opportunity?.responsible_user?.name
-                                    "
-                                    class="text-xs text-muted-foreground"
-                                >
-                                    {{ task.opportunity.responsible_user.name }}
                                 </p>
                             </td>
 
