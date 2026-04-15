@@ -140,6 +140,7 @@ const {
     onFound: (data) => {
         const student = data as Student;
         fillInput('student_name', student.name ?? '');
+        fillInput('student_birth_date', student.birth_date ?? '');
         if (student.guardian) {
             fillGuardianFields(student.guardian);
         }

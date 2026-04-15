@@ -81,9 +81,12 @@ class StudentController extends Controller
             return response()->json(['message' => 'Aluno não encontrado.'], 404);
         }
 
-        return response()->json(array_merge(
-            $student->toArray(),
-            ['guardian' => $student->guardians->first()?->toArray()]
-        ));
+        return response()->json([
+            'uuid' => $student->uuid,
+            'name' => $student->name,
+            'cpf' => $student->cpf,
+            'birth_date' => $student->date_of_birth?->format('Y-m-d'),
+            'guardian' => $student->guardians->first()?->toArray(),
+        ]);
     }
 }

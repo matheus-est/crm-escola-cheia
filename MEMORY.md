@@ -109,6 +109,7 @@
 - [x] BACKEND-FIX — TaskController::complete() handles opportunity_status_terminal DomainException + returns message key in JSON — 2026-04-13
 - [x] TESTS — TaskCompletionTest (12 cases) + OpportunityTaskTypeFilterTest (3 cases) + RenitenteCycleServiceTest (+3 cases) — 291 tests total — 2026-04-13
 - [x] FIX-BIRTH-CREATE — StoreOpportunityRequest: student_birth_date rule+attribute · OpportunityService::create() passes date_of_birth to findOrCreate() · StudentService::findOrCreate() updates date_of_birth on existing student · OpportunityBirthDateTest (3 cases) — 302 tests — 2026-04-13
+- [x] FIX-LOOKUP-BIRTH — StudentController::lookup() explicit JSON (uuid/name/cpf/birth_date/guardian) replaces toArray(); Create.vue onFound fills student_birth_date via fillInput — 2026-04-15
 - [ ] 8 — Form module (public lead capture form)
 - [x] 9 — Calendar — CalendarService · CalendarController (index + entries) · calendar/Index.vue (month/week grid) · 9 tests — APPROVED 2026-04-11
 - [x] ADJ-OW1 — OutcomeModal: emit `open-task-modal` before `completed` when `open_window` is non-null — 2026-04-13
@@ -198,6 +199,7 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-13 | `StoreOpportunityRequest.php` | Duplicate-opportunity check uses `DB::table` (not Eloquent) to bypass GlobalScope; student lookup by `cpf` is unscoped — `opportunities.school_id` filter isolates tenants; valid CPF (mod-11) required in tests |
 | 2026-04-13 | `OpportunityService::create()` | `student_birth_date` (request field) must be mapped to `date_of_birth` (DB column) before passing to `StudentService::findOrCreate()` — `array_filter` on null/empty values strips the key, so pass it explicitly and let `findOrCreate` check `array_key_exists` |
 | 2026-04-14 | `useCnpjLookup.ts` | `error` (mod-11 failure) and `cnpjNotFound` (valid CNPJ but API offline/404) are mutually exclusive — never set both; `cnpjNotFound` alone does NOT block submit; both reset when digits < 14 |
+| 2026-04-15 | `StudentController::lookup()` | Response must be explicit array (`uuid`/`name`/`cpf`/`birth_date`/`guardian`) — never `toArray()` which exposes `date_of_birth` (DB column) instead of `birth_date` (TS interface); `date_of_birth?->format('Y-m-d')` aligns with `Student.birth_date?: string` |
 
 ## AGENT INSTRUCTIONS
 
