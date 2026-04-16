@@ -55,6 +55,8 @@ class OutcomeProcessorService
             OutcomeActionType::CreateTask => $this->createTask($task, $actionPayload),
             OutcomeActionType::CancelTasks => $this->cancelTasks($task, $actionPayload),
             OutcomeActionType::OpenWindow => $this->openWindow($actionPayload, $result),
+            OutcomeActionType::CompleteTasksOfType => $this->completeTasksOfType($task, $actionPayload),
+            OutcomeActionType::AssertNoFutureTask => $this->assertNoFutureTask($task, $actionPayload),
             null => null,
         };
     }
@@ -127,10 +129,10 @@ class OutcomeProcessorService
             'opportunity_id' => $opportunity->id,
             'type' => $taskType->value,
             'status' => TaskStatus::Open->value,
-            'assigned_user_id' => $task->assigned_user_id,
-            'due_at' => $dueAt,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'assigned_user_id' => $opportunity->responsible_user_id,
+            'due_at' => $dueAt?->toDateTimeString(),
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString(),
         ]);
     }
 
@@ -158,6 +160,59 @@ class OutcomeProcessorService
             'status' => TaskStatus::Cancelled->value,
             'cancelled_at' => now(),
         ]);
+    }
+
+    /** @param array<string, mixed> $actionPayload */
+    private function completeTasksOfType(Task $task, array $actionPayload): void
+    {
+        $opportunity = $task->opportunity;
+        if ($opportunity === null) {
+            return;
+        }
+
+        $taskType = TaskType::tryFrom((string) ($actionPayload['task_type'] ?? ''));
+
+        $query = Task::query()
+            ->where('opportunity_id', $opportunity->id)
+            ->where('status', TaskStatus::Open->value)
+            ->where('id', '!=', $task->id);
+
+        if ($taskType !== null) {
+            $query->where('type', $taskType->value);
+        }
+
+        $query->update([
+            'status' => TaskStatus::Completed->value,
+            'completed_at' => now(),
+        ]);
+    }
+
+    /** @param array<string, mixed> $actionPayload */
+    private function assertNoFutureTask(Task $task, array $actionPayload): void
+    {
+        $opportunity = $task->opportunity;
+        if ($opportunity === null) {
+            return;
+        }
+
+        $taskType = TaskType::tryFrom((string) ($actionPayload['task_type'] ?? ''));
+        if ($taskType === null) {
+            return;
+        }
+
+        $exists = Task::query()
+            ->where('opportunity_id', $opportunity->id)
+            ->where('status', TaskStatus::Open->value)
+            ->where('type', $taskType->value)
+            ->where('id', '!=', $task->id)
+            ->where('due_at', '>', now())
+            ->exists();
+
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'outcome' => 'Já existe um agendamento futuro para esta oportunidade. Encerre-o antes de reagendar.',
+            ]);
+        }
     }
 
     /**

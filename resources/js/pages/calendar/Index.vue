@@ -6,7 +6,7 @@ import {
     ChevronRight,
     Filter,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import Heading from '@/components/Heading.vue';
 import {
     Accordion,
@@ -29,7 +29,10 @@ import {
     getWeekDays,
     toApiDateTime,
 } from '@/lib/calendarEvent';
-import { entries as calendarEntries } from '@/routes/tenant/calendar/index';
+import {
+    entries as calendarEntries,
+    index as calendarIndex,
+} from '@/routes/tenant/calendar/index';
 import { edit as editEvent } from '@/routes/tenant/events/index';
 import { show as showOpportunity } from '@/routes/tenant/opportunities/index';
 import type { BreadcrumbItem } from '@/types';
@@ -52,7 +55,17 @@ const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Agenda', href: '#' }];
 
 // — State —
 const view = ref<'month' | 'week'>('month');
-const currentDate = ref<Date>(new Date());
+
+// Initialize currentDate from props.filters.date_from if available
+function initCurrentDate(): Date {
+    if (props.filters.date_from) {
+        const d = new Date(props.filters.date_from);
+        if (!isNaN(d.getTime())) return d;
+    }
+    return new Date();
+}
+
+const currentDate = ref<Date>(initCurrentDate());
 const localEntries = ref<CalendarEntry[]>(props.entries);
 const isLoading = ref<boolean>(false);
 const localFilters = ref<CalendarFilters>({
@@ -64,6 +77,14 @@ const localFilters = ref<CalendarFilters>({
 const hasActiveFilter = computed(() => !!localFilters.value.assigned_user_uuid);
 const filterCount = computed(() =>
     localFilters.value.assigned_user_uuid ? 1 : 0,
+);
+
+// Sync localEntries when props.entries changes (after router.get navigation)
+watch(
+    () => props.entries,
+    (newEntries) => {
+        localEntries.value = newEntries;
+    },
 );
 
 // — Date range helpers —
@@ -117,7 +138,37 @@ async function fetchEntries(): Promise<void> {
     }
 }
 
-// — Navigation —
+// — Navigation (persists date range in session via router.get) —
+function navigatePeriod(d: Date): void {
+    const { dateFrom, dateTo } = (() => {
+        if (view.value === 'month') {
+            const y = d.getFullYear();
+            const m = d.getMonth();
+            return {
+                dateFrom: new Date(y, m, 1, 0, 0, 0),
+                dateTo: new Date(y, m + 1, 0, 23, 59, 59),
+            };
+        } else {
+            const days = getWeekDays(d);
+            const df = new Date(days[0]);
+            df.setHours(0, 0, 0);
+            const dt = new Date(days[6]);
+            dt.setHours(23, 59, 59);
+            return { dateFrom: df, dateTo: dt };
+        }
+    })();
+
+    const params: Record<string, string> = {
+        date_from: toApiDateTime(dateFrom),
+        date_to: toApiDateTime(dateTo),
+    };
+    if (localFilters.value.assigned_user_uuid) {
+        params['assigned_user_uuid'] = localFilters.value.assigned_user_uuid;
+    }
+
+    router.get(calendarIndex().url, params, { preserveUrl: true });
+}
+
 function prevPeriod(): void {
     const d = new Date(currentDate.value);
     if (view.value === 'month') {
@@ -126,7 +177,7 @@ function prevPeriod(): void {
         d.setDate(d.getDate() - 7);
     }
     currentDate.value = d;
-    void fetchEntries();
+    navigatePeriod(d);
 }
 
 function nextPeriod(): void {
@@ -137,12 +188,12 @@ function nextPeriod(): void {
         d.setDate(d.getDate() + 7);
     }
     currentDate.value = d;
-    void fetchEntries();
+    navigatePeriod(d);
 }
 
 function goToToday(): void {
     currentDate.value = new Date();
-    void fetchEntries();
+    navigatePeriod(currentDate.value);
 }
 
 function switchView(v: 'month' | 'week'): void {
@@ -578,6 +629,36 @@ function formatDayHeader(d: Date): string {
                         class="inline-block h-3 w-3 rounded border-l-2 border-purple-200 bg-purple-100"
                     ></span>
                     Evento
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span
+                        class="inline-block h-3 w-3 rounded border-l-2 border-rose-200 bg-rose-100"
+                    ></span>
+                    Retorno de Ligação
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span
+                        class="inline-block h-3 w-3 rounded border-l-2 border-indigo-200 bg-indigo-100"
+                    ></span>
+                    Double Check
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span
+                        class="inline-block h-3 w-3 rounded border-l-2 border-green-200 bg-green-100"
+                    ></span>
+                    Provável Matrícula
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span
+                        class="inline-block h-3 w-3 rounded border-l-2 border-purple-200 bg-purple-100"
+                    ></span>
+                    Reagendamento de Evento
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span
+                        class="inline-block h-3 w-3 rounded border-l-2 border-violet-200 bg-violet-100"
+                    ></span>
+                    Double Check Evento
                 </div>
             </div>
 

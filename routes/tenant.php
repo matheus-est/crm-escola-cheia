@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Tenant\CalendarController;
 use App\Http\Controllers\Tenant\EventController;
 use App\Http\Controllers\Tenant\GuardianController;
 use App\Http\Controllers\Tenant\NotificationController;
@@ -12,7 +13,6 @@ use App\Http\Controllers\Tenant\Settings\LeadSourceController;
 use App\Http\Controllers\Tenant\Settings\RoomController;
 use App\Http\Controllers\Tenant\Settings\SchoolYearController;
 use App\Http\Controllers\Tenant\StudentController;
-use App\Http\Controllers\Tenant\CalendarController;
 use App\Http\Controllers\Tenant\TaskController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -93,6 +93,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
         // Oportunidades
         Route::get('/opportunities', [OpportunityController::class, 'index'])
             ->name('opportunities.index');
+        Route::post('/opportunities/filter', [OpportunityController::class, 'index'])
+            ->name('opportunities.filter');
+        Route::get('/opportunities/clear-filters', [OpportunityController::class, 'clearFilters'])
+            ->name('opportunities.clear_filters');
         Route::get('/opportunities/create', [OpportunityController::class, 'create'])
             ->name('opportunities.create');
         Route::post('/opportunities', [OpportunityController::class, 'store'])
@@ -110,6 +114,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
 
         // Tarefas
         Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+        Route::post('/tasks/filter', [TaskController::class, 'index'])->name('tasks.filter');
+        Route::get('/tasks/clear-filters', [TaskController::class, 'clearFilters'])->name('tasks.clear_filters');
         Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
         Route::post('/tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
         Route::post('/tasks/{task}/cancel', [TaskController::class, 'cancel'])->name('tasks.cancel');
@@ -137,8 +143,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.access'])
             ->name('settings.event_types.toggle_active');
         Route::delete('/tenant-settings/event-types/{eventType}', [EventTypeController::class, 'destroy'])
             ->name('settings.event_types.destroy');
+
         // Agenda
-        Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+        Route::match(['get', 'post'], '/calendar', [CalendarController::class, 'index'])
+            ->name('calendar.index');
         Route::get('/calendar/entries', [CalendarController::class, 'entries'])->name('calendar.entries');
 
         // Notificações

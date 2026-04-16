@@ -30,7 +30,8 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
             'task_uuid' => $this->task->uuid,
             'task_type_label' => $this->task->type?->label() ?? '',
             'opportunity_uuid' => $this->task->opportunity->uuid,
-            'opportunity_student_name' => $this->task->opportunity->student->name ?? '',
+            'opportunity_guardian_name' => $this->task->opportunity->guardian->name ?? '',
+            'opportunity_url' => '/tenant/opportunities/'.$this->task->opportunity->uuid,
         ];
     }
 

@@ -89,17 +89,21 @@ function relativeTime(isoString: string): string {
                     class="flex items-start gap-3 border-b px-4 py-3 last:border-0"
                     :class="{ 'bg-muted/30': notification.read_at === null }"
                 >
-                    <div class="min-w-0 flex-1">
+                    <a
+                        :href="notification.data.opportunity_url"
+                        class="block min-w-0 flex-1"
+                        @click="markRead(notification.id)"
+                    >
                         <p class="text-sm leading-tight font-medium">
                             {{ notification.data.task_type_label }}
                         </p>
-                        <p class="mt-0.5 text-xs text-muted-foreground">
-                            {{ notification.data.opportunity_student_name }}
+                        <p class="mt-0.5 text-xs text-primary hover:underline">
+                            {{ notification.data.opportunity_guardian_name }}
                         </p>
                         <p class="mt-0.5 text-xs text-muted-foreground">
                             {{ relativeTime(notification.created_at) }}
                         </p>
-                    </div>
+                    </a>
                     <button
                         v-if="notification.read_at === null"
                         class="mt-0.5 text-muted-foreground hover:text-foreground"

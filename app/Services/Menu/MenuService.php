@@ -145,6 +145,7 @@ class MenuService
                 'icon' => $item['icon'],
                 'url' => $item['url'],
                 'order' => $item['order'],
+                'permissions' => $item['permissions'],
             ]);
         }
 

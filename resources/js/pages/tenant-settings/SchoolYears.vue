@@ -31,6 +31,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePermission } from '@/composables/usePermission';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { destroy, index } from '@/routes/tenant/school_years';
@@ -57,6 +58,8 @@ const props = defineProps<{
 }>();
 
 const toast = useToast();
+
+const { can } = usePermission();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Anos Letivos', href: index().url },
@@ -331,6 +334,7 @@ function formatDate(dateStr: string): string {
             <!-- Table header actions -->
             <div class="flex items-center justify-between">
                 <Button
+                    v-if="can('school_years', 'add')"
                     class="inline-flex items-center gap-2"
                     @click="openCreateForm"
                 >
@@ -484,6 +488,7 @@ function formatDate(dateStr: string): string {
                                     class="flex items-center justify-end gap-2"
                                 >
                                     <button
+                                        v-if="can('school_years', 'edit')"
                                         type="button"
                                         class="rounded p-1 hover:bg-muted"
                                         title="Editar"
@@ -492,6 +497,7 @@ function formatDate(dateStr: string): string {
                                         <Pencil class="h-4 w-4" />
                                     </button>
                                     <button
+                                        v-if="can('school_years', 'delete')"
                                         type="button"
                                         class="rounded p-1 text-destructive hover:bg-muted"
                                         title="Excluir"
@@ -524,7 +530,7 @@ function formatDate(dateStr: string): string {
                         }}
                     </p>
                     <Button
-                        v-if="!hasActiveFilter"
+                        v-if="!hasActiveFilter && can('school_years', 'add')"
                         class="mt-4 inline-flex items-center gap-2"
                         @click="openCreateForm"
                     >

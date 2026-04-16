@@ -18,8 +18,14 @@ class StoreTaskRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('assigned_user_uuid') && $this->input('assigned_user_uuid') !== null && $this->input('assigned_user_uuid') !== '') {
-            $user = User::query()->where('uuid', $this->input('assigned_user_uuid'))->first();
+        $uuid = $this->input('assigned_user_uuid');
+        if ($uuid === null || $uuid === '') {
+            $this->merge(['assigned_user_uuid' => auth()->user()->uuid]);
+            $uuid = auth()->user()->uuid;
+        }
+
+        if ($this->has('assigned_user_uuid') && $uuid !== null && $uuid !== '') {
+            $user = User::query()->where('uuid', $uuid)->first();
             $this->merge(['assigned_user_id' => $user?->id]);
         }
     }
@@ -32,8 +38,16 @@ class StoreTaskRequest extends FormRequest
             'type' => ['required', Rule::enum(TaskType::class)],
             'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'scheduled_at' => ['nullable', 'date'],
-            'due_at' => ['nullable', 'date'],
+            'due_at' => ['nullable', 'date', 'after:now'],
             'notes' => ['nullable', 'string', 'max:2000'],
+        ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'due_at.after' => 'O prazo deve ser uma data e hora no futuro.',
         ];
     }
 }

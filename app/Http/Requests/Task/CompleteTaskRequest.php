@@ -47,4 +47,14 @@ class CompleteTaskRequest extends FormRequest
             'refusal_detail' => ['nullable', 'required_if:is_refusal,true', 'string', 'max:2000'],
         ];
     }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'refusal_category.required_if' => 'Selecione a categoria da recusa.',
+            'refusal_category.in' => 'Categoria de recusa inválida.',
+            'refusal_detail.required_if' => 'Descreva o motivo da recusa.',
+        ];
+    }
 }

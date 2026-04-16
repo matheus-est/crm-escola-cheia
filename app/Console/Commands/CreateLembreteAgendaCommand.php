@@ -24,6 +24,7 @@ class CreateLembreteAgendaCommand extends Command
             ->where('status', TaskStatus::Open->value)
             ->where('due_at', '<=', now()->addHours(24))
             ->where('due_at', '>=', now())
+            ->with('opportunity')
             ->get();
 
         $created = 0;
@@ -43,12 +44,12 @@ class CreateLembreteAgendaCommand extends Command
                 'uuid' => (string) Str::uuid(),
                 'school_id' => $task->school_id,
                 'opportunity_id' => $task->opportunity_id,
-                'assigned_user_id' => $task->assigned_user_id,
+                'assigned_user_id' => $task->opportunity?->responsible_user_id ?? $task->assigned_user_id,
                 'type' => TaskType::LembreteAgenda->value,
                 'status' => TaskStatus::Open->value,
-                'due_at' => $task->due_at,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'due_at' => $task->due_at?->toDateTimeString(),
+                'created_at' => now()->toDateTimeString(),
+                'updated_at' => now()->toDateTimeString(),
             ]);
 
             $created++;

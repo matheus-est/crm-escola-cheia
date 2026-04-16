@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { usePermission } from '@/composables/usePermission';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { create, destroy, edit, index } from '@/routes/tenant/events/index';
@@ -28,6 +29,8 @@ const props = defineProps<{
 }>();
 
 const toast = useToast();
+
+const { can } = usePermission();
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Eventos', href: '#' }];
 
@@ -192,6 +195,7 @@ function confirmDelete(): void {
             <!-- Table header actions -->
             <div class="flex items-center justify-between">
                 <Link
+                    v-if="can('events', 'add')"
                     :href="create().url"
                     class="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                 >
@@ -268,6 +272,7 @@ function confirmDelete(): void {
                                     class="flex items-center justify-end gap-2"
                                 >
                                     <Link
+                                        v-if="can('events', 'edit')"
                                         :href="edit({ event: event.uuid }).url"
                                         class="rounded p-1 hover:bg-muted"
                                         title="Editar"
@@ -275,6 +280,7 @@ function confirmDelete(): void {
                                         <Pencil class="h-4 w-4" />
                                     </Link>
                                     <button
+                                        v-if="can('events', 'delete')"
                                         type="button"
                                         class="rounded p-1 text-destructive hover:bg-muted"
                                         title="Excluir"
@@ -309,7 +315,7 @@ function confirmDelete(): void {
                         }}
                     </p>
                     <Link
-                        v-if="!hasActiveFilter"
+                        v-if="!hasActiveFilter && can('events', 'add')"
                         :href="create().url"
                         class="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                     >

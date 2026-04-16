@@ -43,11 +43,12 @@ class CreateLembreteEventoCommand extends Command
                     'uuid' => (string) Str::uuid(),
                     'school_id' => $opportunity->school_id,
                     'opportunity_id' => $opportunity->id,
+                    'assigned_user_id' => $opportunity->responsible_user_id,
                     'type' => TaskType::LembreteEvento->value,
                     'status' => TaskStatus::Open->value,
-                    'due_at' => $event->event_date,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'due_at' => $event->event_date?->toDateTimeString(),
+                    'created_at' => now()->toDateTimeString(),
+                    'updated_at' => now()->toDateTimeString(),
                 ]);
 
                 $created++;

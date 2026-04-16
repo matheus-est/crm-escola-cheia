@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\TaskStatus;
 use App\Enums\TaskType;
 use App\Models\Grade;
+use App\Models\Guardian;
 use App\Models\Opportunity;
 use App\Models\Role;
 use App\Models\School;
@@ -152,4 +153,37 @@ it('command does not re-notify task that already has notified_overdue_at', funct
         ->assertSuccessful();
 
     Notification::assertNothingSent();
+});
+
+it('TaskOverdueNotification payload contains opportunity_guardian_name and opportunity_url and not opportunity_student_name', function (): void {
+    $school = notifOverdueMakeSchool();
+    $user = notifOverdueMakeUser($school);
+    $opportunity = notifOverdueMakeOpportunity($school, $user);
+
+    $guardian = Guardian::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'name' => 'Responsável Teste Overdue',
+        'cpf' => '529.982.247-25',
+    ]);
+
+    $opportunity->update(['guardian_id' => $guardian->id]);
+    $opportunity->refresh();
+
+    $task = Task::withoutGlobalScopes()->create([
+        'school_id' => $school->id,
+        'opportunity_id' => $opportunity->id,
+        'type' => TaskType::RetornoLigacao->value,
+        'status' => TaskStatus::Open->value,
+        'due_at' => now()->subHour(),
+    ]);
+
+    $notification = new TaskOverdueNotification($task);
+    $payload = $notification->toArray($user);
+
+    expect($payload)->toHaveKey('opportunity_guardian_name')
+        ->and($payload['opportunity_guardian_name'])->toBe('Responsável Teste Overdue')
+        ->and($payload)->toHaveKey('opportunity_url')
+        ->and($payload['opportunity_url'])->toContain($opportunity->uuid)
+        ->and($payload)->toHaveKey('due_at')
+        ->and($payload)->not->toHaveKey('opportunity_student_name');
 });

@@ -108,6 +108,11 @@ class OpportunityService
 
         $page = (int) ($filters['page'] ?? 1);
 
+        $authUser = auth()->user();
+        if ($authUser !== null && $authUser->isComercial()) {
+            $query->where('responsible_user_id', $authUser->id);
+        }
+
         return $query
             ->with(['student', 'guardian', 'grade', 'segment', 'schoolYear', 'responsibleUser', 'schoolUnit'])
             ->orderByDesc('created_at')
@@ -202,7 +207,10 @@ class OpportunityService
             ]);
 
             if ($taskType !== null) {
-                $this->taskService->create($opportunity, ['type' => TaskType::from($taskType)]);
+                $this->taskService->create($opportunity, [
+                    'type' => TaskType::from($taskType),
+                    'assigned_user_id' => $opportunity->responsible_user_id,
+                ]);
             }
 
             return $opportunity;

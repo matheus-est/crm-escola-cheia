@@ -54,10 +54,11 @@ class OutcomeSeeder extends Seeder
             ],
             [
                 'slug' => 'retorno_ligacao_agendamento',
-                'name' => 'Agendamento',
+                'name' => 'Realizada',
                 'task_type' => 'retorno_ligacao',
                 'opens_window' => 'agendamento',
                 'actions' => [
+                    ['type' => 'move_status', 'payload' => ['status' => 'agendamento']],
                     ['type' => 'open_window', 'payload' => ['window' => 'agendamento']],
                 ],
             ],
@@ -125,6 +126,15 @@ class OutcomeSeeder extends Seeder
                     ['type' => 'create_task', 'payload' => ['task_type' => 'lembrete_agenda', 'renitente' => true]],
                 ],
             ],
+            [
+                'slug' => 'lembrete_agenda_novo_lembrete',
+                'name' => 'Novo Lembrete de Agenda',
+                'task_type' => 'lembrete_agenda',
+                'opens_window' => null,
+                'actions' => [
+                    ['type' => 'create_task', 'payload' => ['task_type' => 'lembrete_agenda', 'renitente' => true]],
+                ],
+            ],
 
             // ---------------------------------------------------------------
             // Reagendamento
@@ -135,8 +145,9 @@ class OutcomeSeeder extends Seeder
                 'task_type' => 'reagendamento',
                 'opens_window' => 'agendamento',
                 'actions' => [
-                    ['type' => 'cancel_tasks', 'payload' => ['task_type' => 'agendamento']],
-                    ['type' => 'open_window', 'payload' => ['window' => 'agendamento']],
+                    ['type' => 'assert_no_future_task', 'payload' => ['task_type' => 'agendamento']],
+                    ['type' => 'complete_tasks',        'payload' => ['task_type' => 'agendamento']],
+                    ['type' => 'open_window',           'payload' => ['window' => 'agendamento']],
                 ],
             ],
             [
@@ -188,8 +199,8 @@ class OutcomeSeeder extends Seeder
                 'task_type' => 'double_check',
                 'opens_window' => 'agendamento',
                 'actions' => [
-                    ['type' => 'cancel_tasks', 'payload' => ['task_type' => 'agendamento']],
-                    ['type' => 'open_window', 'payload' => ['window' => 'agendamento']],
+                    ['type' => 'complete_tasks', 'payload' => ['task_type' => 'agendamento']],
+                    ['type' => 'open_window',    'payload' => ['window' => 'agendamento']],
                 ],
             ],
             [

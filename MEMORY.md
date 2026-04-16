@@ -7,8 +7,13 @@
 
 ## CURRENT STATE
 
-**Last session:** 2026-04-13
+**Last session:** 2026-04-15
 **Next task:** 8 — Form module (public lead capture); 10 — Reports; Stage 5 full flow complete
+**Session 2026-04-15b:** ADJ-FILTERS + ADJ-OUTCOMES-2 + ADJ-MODAL — 309 tests
+**Session 2026-04-15c:** RACE-FIX — TaskCreateModal race condition fixed in tasks/Index.vue + opportunities/Show.vue
+**Session 2026-04-15d:** ROUTE-FIX + STORE-VAL — tasks routes split (filter/store conflict resolved); StoreTaskRequest due_at after:now + PT-BR message — 309 tests
+**Session 2026-04-15e:** NOTIF-PAYLOAD — TaskAssignedNotification + TaskOverdueNotification: replaced opportunity_student_name with opportunity_guardian_name + opportunity_url — 311 tests
+**Session 2026-04-15f:** ASSIGN-FIX — OpportunityService/OutcomeProcessorService/CreateLembreteAgendaCommand/CreateLembreteEventoCommand: follow-up tasks now assigned to opportunity.responsible_user_id; 3 new tests — 314 tests
 **Last rebrand:** 2026-04-10 — Identidade visual migrada para Operis CRM (azul `#2D3AE0`, Eurostile)
 
 ### Completed
@@ -110,6 +115,12 @@
 - [x] TESTS — TaskCompletionTest (12 cases) + OpportunityTaskTypeFilterTest (3 cases) + RenitenteCycleServiceTest (+3 cases) — 291 tests total — 2026-04-13
 - [x] FIX-BIRTH-CREATE — StoreOpportunityRequest: student_birth_date rule+attribute · OpportunityService::create() passes date_of_birth to findOrCreate() · StudentService::findOrCreate() updates date_of_birth on existing student · OpportunityBirthDateTest (3 cases) — 302 tests — 2026-04-13
 - [x] FIX-LOOKUP-BIRTH — StudentController::lookup() explicit JSON (uuid/name/cpf/birth_date/guardian) replaces toArray(); Create.vue onFound fills student_birth_date via fillInput — 2026-04-15
+- [x] COMERCIAL-ACCESS — User::isComercial() · OpportunityService::list() + listByStatus() Comercial filter (responsible_user_id) · TaskService::list() Comercial filter (assigned_user_id) · OpportunityPolicy::view()+update() Comercial guard · TaskPolicy::view() Comercial guard · ComercialAccessTest (5 cases) — 309 tests — 2026-04-15
+- [x] SESSION-FILTERS — TaskController/OpportunityController/CalendarController: session-based filter persistence (Route::match get+post + clearFilters); OutcomeProcessorService/CreateLembrete*Command: Carbon->toDateTimeString() fix in DB::table inserts; OutcomeSeeder: retorno_ligacao_agendamento gets move_status→agendamento before open_window; StoreTaskRequest: defaults assigned_user_uuid to auth user when absent — 133 tests — 2026-04-15
+- [x] SESSION-FILTER — tasks/Index.vue + opportunities/Index.vue: localStorage removed; applyFilters uses router.post(index().url); clearFilters uses router.visit(clear_filters().url); onMounted restore logic removed; localFilters init directly from props.filters — 2026-04-15
+- [x] SESSION-FILTER-CAL — calendar/Index.vue: currentDate initialized from props.filters.date_from; navigation calls router.get(calendarIndex().url) to persist in session; watch(props.entries) syncs localEntries after page reload — 2026-04-15
+- [x] TASKCREATE-SIMPLE — TaskCreateModal.vue: removed type Select, assigned_user Select, notes Textarea; added opportunityInfo prop (guardianName/studentName); only editable field is due_at (Prazo); type submitted as hidden input; Show.vue updated (removed :users/:registration-type, added :opportunity-info) — 2026-04-15
+- [x] NOTIF-PAYLOAD — TaskAssignedNotification + TaskOverdueNotification: replaced opportunity_student_name with opportunity_guardian_name + opportunity_url; payload tests added — 311 tests — 2026-04-15
 - [ ] 8 — Form module (public lead capture form)
 - [x] 9 — Calendar — CalendarService · CalendarController (index + entries) · calendar/Index.vue (month/week grid) · 9 tests — APPROVED 2026-04-11
 - [x] ADJ-OW1 — OutcomeModal: emit `open-task-modal` before `completed` when `open_window` is non-null — 2026-04-13
@@ -119,7 +130,11 @@
 - [x] VAL-DUP-OPP — StoreOpportunityRequest: duplicate opportunity guard (same student CPF + school_year + tenant) added via second `withValidator after()` callback using `DB::table` — 4 new tests — 2026-04-13
 - [x] STAGE5-UI — TaskDetailModal + ExecuteTaskModal: two-step modal flow in tasks/Index.vue + Show.vue; TaskPolicy::complete() fixed for Master/Admin/Operacao; refusal payload conditional; generalError for 403/500 display — 299 tests — 2026-04-13
 - [x] TEST-FIX-ADDR — OpportunityAddressTest: guardian_cpf added to POST store test (NOT NULL constraint fix) — 299 tests — 2026-04-13
-- [ ] 10 — Reports
+- [x] CAL-ADJ — CalendarService: replaced scheduleTypes filter with `->where('status', TaskStatus::Open->value)` — all task types with due_at + open status shown; completed/cancelled excluded — 11 tests — 2026-04-15
+- [x] ADJ-OUTCOME — OutcomeActionType: CompleteTasksOfType + AssertNoFutureTask cases; OutcomeProcessorService: completeTasksOfType() + assertNoFutureTask() methods; OutcomeSeeder: retorno_ligacao_agendamento renamed to Realizada, lembrete_agenda_novo_lembrete added, reagendamento_reagendado uses assert_no_future_task+complete_tasks, double_check_nao_visitou uses complete_tasks; CompleteTaskRequest: messages() in PT-BR — 2026-04-15
+- [x] ADJ-FILTERS — Session-based filter persistence: TaskController/OpportunityController/CalendarController store filters in PHP session (`task_filters`/`opportunity_filters`/`calendar_filters`); `Route::match(['get','post'])` for all three; `clear_filters` routes; frontend removes all localStorage; `applyFilters()` → `router.post()`; `clearFilters()` → Wayfinder route — 309 tests — 2026-04-15
+- [x] ADJ-OUTCOMES-2 — OutcomeSeeder: `retorno_ligacao_agendamento` adds `move_status → agendamento` before `open_window`; OutcomeProcessorService/CreateLembreteEventoCommand: Carbon `->toDateTimeString()` fix; StoreTaskRequest defaults `assigned_user_uuid` to auth user when absent — 2026-04-15
+- [x] ADJ-MODAL — TaskCreateModal simplified: remove type Select, responsável, notes; only opportunity info (read-only) + Prazo datetime; Show.vue `onOpenTaskModal` fixed to set pendingWindowType + open modal (was only reloading) — 2026-04-15
 - [ ] 11 — LGPD
 
 
@@ -199,8 +214,20 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-13 | `StoreOpportunityRequest.php` | Duplicate-opportunity check uses `DB::table` (not Eloquent) to bypass GlobalScope; student lookup by `cpf` is unscoped — `opportunities.school_id` filter isolates tenants; valid CPF (mod-11) required in tests |
 | 2026-04-13 | `OpportunityService::create()` | `student_birth_date` (request field) must be mapped to `date_of_birth` (DB column) before passing to `StudentService::findOrCreate()` — `array_filter` on null/empty values strips the key, so pass it explicitly and let `findOrCreate` check `array_key_exists` |
 | 2026-04-14 | `useCnpjLookup.ts` | `error` (mod-11 failure) and `cnpjNotFound` (valid CNPJ but API offline/404) are mutually exclusive — never set both; `cnpjNotFound` alone does NOT block submit; both reset when digits < 14 |
+| 2026-04-15 | `OpportunityService`, `TaskService`, `OpportunityPolicy`, `TaskPolicy` | Comercial role restricts via `$user->isComercial()` — service filters `responsible_user_id`/`assigned_user_id`; policy gates view/update; listByStatus() delegates to list() so filter is inherited; auth()->user() may be null in commands — always guard with `!== null` |
+| 2026-04-15 | `lib/calendarEvent.ts` | `entryColorClass()` and `entryLabel()` cover all 10 TaskType values (agendamento, lembrete_agenda, lembrete_evento, event, retorno_ligacao, reagendamento, double_check, provavel_matricula, reagendamento_evento, double_check_evento) — calendar legend in `Index.vue` mirrors same set |
+| 2026-04-15 | `tasks/Index.vue`, `opportunities/Index.vue` | Session-based filters: applyFilters uses router.post(index().url, filters, { preserveUrl: true }); clearFilters uses router.visit(clear_filters().url); no localStorage; localFilters init from props.filters directly |
 | 2026-04-15 | `StudentController::lookup()` | Response must be explicit array (`uuid`/`name`/`cpf`/`birth_date`/`guardian`) — never `toArray()` which exposes `date_of_birth` (DB column) instead of `birth_date` (TS interface); `date_of_birth?->format('Y-m-d')` aligns with `Student.birth_date?: string` |
 
+| 2026-04-15 | `TaskController`, `OpportunityController`, `CalendarController` | Filter persistence uses PHP session (`task_filters`/`opportunity_filters`/`calendar_filters`); routes use `Route::match(['get','post'])`; GET restores from session, POST writes to session; `clear_filters` route declared BEFORE model binding routes |
+| 2026-04-15 | `tasks/Index.vue`, `opportunities/Index.vue` | `applyFilters()` uses `router.post(filter().url, filters, { preserveUrl: true })` (tasks) / `router.post(index().url)` (opportunities); `clearFilters()` navigates to Wayfinder `clear_filters().url`; `localFilters` initializes from `props.filters` directly — no localStorage |
+| 2026-04-15 | `routes/tenant.php` | Tasks filter POST must go to a dedicated route (`/tasks/filter`) distinct from `/tasks` (store) — `Route::match(['get','post'])` on `/tasks` causes store() to be unreachable since POST always hits index(); use GET `/tasks`, POST `/tasks/filter`, POST `/tasks` separately |
+| 2026-04-15 | `opportunities/Show.vue` | `onOpenTaskModal(type: string)` sets `pendingWindowType.value = type as TaskType` + `showTaskCreateModal.value = true`; `onTaskCreated()` clears `pendingWindowType` + `router.reload({ preserveUrl: true })` — do NOT call reload inside `onOpenTaskModal` |
+| 2026-04-15 | `usePermission.ts` | `can(moduleSlug, action)` looks up permissions from `page.props.menu` (MenuGroupItem[]); use `v-if` (never `disabled`) on action buttons; module slugs must match exactly what the backend seeds (e.g. `school_years`, `lead_sources`, `event_types`) |
+| 2026-04-15 | `opportunities/Show.vue` | `onOpenTaskModal(type)` must assign `pendingWindowType.value = type as TaskType` and set `showTaskCreateModal.value = true` — never call `router.reload()` here; reload belongs in `@created` handler (`onTaskCreated`) |
+| 2026-04-15 | `TaskController::index()`, `OpportunityController::index()` | Session filter restoration must pass `null` (not `''`) to service filters — empty string bypasses service `!== null` guards and causes spurious `whereHas`/`where` clauses that return empty results |
+| 2026-04-15 | `OutcomeProcessorService`, `CreateLembreteAgendaCommand`, `OpportunityService` | Follow-up tasks (create_task action + lembrete commands) must use `$opportunity->responsible_user_id` not `$task->assigned_user_id` — the executor is not necessarily the owner |
+| 2026-04-15 | `tasks/Index.vue`, `opportunities/Show.vue` | Race condition fix: `onTaskCompleted(result)` checks `result.open_window` — only nullifies `selectedTask`/reloads when `open_window` is null; `onOpenTaskModal(payload: { type: string })` signature corrected in Show.vue (was `type: string`, breaking payload extraction); `onTaskCreated` is the sole reload point when `open_window` is non-null |
 ## AGENT INSTRUCTIONS
 
 ### On session start

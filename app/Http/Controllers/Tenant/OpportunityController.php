@@ -41,7 +41,6 @@ class OpportunityController extends Controller
         Gate::authorize('viewAny', Opportunity::class);
 
         $school = Auth::user()->currentSchool();
-        $view = $request->input('view', 'kanban');
 
         $grades = Grade::query()->orderBy('name')->get(['uuid', 'name']);
         $schoolYears = SchoolYear::query()->orderBy('name')->get(['uuid', 'name']);
@@ -50,23 +49,36 @@ class OpportunityController extends Controller
         $segments = Segment::query()->orderBy('name')->get(['uuid', 'name']);
         $schoolUnits = SchoolUnit::query()->orderBy('name')->get(['uuid', 'name']);
 
-        $filters = [
-            'status' => $request->input('status', ''),
-            'grade_id' => $request->input('grade_id', ''),
-            'school_year_id' => $request->input('school_year_id', ''),
-            'responsible_user_id' => $request->input('responsible_user_id', ''),
-            'lead_source_id' => $request->input('lead_source_id', ''),
-            'segment_id' => $request->input('segment_id', ''),
-            'school_unit_id' => $request->input('school_unit_id', ''),
-            'registration_type' => $request->input('registration_type', ''),
-            'date_from' => $request->input('date_from', ''),
-            'date_to' => $request->input('date_to', ''),
-            'student_cpf' => $request->input('student_cpf', ''),
-            'guardian_cpf' => $request->input('guardian_cpf', ''),
-        ];
+        $hasParams = $request->hasAny([
+            'status', 'grade_id', 'school_year_id', 'responsible_user_id',
+            'lead_source_id', 'segment_id', 'school_unit_id', 'registration_type',
+            'date_from', 'date_to', 'student_cpf', 'guardian_cpf', 'view',
+        ]);
+
+        if ($request->isMethod('post') || $hasParams) {
+            $filters = $this->setFilters($request);
+            $view = session('opportunity_view', 'kanban');
+        } else {
+            $filters = session('opportunity_filters', []);
+            $filters = [
+                'status' => $filters['status'] ?? '',
+                'grade_id' => $filters['grade_id'] ?? '',
+                'school_year_id' => $filters['school_year_id'] ?? '',
+                'responsible_user_id' => $filters['responsible_user_id'] ?? '',
+                'lead_source_id' => $filters['lead_source_id'] ?? '',
+                'segment_id' => $filters['segment_id'] ?? '',
+                'school_unit_id' => $filters['school_unit_id'] ?? '',
+                'registration_type' => $filters['registration_type'] ?? '',
+                'date_from' => $filters['date_from'] ?? '',
+                'date_to' => $filters['date_to'] ?? '',
+                'student_cpf' => $filters['student_cpf'] ?? '',
+                'guardian_cpf' => $filters['guardian_cpf'] ?? '',
+            ];
+            $view = session('opportunity_view', 'kanban');
+        }
 
         if ($view === 'kanban') {
-            $kanbanColumns = $this->opportunityService->listByStatus($request->all());
+            $kanbanColumns = $this->opportunityService->listByStatus($filters);
 
             $wrappedColumns = [];
             foreach ($kanbanColumns as $status => $paginator) {
@@ -87,7 +99,7 @@ class OpportunityController extends Controller
             ]);
         }
 
-        $opportunities = $this->opportunityService->list($request->all());
+        $opportunities = $this->opportunityService->list($filters);
 
         return Inertia::render('opportunities/Index', [
             'view' => 'list',
@@ -101,6 +113,40 @@ class OpportunityController extends Controller
             'schoolUnits' => $schoolUnits,
             'filters' => $filters,
         ]);
+    }
+
+    public function setFilters(Request $request): array
+    {
+        $filters = [
+            'status' => $request->input('status', ''),
+            'grade_id' => $request->input('grade_id', ''),
+            'school_year_id' => $request->input('school_year_id', ''),
+            'responsible_user_id' => $request->input('responsible_user_id', ''),
+            'lead_source_id' => $request->input('lead_source_id', ''),
+            'segment_id' => $request->input('segment_id', ''),
+            'school_unit_id' => $request->input('school_unit_id', ''),
+            'registration_type' => $request->input('registration_type', ''),
+            'date_from' => $request->input('date_from', ''),
+            'date_to' => $request->input('date_to', ''),
+            'student_cpf' => $request->input('student_cpf', ''),
+            'guardian_cpf' => $request->input('guardian_cpf', ''),
+        ];
+
+        $view = $request->input('view', 'kanban');
+
+        session([
+            'opportunity_filters' => $filters,
+            'opportunity_view' => $view,
+        ]);
+
+        return $filters;
+    }
+
+    public function clearFilters(): RedirectResponse
+    {
+        session()->forget(['opportunity_filters', 'opportunity_view']);
+
+        return to_route('tenant.opportunities.index');
     }
 
     public function create(): Response

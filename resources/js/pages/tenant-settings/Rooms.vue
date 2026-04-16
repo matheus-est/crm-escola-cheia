@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { usePermission } from '@/composables/usePermission';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { index } from '@/routes/tenant/settings/rooms/index';
@@ -33,6 +34,8 @@ const props = defineProps<{
 }>();
 
 const toast = useToast();
+
+const { can } = usePermission();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Salas', href: index().url },
@@ -202,6 +205,7 @@ function handleDeleteSuccess(): void {
             <!-- Table header actions -->
             <div class="flex items-center justify-between">
                 <Button
+                    v-if="can('rooms', 'add')"
                     class="inline-flex items-center gap-2"
                     @click="openCreateForm"
                 >
@@ -273,6 +277,7 @@ function handleDeleteSuccess(): void {
                                     class="flex items-center justify-end gap-2"
                                 >
                                     <button
+                                        v-if="can('rooms', 'edit')"
                                         type="button"
                                         class="rounded p-1 hover:bg-muted"
                                         title="Editar"
@@ -281,6 +286,7 @@ function handleDeleteSuccess(): void {
                                         <Pencil class="h-4 w-4" />
                                     </button>
                                     <button
+                                        v-if="can('rooms', 'delete')"
                                         type="button"
                                         class="rounded p-1 text-destructive hover:bg-muted"
                                         title="Excluir"
@@ -313,7 +319,7 @@ function handleDeleteSuccess(): void {
                         }}
                     </p>
                     <Button
-                        v-if="!hasActiveFilter"
+                        v-if="!hasActiveFilter && can('rooms', 'add')"
                         class="mt-4 inline-flex items-center gap-2"
                         @click="openCreateForm"
                     >

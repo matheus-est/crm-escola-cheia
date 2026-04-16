@@ -383,7 +383,8 @@ export interface CrmNotification {
         task_uuid: string;
         task_type_label: string;
         opportunity_uuid: string;
-        opportunity_student_name: string;
+        opportunity_guardian_name: string;
+        opportunity_url: string;
         due_at?: string;
     };
     read_at: string | null;

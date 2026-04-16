@@ -32,6 +32,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePermission } from '@/composables/usePermission';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { index, store, update, destroy } from '@/routes/tenant/lead_sources';
@@ -52,6 +53,8 @@ const props = defineProps<{
 }>();
 
 const toast = useToast();
+
+const { can } = usePermission();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Origens de Lead', href: index().url },
@@ -269,7 +272,10 @@ function confirmDelete(): void {
             <!-- Table header actions -->
             <div class="flex items-center justify-between">
                 <Button
-                    v-if="!showForm || formMode !== 'create'"
+                    v-if="
+                        (!showForm || formMode !== 'create') &&
+                        can('lead_sources', 'add')
+                    "
                     class="inline-flex items-center gap-2"
                     @click="openCreateForm"
                 >
@@ -524,6 +530,7 @@ function confirmDelete(): void {
                                     class="flex items-center justify-end gap-2"
                                 >
                                     <button
+                                        v-if="can('lead_sources', 'edit')"
                                         type="button"
                                         class="rounded p-1 hover:bg-muted"
                                         title="Editar"
@@ -532,6 +539,7 @@ function confirmDelete(): void {
                                         <Pencil class="h-4 w-4" />
                                     </button>
                                     <button
+                                        v-if="can('lead_sources', 'delete')"
                                         type="button"
                                         class="rounded p-1 text-destructive hover:bg-muted"
                                         title="Excluir"
@@ -570,7 +578,11 @@ function confirmDelete(): void {
                         }}
                     </p>
                     <Button
-                        v-if="!hasActiveFilter && !showForm"
+                        v-if="
+                            !hasActiveFilter &&
+                            !showForm &&
+                            can('lead_sources', 'add')
+                        "
                         class="mt-4 inline-flex items-center gap-2"
                         @click="openCreateForm"
                     >

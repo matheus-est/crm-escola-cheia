@@ -30,6 +30,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePermission } from '@/composables/usePermission';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { index } from '@/routes/tenant/settings/event_types/index';
@@ -48,6 +49,8 @@ const props = defineProps<{
 }>();
 
 const toast = useToast();
+
+const { can } = usePermission();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Tipos de Evento', href: index().url },
@@ -250,6 +253,7 @@ function handleToggleSuccess(): void {
             <!-- Table header actions -->
             <div class="flex items-center justify-between">
                 <Button
+                    v-if="can('event_types', 'add')"
                     class="inline-flex items-center gap-2"
                     @click="openCreateForm"
                 >
@@ -313,6 +317,7 @@ function handleToggleSuccess(): void {
                                     class="flex items-center justify-end gap-2"
                                 >
                                     <button
+                                        v-if="can('event_types', 'edit')"
                                         type="button"
                                         class="rounded p-1 hover:bg-muted"
                                         title="Editar"
@@ -321,7 +326,10 @@ function handleToggleSuccess(): void {
                                         <Pencil class="h-4 w-4" />
                                     </button>
                                     <button
-                                        v-if="eventType.is_active"
+                                        v-if="
+                                            eventType.is_active &&
+                                            can('event_types', 'delete')
+                                        "
                                         type="button"
                                         class="rounded p-1 text-destructive hover:bg-muted"
                                         title="Inativar"
@@ -330,7 +338,7 @@ function handleToggleSuccess(): void {
                                         <Trash2 class="h-4 w-4" />
                                     </button>
                                     <button
-                                        v-else
+                                        v-else-if="can('event_types', 'delete')"
                                         type="button"
                                         class="rounded p-1 text-green-600 hover:bg-muted"
                                         title="Reativar"
@@ -363,7 +371,7 @@ function handleToggleSuccess(): void {
                         }}
                     </p>
                     <Button
-                        v-if="!hasActiveFilter"
+                        v-if="!hasActiveFilter && can('event_types', 'add')"
                         class="mt-4 inline-flex items-center gap-2"
                         @click="openCreateForm"
                     >

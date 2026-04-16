@@ -74,6 +74,11 @@ class TaskService
             $query->whereIn('type', $scheduleTypes);
         }
 
+        $authUser = auth()->user();
+        if ($authUser !== null && $authUser->isComercial()) {
+            $query->where('assigned_user_id', $authUser->id);
+        }
+
         return $query->orderByDesc('created_at')->paginate(20);
     }
 

@@ -22,9 +22,9 @@ beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
 
     $this->school = School::factory()->create();
-    $this->role   = Role::where('name', 'Gestor')->firstOrFail();
-    $this->user   = User::factory()->create([
-        'role_id'           => $this->role->id,
+    $this->role = Role::where('name', 'Gestor')->firstOrFail();
+    $this->user = User::factory()->create([
+        'role_id' => $this->role->id,
         'school_current_id' => $this->school->id,
     ]);
     $this->user->schools()->attach($this->school->id, ['is_active' => true]);
@@ -43,24 +43,72 @@ it('renders the calendar page', function (): void {
         ->assertOk();
 });
 
-it('excludes non-schedule tasks', function (): void {
+it('includes any task type with due_at when open', function (): void {
     $opportunity = Opportunity::factory()->create(['school_id' => $this->school->id]);
 
     Task::factory()->create([
-        'school_id'      => $this->school->id,
+        'school_id' => $this->school->id,
         'opportunity_id' => $opportunity->id,
-        'type'           => TaskType::RetornoLigacao->value,
-        'status'         => TaskStatus::Open->value,
-        'due_at'         => now()->startOfMonth()->addDays(5),
+        'type' => TaskType::RetornoLigacao->value,
+        'status' => TaskStatus::Open->value,
+        'due_at' => now()->startOfMonth()->addDays(5),
     ]);
 
     $dateFrom = now()->startOfMonth()->toDateTimeString();
-    $dateTo   = now()->endOfMonth()->toDateTimeString();
+    $dateTo = now()->endOfMonth()->toDateTimeString();
 
     $response = $this->actingAs($this->user)
         ->getJson(route('tenant.calendar.entries', [
             'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
+            'date_to' => $dateTo,
+        ]));
+
+    $response->assertOk();
+    expect($response->json())->toHaveCount(1);
+});
+
+it('excludes completed tasks from calendar', function (): void {
+    $opportunity = Opportunity::factory()->create(['school_id' => $this->school->id]);
+
+    Task::factory()->create([
+        'school_id' => $this->school->id,
+        'opportunity_id' => $opportunity->id,
+        'type' => TaskType::Agendamento->value,
+        'status' => TaskStatus::Completed->value,
+        'due_at' => now()->startOfMonth()->addDays(5),
+    ]);
+
+    $dateFrom = now()->startOfMonth()->toDateTimeString();
+    $dateTo = now()->endOfMonth()->toDateTimeString();
+
+    $response = $this->actingAs($this->user)
+        ->getJson(route('tenant.calendar.entries', [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ]));
+
+    $response->assertOk();
+    expect($response->json())->toBeEmpty();
+});
+
+it('excludes cancelled tasks from calendar', function (): void {
+    $opportunity = Opportunity::factory()->create(['school_id' => $this->school->id]);
+
+    Task::factory()->create([
+        'school_id' => $this->school->id,
+        'opportunity_id' => $opportunity->id,
+        'type' => TaskType::Agendamento->value,
+        'status' => TaskStatus::Cancelled->value,
+        'due_at' => now()->startOfMonth()->addDays(5),
+    ]);
+
+    $dateFrom = now()->startOfMonth()->toDateTimeString();
+    $dateTo = now()->endOfMonth()->toDateTimeString();
+
+    $response = $this->actingAs($this->user)
+        ->getJson(route('tenant.calendar.entries', [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
         ]));
 
     $response->assertOk();
@@ -71,20 +119,20 @@ it('includes schedule tasks within date range', function (): void {
     $opportunity = Opportunity::factory()->create(['school_id' => $this->school->id]);
 
     Task::factory()->create([
-        'school_id'      => $this->school->id,
+        'school_id' => $this->school->id,
         'opportunity_id' => $opportunity->id,
-        'type'           => TaskType::Agendamento->value,
-        'status'         => TaskStatus::Open->value,
-        'due_at'         => now()->startOfMonth()->addDays(5),
+        'type' => TaskType::Agendamento->value,
+        'status' => TaskStatus::Open->value,
+        'due_at' => now()->startOfMonth()->addDays(5),
     ]);
 
     $dateFrom = now()->startOfMonth()->toDateTimeString();
-    $dateTo   = now()->endOfMonth()->toDateTimeString();
+    $dateTo = now()->endOfMonth()->toDateTimeString();
 
     $response = $this->actingAs($this->user)
         ->getJson(route('tenant.calendar.entries', [
             'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
+            'date_to' => $dateTo,
         ]));
 
     $response->assertOk();
@@ -97,20 +145,20 @@ it('excludes tasks outside the date range', function (): void {
     $opportunity = Opportunity::factory()->create(['school_id' => $this->school->id]);
 
     Task::factory()->create([
-        'school_id'      => $this->school->id,
+        'school_id' => $this->school->id,
         'opportunity_id' => $opportunity->id,
-        'type'           => TaskType::Agendamento->value,
-        'status'         => TaskStatus::Open->value,
-        'due_at'         => now()->addYear(),
+        'type' => TaskType::Agendamento->value,
+        'status' => TaskStatus::Open->value,
+        'due_at' => now()->addYear(),
     ]);
 
     $dateFrom = now()->startOfMonth()->toDateTimeString();
-    $dateTo   = now()->endOfMonth()->toDateTimeString();
+    $dateTo = now()->endOfMonth()->toDateTimeString();
 
     $response = $this->actingAs($this->user)
         ->getJson(route('tenant.calendar.entries', [
             'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
+            'date_to' => $dateTo,
         ]));
 
     $response->assertOk();
@@ -119,19 +167,19 @@ it('excludes tasks outside the date range', function (): void {
 
 it('includes events within date range', function (): void {
     Event::factory()->create([
-        'school_id'  => $this->school->id,
+        'school_id' => $this->school->id,
         'event_date' => now()->startOfMonth()->addDays(3),
         'has_no_date' => false,
-        'title'      => 'Palestra Interna',
+        'title' => 'Palestra Interna',
     ]);
 
     $dateFrom = now()->startOfMonth()->toDateTimeString();
-    $dateTo   = now()->endOfMonth()->toDateTimeString();
+    $dateTo = now()->endOfMonth()->toDateTimeString();
 
     $response = $this->actingAs($this->user)
         ->getJson(route('tenant.calendar.entries', [
             'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
+            'date_to' => $dateTo,
         ]));
 
     $response->assertOk();
@@ -142,19 +190,19 @@ it('includes events within date range', function (): void {
 
 it('excludes events with has_no_date true', function (): void {
     Event::factory()->create([
-        'school_id'   => $this->school->id,
-        'event_date'  => now()->startOfMonth()->addDays(3),
+        'school_id' => $this->school->id,
+        'event_date' => now()->startOfMonth()->addDays(3),
         'has_no_date' => true,
-        'title'       => 'Evento Sem Data',
+        'title' => 'Evento Sem Data',
     ]);
 
     $dateFrom = now()->startOfMonth()->toDateTimeString();
-    $dateTo   = now()->endOfMonth()->toDateTimeString();
+    $dateTo = now()->endOfMonth()->toDateTimeString();
 
     $response = $this->actingAs($this->user)
         ->getJson(route('tenant.calendar.entries', [
             'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
+            'date_to' => $dateTo,
         ]));
 
     $response->assertOk();
@@ -163,7 +211,7 @@ it('excludes events with has_no_date true', function (): void {
 
 it('filters by assigned_user_uuid', function (): void {
     $otherUser = User::factory()->create([
-        'role_id'           => $this->role->id,
+        'role_id' => $this->role->id,
         'school_current_id' => $this->school->id,
     ]);
     $otherUser->schools()->attach($this->school->id, ['is_active' => true]);
@@ -172,31 +220,31 @@ it('filters by assigned_user_uuid', function (): void {
 
     // Task for $this->user
     Task::factory()->create([
-        'school_id'        => $this->school->id,
-        'opportunity_id'   => $opportunity->id,
-        'type'             => TaskType::Agendamento->value,
-        'status'           => TaskStatus::Open->value,
+        'school_id' => $this->school->id,
+        'opportunity_id' => $opportunity->id,
+        'type' => TaskType::Agendamento->value,
+        'status' => TaskStatus::Open->value,
         'assigned_user_id' => $this->user->id,
-        'due_at'           => now()->startOfMonth()->addDays(5),
+        'due_at' => now()->startOfMonth()->addDays(5),
     ]);
 
     // Task for $otherUser
     Task::factory()->create([
-        'school_id'        => $this->school->id,
-        'opportunity_id'   => $opportunity->id,
-        'type'             => TaskType::LembreteAgenda->value,
-        'status'           => TaskStatus::Open->value,
+        'school_id' => $this->school->id,
+        'opportunity_id' => $opportunity->id,
+        'type' => TaskType::LembreteAgenda->value,
+        'status' => TaskStatus::Open->value,
         'assigned_user_id' => $otherUser->id,
-        'due_at'           => now()->startOfMonth()->addDays(6),
+        'due_at' => now()->startOfMonth()->addDays(6),
     ]);
 
     $dateFrom = now()->startOfMonth()->toDateTimeString();
-    $dateTo   = now()->endOfMonth()->toDateTimeString();
+    $dateTo = now()->endOfMonth()->toDateTimeString();
 
     $response = $this->actingAs($this->user)
         ->getJson(route('tenant.calendar.entries', [
-            'date_from'          => $dateFrom,
-            'date_to'            => $dateTo,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
             'assigned_user_uuid' => $this->user->uuid,
         ]));
 
@@ -209,13 +257,13 @@ it('forces comercial to see only their own tasks', function (): void {
     $comercialRole = Role::where('name', 'Comercial')->firstOrFail();
 
     $comercialUser = User::factory()->create([
-        'role_id'           => $comercialRole->id,
+        'role_id' => $comercialRole->id,
         'school_current_id' => $this->school->id,
     ]);
     $comercialUser->schools()->attach($this->school->id, ['is_active' => true]);
 
     $otherUser = User::factory()->create([
-        'role_id'           => $this->role->id,
+        'role_id' => $this->role->id,
         'school_current_id' => $this->school->id,
     ]);
     $otherUser->schools()->attach($this->school->id, ['is_active' => true]);
@@ -224,31 +272,31 @@ it('forces comercial to see only their own tasks', function (): void {
 
     // Task for comercialUser
     Task::factory()->create([
-        'school_id'        => $this->school->id,
-        'opportunity_id'   => $opportunity->id,
-        'type'             => TaskType::Agendamento->value,
-        'status'           => TaskStatus::Open->value,
+        'school_id' => $this->school->id,
+        'opportunity_id' => $opportunity->id,
+        'type' => TaskType::Agendamento->value,
+        'status' => TaskStatus::Open->value,
         'assigned_user_id' => $comercialUser->id,
-        'due_at'           => now()->startOfMonth()->addDays(5),
+        'due_at' => now()->startOfMonth()->addDays(5),
     ]);
 
     // Task for otherUser
     Task::factory()->create([
-        'school_id'        => $this->school->id,
-        'opportunity_id'   => $opportunity->id,
-        'type'             => TaskType::Agendamento->value,
-        'status'           => TaskStatus::Open->value,
+        'school_id' => $this->school->id,
+        'opportunity_id' => $opportunity->id,
+        'type' => TaskType::Agendamento->value,
+        'status' => TaskStatus::Open->value,
         'assigned_user_id' => $otherUser->id,
-        'due_at'           => now()->startOfMonth()->addDays(6),
+        'due_at' => now()->startOfMonth()->addDays(6),
     ]);
 
     $dateFrom = now()->startOfMonth()->toDateTimeString();
-    $dateTo   = now()->endOfMonth()->toDateTimeString();
+    $dateTo = now()->endOfMonth()->toDateTimeString();
 
     $response = $this->actingAs($comercialUser)
         ->getJson(route('tenant.calendar.entries', [
             'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
+            'date_to' => $dateTo,
         ]));
 
     $response->assertOk();
@@ -258,12 +306,12 @@ it('forces comercial to see only their own tasks', function (): void {
 
 it('entries endpoint returns json', function (): void {
     $dateFrom = now()->startOfMonth()->toDateTimeString();
-    $dateTo   = now()->endOfMonth()->toDateTimeString();
+    $dateTo = now()->endOfMonth()->toDateTimeString();
 
     $response = $this->actingAs($this->user)
         ->getJson(route('tenant.calendar.entries', [
             'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
+            'date_to' => $dateTo,
         ]));
 
     $response->assertOk();

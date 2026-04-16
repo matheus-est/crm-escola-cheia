@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Calendar;
 
-use App\Enums\TaskType;
+use App\Enums\TaskStatus;
 use App\Models\Event;
 use App\Models\Task;
 
@@ -13,14 +13,9 @@ class CalendarService
     /** @return array<int, array<string, mixed>> */
     public function listEntries(string $dateFrom, string $dateTo, ?int $assignedUserId = null): array
     {
-        $scheduleTypes = array_map(
-            fn (TaskType $t): string => $t->value,
-            array_filter(TaskType::cases(), fn (TaskType $t): bool => $t->isSchedule()),
-        );
-
         $tasks = Task::query()
             ->with(['opportunity.student', 'assignedUser'])
-            ->whereIn('type', $scheduleTypes)
+            ->where('status', TaskStatus::Open->value)
             ->whereBetween('due_at', [$dateFrom, $dateTo])
             ->when($assignedUserId !== null, fn ($q) => $q->where('assigned_user_id', $assignedUserId))
             ->get();
@@ -35,26 +30,26 @@ class CalendarService
             $typeLabel = $task->type->label();
 
             return [
-                'uuid'          => $task->uuid,
-                'title'         => trim("{$studentName} — {$typeLabel}"),
-                'date'          => $task->due_at?->format('Y-m-d H:i:s') ?? '',
-                'type'          => 'task',
-                'sub_type'      => $task->type->value,
-                'status'        => $task->status->value,
-                'link_uuid'     => $task->opportunity?->uuid ?? '',
+                'uuid' => $task->uuid,
+                'title' => trim("{$studentName} — {$typeLabel}"),
+                'date' => $task->due_at?->format('Y-m-d H:i:s') ?? '',
+                'type' => 'task',
+                'sub_type' => $task->type->value,
+                'status' => $task->status->value,
+                'link_uuid' => $task->opportunity?->uuid ?? '',
                 'assigned_user' => $task->assignedUser?->name,
             ];
         });
 
         $eventEntries = $events->map(function (Event $event): array {
             return [
-                'uuid'          => $event->uuid,
-                'title'         => $event->title,
-                'date'          => $event->event_date?->format('Y-m-d H:i:s') ?? '',
-                'type'          => 'event',
-                'sub_type'      => 'event',
-                'status'        => null,
-                'link_uuid'     => $event->uuid,
+                'uuid' => $event->uuid,
+                'title' => $event->title,
+                'date' => $event->event_date?->format('Y-m-d H:i:s') ?? '',
+                'type' => 'event',
+                'sub_type' => 'event',
+                'status' => null,
+                'link_uuid' => $event->uuid,
                 'assigned_user' => null,
             ];
         });

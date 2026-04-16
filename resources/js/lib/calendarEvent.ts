@@ -9,6 +9,18 @@ export function entryColorClass(subType: string): string {
             return 'bg-teal-100 text-teal-800 border-teal-200';
         case 'event':
             return 'bg-purple-100 text-purple-800 border-purple-200';
+        case 'retorno_ligacao':
+            return 'bg-rose-100 text-rose-800 border-rose-200';
+        case 'reagendamento':
+            return 'bg-blue-100 text-blue-800 border-blue-200';
+        case 'double_check':
+            return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+        case 'provavel_matricula':
+            return 'bg-green-100 text-green-800 border-green-200';
+        case 'reagendamento_evento':
+            return 'bg-purple-100 text-purple-800 border-purple-200';
+        case 'double_check_evento':
+            return 'bg-violet-100 text-violet-800 border-violet-200';
         default:
             return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -25,6 +37,18 @@ export function entryLabel(subType: string): string {
             return 'Lembrete Evento';
         case 'event':
             return 'Evento';
+        case 'retorno_ligacao':
+            return 'Retorno de Ligação';
+        case 'reagendamento':
+            return 'Reagendamento';
+        case 'double_check':
+            return 'Double Check';
+        case 'provavel_matricula':
+            return 'Provável Matrícula';
+        case 'reagendamento_evento':
+            return 'Reagendamento de Evento';
+        case 'double_check_evento':
+            return 'Double Check Evento';
         default:
             return subType;
     }

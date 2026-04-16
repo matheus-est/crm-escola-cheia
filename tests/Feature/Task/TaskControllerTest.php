@@ -226,13 +226,13 @@ it('POST store retorna 422 se oportunidade já tem tarefa aberta', function (): 
 
 it('POST store retorna 403 para usuário sem role de criação de tarefas', function (): void {
     $school = taskMakeSchool();
-    // Admin can view but is not listed in create() policy
-    $admin = taskMakeUser('Admin', $school);
+    // Role 'User' is not a CRM role and cannot create tasks
+    $genericUser = taskMakeUser('User', $school);
     $opportunity = taskMakeOpportunity($school);
 
     app()->instance('tenant.school_id', $school->id);
 
-    $this->actingAs($admin)
+    $this->actingAs($genericUser)
         ->postJson(route('tenant.tasks.store'), [
             'opportunity_uuid' => $opportunity->uuid,
             'type' => TaskType::RetornoLigacao->value,
@@ -598,4 +598,64 @@ it('GET index inclui prop outcomes na resposta Inertia', function (): void {
             ->component('tasks/Index', false)
             ->has('outcomes')
         );
+});
+
+it('creates follow-up task assigned to opportunity responsible_user not task executor', function (): void {
+    $school = taskMakeSchool();
+    $responsibleUser = taskMakeUser('Gestor', $school);
+    $executor = taskMakeUser('Operacao', $school);
+
+    // Use the helper to get grade/school_year ids
+    $baseOpportunity = taskMakeOpportunity($school);
+
+    $opportunity = Opportunity::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'grade_id' => $baseOpportunity->grade_id,
+        'school_year_id' => $baseOpportunity->school_year_id,
+        'status' => 'cadastro_inicial',
+        'renitente_count' => 0,
+        'responsible_user_id' => $responsibleUser->id,
+    ]);
+
+    // baseOpportunity has no open task yet; assign our task to the new opportunity
+    $task = Task::withoutTenantScope()->create([
+        'school_id' => $school->id,
+        'opportunity_id' => $opportunity->id,
+        'type' => TaskType::RetornoLigacao->value,
+        'status' => TaskStatus::Open->value,
+        'assigned_user_id' => $executor->id,
+        'due_at' => now()->addHour(),
+    ]);
+
+    $outcome = Outcome::firstOrCreate(
+        ['slug' => 'test_followup_responsible_user'],
+        [
+            'name' => 'Test Follow-up Responsible',
+            'task_type' => 'retorno_ligacao',
+            'is_refusal' => false,
+            'opens_window' => null,
+        ]
+    );
+
+    $outcome->actions()->firstOrCreate(
+        ['action_type' => 'create_task', 'order' => 0],
+        ['payload' => ['task_type' => 'retorno_ligacao']]
+    );
+
+    app()->instance('tenant.school_id', $school->id);
+
+    $this->actingAs($executor)
+        ->postJson(route('tenant.tasks.complete', $task->uuid), [
+            'outcome_uuid' => $outcome->uuid,
+        ])
+        ->assertStatus(200);
+
+    $followUp = Task::withoutGlobalScopes()
+        ->where('opportunity_id', $opportunity->id)
+        ->where('status', TaskStatus::Open->value)
+        ->where('id', '!=', $task->id)
+        ->first();
+
+    expect($followUp)->not->toBeNull()
+        ->and($followUp->assigned_user_id)->toBe($responsibleUser->id);
 });

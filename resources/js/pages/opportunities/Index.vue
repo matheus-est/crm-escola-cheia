@@ -32,6 +32,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
     isTerminalStatus,
@@ -39,10 +40,11 @@ import {
     statusLabels,
 } from '@/lib/opportunityStatus';
 import {
+    clear_filters,
     create,
     destroy,
     edit,
-    index,
+    filter,
     show,
 } from '@/routes/tenant/opportunities';
 import type { BreadcrumbItem } from '@/types';
@@ -88,6 +90,8 @@ const props = defineProps<{
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Oportunidades', href: '#' },
 ];
+
+const { can } = usePermission();
 
 const localFilters = ref<{
     status: OpportunityStatus | '';
@@ -213,8 +217,8 @@ function updatePerPage(value: string): void {
 }
 
 function applyFilters(): void {
-    router.get(
-        index().url,
+    router.post(
+        filter().url,
         {
             status: localFilters.value.status || undefined,
             grade_id: localFilters.value.grade_id || undefined,
@@ -247,12 +251,12 @@ function formatCpf(value: string): string {
 }
 
 function clearFilters(): void {
-    router.get(index().url, { view: props.view }, { preserveUrl: true });
+    router.visit(clear_filters().url);
 }
 
 function switchView(newView: 'kanban' | 'list'): void {
-    router.get(
-        index().url,
+    router.post(
+        filter().url,
         { ...currentFilters.value, view: newView },
         { preserveUrl: true },
     );
@@ -285,7 +289,7 @@ function handleDeleteSuccess(): void {
                 <Accordion
                     type="single"
                     collapsible
-                    class="w-[560px]"
+                    class="w-72"
                     defaultValue="closed"
                 >
                     <AccordionItem value="filter" class="border-none">
@@ -772,6 +776,7 @@ function handleDeleteSuccess(): void {
             <!-- Page header — line 2: New button | View toggle | PerPageSelect -->
             <div class="flex items-center justify-between">
                 <Link
+                    v-if="can('opportunities', 'add')"
                     :href="create().url"
                     class="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                 >
@@ -917,7 +922,7 @@ function handleDeleteSuccess(): void {
                                         v-if="
                                             !isTerminalStatus(
                                                 opportunity.status,
-                                            )
+                                            ) && can('opportunities', 'edit')
                                         "
                                         :href="
                                             edit({
@@ -933,7 +938,7 @@ function handleDeleteSuccess(): void {
                                         v-if="
                                             !isTerminalStatus(
                                                 opportunity.status,
-                                            )
+                                            ) && can('opportunities', 'delete')
                                         "
                                         class="rounded p-1 text-destructive hover:bg-muted"
                                         title="Excluir"
@@ -966,7 +971,7 @@ function handleDeleteSuccess(): void {
                         }}
                     </p>
                     <Link
-                        v-if="!hasActiveFilter"
+                        v-if="!hasActiveFilter && can('opportunities', 'add')"
                         :href="create().url"
                         class="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                     >

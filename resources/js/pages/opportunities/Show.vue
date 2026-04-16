@@ -67,8 +67,9 @@ const showDetailModal = ref(false);
 const showTaskCreateModal = ref(false);
 const pendingWindowType = ref<TaskType | null>(null);
 
-function onOpenTaskModal(): void {
-    router.reload({ preserveUrl: true });
+function onOpenTaskModal(payload: { type: string }): void {
+    pendingWindowType.value = payload.type as TaskType;
+    showTaskCreateModal.value = true;
 }
 
 function onDetailExecute(): void {
@@ -76,11 +77,16 @@ function onDetailExecute(): void {
     showOutcomeModal.value = true;
 }
 
-function onTaskCompleted(): void {
-    router.reload({ preserveUrl: true });
+function onTaskCompleted(result: { open_window: string | null }): void {
+    if (!result.open_window) {
+        router.reload({ preserveUrl: true });
+    }
+    // Quando open_window !== null, onOpenTaskModal já abriu showTaskCreateModal.
+    // O reload será feito em onTaskCreated.
 }
 
 function onTaskCreated(): void {
+    showTaskCreateModal.value = false;
     pendingWindowType.value = null;
     router.reload({ preserveUrl: true });
 }
@@ -684,9 +690,12 @@ function taskLabel(task: Task): string {
         <TaskCreateModal
             v-model:open="showTaskCreateModal"
             :opportunity-uuid="opportunity.uuid"
-            :users="users"
-            :registration-type="opportunity.registration_type ?? null"
+            :opportunity-info="{
+                guardianName: opportunity.guardian?.name,
+                studentName: opportunity.student?.name,
+            }"
             :preselected-type="pendingWindowType ?? undefined"
+            :assigned-user-uuid="activeTask?.assigned_user?.uuid"
             @created="onTaskCreated"
         />
     </AppLayout>

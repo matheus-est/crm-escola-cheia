@@ -9,7 +9,7 @@ idea → /prompt-engineer → /planner → [approval] → /backend → /reviewer
 
 ## On completing any task
 ```bash
-php artisan test --compact
+php artisan config:clear && php artisan test --compact
 vendor/bin/pint --dirty --format agent
 npm run lint && npm run format
 ```
@@ -43,6 +43,7 @@ Wait for confirmation before continuing.
 
 ## Database safety — inviolable
 
+- **Agents must NEVER delete, truncate, or drop data from the database in any form** — this covers: `DELETE`/`TRUNCATE`/`DROP` raw SQL (`DB::statement()`, `DB::unprepared()`), Eloquent mass-deletes (`Model::query()->delete()`, `Model::truncate()`), `DB::table('x')->delete()`, `DB::table('x')->truncate()`, and `$model->delete()` on any individual record — the ONLY permitted exception is a soft-delete or hard-delete on a **single, named resource** explicitly requested by the developer as a Controller action (e.g. `destroy()` in a resource controller the user asked to implement); this rule applies to ALL agents in the pipeline (planner, backend, frontend, reviewer) without exception and in all contexts (development, testing suggestions, code examples, migrations, seeders, commands)
 - **Agents must NEVER autonomously run any destructive database command** — this restriction applies to all agents in the pipeline (planner, backend, frontend, reviewer) without exception, even when the command appears to be "safe" in a test context
 - **Never** run `php artisan migrate:fresh`, `migrate:refresh`, `migrate:reset`, or `db:wipe` without explicit written confirmation from the developer — these commands destroy real data
 - **Never** run `php artisan db:seed` or `php artisan migrate --seed` on the development database without explicit written confirmation

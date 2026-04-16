@@ -24,14 +24,37 @@ class CalendarController extends Controller
     {
         Gate::authorize('viewAny', Task::class);
 
-        $dateFrom = $request->string('date_from', Carbon::now()->startOfMonth()->toDateTimeString())->toString();
-        $dateTo   = $request->string('date_to', Carbon::now()->endOfMonth()->toDateTimeString())->toString();
+        $hasParams = $request->hasAny(['date_from', 'date_to', 'assigned_user_uuid']);
 
-        $assignedUserId = $this->resolveAssignedUserId($request);
+        if ($request->isMethod('post') || $hasParams) {
+            $calendarFilters = [
+                'date_from' => $request->input('date_from', ''),
+                'date_to' => $request->input('date_to', ''),
+                'assigned_user_uuid' => $request->input('assigned_user_uuid', ''),
+            ];
+            session(['calendar_filters' => $calendarFilters]);
+        } else {
+            $stored = session('calendar_filters', []);
+            $calendarFilters = [
+                'date_from' => $stored['date_from'] ?? '',
+                'date_to' => $stored['date_to'] ?? '',
+                'assigned_user_uuid' => $stored['assigned_user_uuid'] ?? '',
+            ];
+        }
+
+        $dateFrom = $calendarFilters['date_from'] !== ''
+            ? $calendarFilters['date_from']
+            : Carbon::now()->startOfMonth()->toDateTimeString();
+
+        $dateTo = $calendarFilters['date_to'] !== ''
+            ? $calendarFilters['date_to']
+            : Carbon::now()->endOfMonth()->toDateTimeString();
+
+        $assignedUserId = $this->resolveAssignedUserId($calendarFilters['assigned_user_uuid']);
 
         $entries = $this->calendarService->listEntries($dateFrom, $dateTo, $assignedUserId);
 
-        /** @var \App\Models\User $authUser */
+        /** @var User $authUser */
         $authUser = Auth::user();
 
         $canFilterByUser = $authUser->isCrossTenant() || $authUser->role?->name === 'Gestor';
@@ -40,9 +63,9 @@ class CalendarController extends Controller
             : collect();
 
         return Inertia::render('calendar/Index', [
-            'entries'     => $entries,
-            'filters'     => $request->only(['date_from', 'date_to', 'assigned_user_uuid']),
-            'users'       => $users,
+            'entries' => $entries,
+            'filters' => $calendarFilters,
+            'users' => $users,
             'currentUser' => $authUser->uuid,
         ]);
     }
@@ -52,21 +75,21 @@ class CalendarController extends Controller
         Gate::authorize('viewAny', Task::class);
 
         $dateFrom = $request->string('date_from', Carbon::now()->startOfMonth()->toDateTimeString())->toString();
-        $dateTo   = $request->string('date_to', Carbon::now()->endOfMonth()->toDateTimeString())->toString();
+        $dateTo = $request->string('date_to', Carbon::now()->endOfMonth()->toDateTimeString())->toString();
 
-        $assignedUserId = $this->resolveAssignedUserId($request);
+        $uuid = $request->string('assigned_user_uuid')->toString();
+        $assignedUserId = $this->resolveAssignedUserId($uuid);
 
         $entries = $this->calendarService->listEntries($dateFrom, $dateTo, $assignedUserId);
 
         return response()->json($entries);
     }
 
-    private function resolveAssignedUserId(Request $request): ?int
+    private function resolveAssignedUserId(string $uuid): ?int
     {
-        /** @var \App\Models\User $authUser */
+        /** @var User $authUser */
         $authUser = Auth::user();
 
-        $uuid = $request->string('assigned_user_uuid')->toString();
         if ($uuid === '') {
             if (! $authUser->isCrossTenant() && $authUser->role?->name !== 'Gestor') {
                 return $authUser->id;

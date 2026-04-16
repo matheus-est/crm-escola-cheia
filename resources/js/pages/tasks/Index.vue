@@ -7,12 +7,14 @@ import {
     CircleDashed,
     Filter,
     ListTodo,
+    Loader2,
     XCircle,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import TablePagination from '@/components/TablePagination.vue';
 import ExecuteTaskModal from '@/components/Task/ExecuteTaskModal.vue';
+import TaskCreateModal from '@/components/Task/TaskCreateModal.vue';
 import TaskDetailModal from '@/components/Task/TaskDetailModal.vue';
 import {
     Accordion,
@@ -33,9 +35,9 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { show } from '@/routes/tenant/opportunities';
-import { index } from '@/routes/tenant/tasks';
+import { clear_filters, filter } from '@/routes/tenant/tasks';
 import type { BreadcrumbItem } from '@/types';
-import type { Outcome, PaginatedTasks, Task } from '@/types/crm';
+import type { Outcome, PaginatedTasks, Task, TaskType } from '@/types/crm';
 
 interface Filters {
     status: string;
@@ -53,6 +55,8 @@ const props = defineProps<{
 }>();
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Tarefas', href: '#' }];
+
+const isFiltering = ref(false);
 
 const localFilters = ref<Filters>({
     status: props.filters.status ?? '',
@@ -87,8 +91,9 @@ function updateFilterUser(value: string): void {
 }
 
 function applyFilters(): void {
-    router.get(
-        index().url,
+    isFiltering.value = true;
+    router.post(
+        filter().url,
         {
             status: localFilters.value.status || undefined,
             type: localFilters.value.type || undefined,
@@ -97,22 +102,24 @@ function applyFilters(): void {
             date_from: localFilters.value.date_from || undefined,
             date_to: localFilters.value.date_to || undefined,
         },
-        { preserveUrl: true, preserveState: true },
+        {
+            preserveUrl: true,
+            onFinish: () => {
+                isFiltering.value = false;
+            },
+        },
     );
 }
 
 function clearFilters(): void {
-    localFilters.value.status = '';
-    localFilters.value.type = '';
-    localFilters.value.assigned_user_uuid = '';
-    localFilters.value.date_from = '';
-    localFilters.value.date_to = '';
-    router.visit(index().url);
+    router.visit(clear_filters().url);
 }
 
 // — Modal state —
 const showDetailModal = ref(false);
 const showExecuteModal = ref(false);
+const showTaskCreateModal = ref(false);
+const pendingWindowType = ref<TaskType | null>(null);
 const selectedTask = ref<Task | null>(null);
 
 function openDetailModal(task: Task): void {
@@ -125,15 +132,25 @@ function onDetailExecute(): void {
     showExecuteModal.value = true;
 }
 
-function onTaskCompleted(): void {
+function onTaskCompleted(result: { open_window: string | null }): void {
     showExecuteModal.value = false;
-    selectedTask.value = null;
-    router.reload({ preserveUrl: true });
+    if (!result.open_window) {
+        selectedTask.value = null;
+        router.reload({ preserveUrl: true });
+    }
+    // Quando open_window !== null, onOpenTaskModal já abriu showTaskCreateModal.
+    // selectedTask permanece vivo para o v-if do TaskCreateModal.
 }
 
-function onOpenTaskModal(): void {
-    // backend handles follow-up task creation automatically
+function onOpenTaskModal(payload: { type: string }): void {
     showExecuteModal.value = false;
+    pendingWindowType.value = payload.type as TaskType;
+    showTaskCreateModal.value = true;
+}
+
+function onTaskCreated(): void {
+    showTaskCreateModal.value = false;
+    pendingWindowType.value = null;
     selectedTask.value = null;
     router.reload({ preserveUrl: true });
 }
@@ -200,7 +217,7 @@ function formatDate(dateStr?: string | null): string {
                 <Accordion
                     type="single"
                     collapsible
-                    class="w-72"
+                    class="w-96"
                     defaultValue="closed"
                 >
                     <AccordionItem value="filter" class="border-none">
@@ -230,110 +247,119 @@ function formatDate(dateStr?: string | null): string {
                                     @submit.prevent="applyFilters"
                                     class="space-y-4"
                                 >
-                                    <div class="space-y-1.5">
-                                        <Label for="filter-status"
-                                            >Status</Label
-                                        >
-                                        <Select
-                                            :default-value="
-                                                localFilters.status || 'all'
-                                            "
-                                            @update:model-value="
-                                                updateFilterStatus
-                                            "
-                                        >
-                                            <SelectTrigger
-                                                id="filter-status"
-                                                class="h-8"
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="space-y-1.5">
+                                            <Label for="filter-status"
+                                                >Status</Label
                                             >
-                                                <SelectValue
-                                                    placeholder="Todos"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todos</SelectItem
+                                            <Select
+                                                :default-value="
+                                                    localFilters.status || 'all'
+                                                "
+                                                @update:model-value="
+                                                    updateFilterStatus
+                                                "
+                                            >
+                                                <SelectTrigger
+                                                    id="filter-status"
+                                                    class="h-8"
                                                 >
-                                                <SelectItem value="open"
-                                                    >Abertas</SelectItem
-                                                >
-                                                <SelectItem value="completed"
-                                                    >Concluídas</SelectItem
-                                                >
-                                                <SelectItem value="cancelled"
-                                                    >Canceladas</SelectItem
-                                                >
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                                    <SelectValue
+                                                        placeholder="Todos"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all"
+                                                        >Todos</SelectItem
+                                                    >
+                                                    <SelectItem value="open"
+                                                        >Abertas</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="completed"
+                                                        >Concluídas</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="cancelled"
+                                                        >Canceladas</SelectItem
+                                                    >
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
 
-                                    <div class="space-y-1.5">
-                                        <Label for="filter-type">Tipo</Label>
-                                        <Select
-                                            :default-value="
-                                                localFilters.type || 'all'
-                                            "
-                                            @update:model-value="
-                                                updateFilterType
-                                            "
-                                        >
-                                            <SelectTrigger
-                                                id="filter-type"
-                                                class="h-8"
+                                        <div class="space-y-1.5">
+                                            <Label for="filter-type"
+                                                >Tipo</Label
                                             >
-                                                <SelectValue
-                                                    placeholder="Todos"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all"
-                                                    >Todos</SelectItem
+                                            <Select
+                                                :default-value="
+                                                    localFilters.type || 'all'
+                                                "
+                                                @update:model-value="
+                                                    updateFilterType
+                                                "
+                                            >
+                                                <SelectTrigger
+                                                    id="filter-type"
+                                                    class="h-8"
                                                 >
-                                                <SelectItem
-                                                    value="retorno_ligacao"
-                                                    >Retorno de
-                                                    Ligação</SelectItem
-                                                >
-                                                <SelectItem value="agendamento"
-                                                    >Agendamento</SelectItem
-                                                >
-                                                <SelectItem
-                                                    value="lembrete_agenda"
-                                                    >Lembrete de
-                                                    Agendamento</SelectItem
-                                                >
-                                                <SelectItem
-                                                    value="reagendamento"
-                                                    >Reagendamento</SelectItem
-                                                >
-                                                <SelectItem value="double_check"
-                                                    >Double Check</SelectItem
-                                                >
-                                                <SelectItem
-                                                    value="provavel_matricula"
-                                                    >Provável
-                                                    Matrícula</SelectItem
-                                                >
-                                                <SelectItem value="evento"
-                                                    >Evento</SelectItem
-                                                >
-                                                <SelectItem
-                                                    value="lembrete_evento"
-                                                    >Lembrete de
-                                                    Evento</SelectItem
-                                                >
-                                                <SelectItem
-                                                    value="reagendamento_evento"
-                                                    >Reagendamento de
-                                                    Evento</SelectItem
-                                                >
-                                                <SelectItem
-                                                    value="double_check_evento"
-                                                    >Double Check de
-                                                    Evento</SelectItem
-                                                >
-                                            </SelectContent>
-                                        </Select>
+                                                    <SelectValue
+                                                        placeholder="Todos"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all"
+                                                        >Todos</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="retorno_ligacao"
+                                                        >Retorno de
+                                                        Ligação</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="agendamento"
+                                                        >Agendamento</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="lembrete_agenda"
+                                                        >Lembrete de
+                                                        Agendamento</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="reagendamento"
+                                                        >Reagendamento</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="double_check"
+                                                        >Double
+                                                        Check</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="provavel_matricula"
+                                                        >Provável
+                                                        Matrícula</SelectItem
+                                                    >
+                                                    <SelectItem value="evento"
+                                                        >Evento</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="lembrete_evento"
+                                                        >Lembrete de
+                                                        Evento</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="reagendamento_evento"
+                                                        >Reagendamento de
+                                                        Evento</SelectItem
+                                                    >
+                                                    <SelectItem
+                                                        value="double_check_evento"
+                                                        >Double Check de
+                                                        Evento</SelectItem
+                                                    >
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
 
                                     <div class="space-y-1.5">
@@ -406,8 +432,17 @@ function formatDate(dateStr?: string | null): string {
                                             type="submit"
                                             size="sm"
                                             class="h-8"
+                                            :disabled="isFiltering"
                                         >
-                                            Aplicar
+                                            <Loader2
+                                                v-if="isFiltering"
+                                                class="mr-1 h-3 w-3 animate-spin"
+                                            />
+                                            {{
+                                                isFiltering
+                                                    ? 'Aplicando...'
+                                                    : 'Aplicar'
+                                            }}
                                         </Button>
                                     </div>
                                 </form>
@@ -498,9 +533,10 @@ function formatDate(dateStr?: string | null): string {
                                     <CalendarIcon class="h-3.5 w-3.5" />
                                     <span>
                                         {{
-                                            task.is_schedule
-                                                ? formatDate(task.scheduled_at)
-                                                : formatDate(task.due_at)
+                                            formatDate(
+                                                task.due_at ??
+                                                    task.scheduled_at,
+                                            )
                                         }}
                                     </span>
                                 </div>
@@ -599,6 +635,19 @@ function formatDate(dateStr?: string | null): string {
             :users="users"
             @open-task-modal="onOpenTaskModal"
             @completed="onTaskCompleted"
+        />
+
+        <TaskCreateModal
+            v-if="selectedTask?.opportunity && showTaskCreateModal"
+            v-model:open="showTaskCreateModal"
+            :opportunity-uuid="selectedTask.opportunity.uuid"
+            :preselected-type="pendingWindowType ?? undefined"
+            :assigned-user-uuid="selectedTask.assigned_user?.uuid"
+            :opportunity-info="{
+                guardianName: selectedTask.opportunity?.guardian?.name ?? '',
+                studentName: selectedTask.opportunity?.student?.name ?? '',
+            }"
+            @created="onTaskCreated"
         />
     </AppLayout>
 </template>

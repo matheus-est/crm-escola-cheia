@@ -66,17 +66,22 @@ class User extends Authenticatable implements Auditable
         return $this->belongsToMany(School::class, 'school_user', 'user_id', 'school_id')
             ->withPivot('is_active');
     }
-    
+
     public function isCrossTenant(): bool
     {
         return in_array($this->role?->name, ['Master', 'Admin', 'Operacao'], strict: true);
     }
-    
+
     public function isMaster(): bool
     {
         return $this->role?->name === 'Master';
     }
-    
+
+    public function isComercial(): bool
+    {
+        return $this->role?->name === 'Comercial';
+    }
+
     public function currentSchool(): ?School
     {
         if (! class_exists(School::class)) {
