@@ -14,6 +14,7 @@
 **Session 2026-04-15d:** ROUTE-FIX + STORE-VAL — tasks routes split (filter/store conflict resolved); StoreTaskRequest due_at after:now + PT-BR message — 309 tests
 **Session 2026-04-15e:** NOTIF-PAYLOAD — TaskAssignedNotification + TaskOverdueNotification: replaced opportunity_student_name with opportunity_guardian_name + opportunity_url — 311 tests
 **Session 2026-04-15f:** ASSIGN-FIX — OpportunityService/OutcomeProcessorService/CreateLembreteAgendaCommand/CreateLembreteEventoCommand: follow-up tasks now assigned to opportunity.responsible_user_id; 3 new tests — 314 tests
+**Session 2026-04-15g:** ADJ-EVENTO-FLOW — OutcomeSeeder: 8 fixes/additions for evento task flow (evento_nao_compareceu_sem_data cancel-all+move_status; lembrete_evento_vai_comparecer empty actions; lembrete_evento_nao_vai_reagendou complete_tasks evento; +novo_lembrete; reagendamento_evento_reagendado assert+complete+open_window; +novo_reagendamento; double_check_evento_nao_visitou complete_tasks; +novo) — 314 tests
 **Last rebrand:** 2026-04-10 — Identidade visual migrada para Operis CRM (azul `#2D3AE0`, Eurostile)
 
 ### Completed
@@ -227,6 +228,7 @@ Resolved module pitfalls live in `DECISIONS_LOG.md`.
 | 2026-04-15 | `opportunities/Show.vue` | `onOpenTaskModal(type)` must assign `pendingWindowType.value = type as TaskType` and set `showTaskCreateModal.value = true` — never call `router.reload()` here; reload belongs in `@created` handler (`onTaskCreated`) |
 | 2026-04-15 | `TaskController::index()`, `OpportunityController::index()` | Session filter restoration must pass `null` (not `''`) to service filters — empty string bypasses service `!== null` guards and causes spurious `whereHas`/`where` clauses that return empty results |
 | 2026-04-15 | `OutcomeProcessorService`, `CreateLembreteAgendaCommand`, `OpportunityService` | Follow-up tasks (create_task action + lembrete commands) must use `$opportunity->responsible_user_id` not `$task->assigned_user_id` — the executor is not necessarily the owner |
+| 2026-04-15 | `OutcomeSeeder.php` | Action type string must match `OutcomeActionType` enum value exactly — the enum case is `CompleteTasksOfType = 'complete_tasks'` (not `'complete_tasks_of_type'`); mismatch causes silent no-op via `tryFrom` → `null` |
 | 2026-04-15 | `tasks/Index.vue`, `opportunities/Show.vue` | Race condition fix: `onTaskCompleted(result)` checks `result.open_window` — only nullifies `selectedTask`/reloads when `open_window` is null; `onOpenTaskModal(payload: { type: string })` signature corrected in Show.vue (was `type: string`, breaking payload extraction); `onTaskCreated` is the sole reload point when `open_window` is non-null |
 ## AGENT INSTRUCTIONS
 

@@ -281,7 +281,8 @@ class OutcomeSeeder extends Seeder
                 'task_type' => 'evento',
                 'opens_window' => null,
                 'actions' => [
-                    ['type' => 'cancel_tasks', 'payload' => ['task_type' => 'evento']],
+                    ['type' => 'cancel_tasks', 'payload' => null],
+                    ['type' => 'move_status', 'payload' => ['status' => 'cadastro_inicial']],
                 ],
             ],
 
@@ -293,9 +294,7 @@ class OutcomeSeeder extends Seeder
                 'name' => 'Vai Comparecer Evento',
                 'task_type' => 'lembrete_evento',
                 'opens_window' => null,
-                'actions' => [
-                    ['type' => 'create_task', 'payload' => ['task_type' => 'lembrete_evento']],
-                ],
+                'actions' => [],
             ],
             [
                 'slug' => 'lembrete_evento_nao_vai_reagendou',
@@ -303,8 +302,8 @@ class OutcomeSeeder extends Seeder
                 'task_type' => 'lembrete_evento',
                 'opens_window' => 'evento',
                 'actions' => [
-                    ['type' => 'cancel_tasks', 'payload' => ['task_type' => 'lembrete_evento']],
-                    ['type' => 'open_window', 'payload' => ['window' => 'evento']],
+                    ['type' => 'complete_tasks', 'payload' => ['task_type' => 'evento']],
+                    ['type' => 'open_window',    'payload' => ['window' => 'evento']],
                 ],
             ],
             [
@@ -314,6 +313,15 @@ class OutcomeSeeder extends Seeder
                 'opens_window' => null,
                 'actions' => [
                     ['type' => 'create_task', 'payload' => ['task_type' => 'lembrete_evento', 'renitente' => true]],
+                ],
+            ],
+            [
+                'slug' => 'lembrete_evento_novo_lembrete',
+                'name' => 'Novo Lembrete de Evento',
+                'task_type' => 'lembrete_evento',
+                'opens_window' => null,
+                'actions' => [
+                    ['type' => 'create_task', 'payload' => ['task_type' => 'lembrete_evento']],
                 ],
             ],
 
@@ -326,8 +334,9 @@ class OutcomeSeeder extends Seeder
                 'task_type' => 'reagendamento_evento',
                 'opens_window' => 'evento',
                 'actions' => [
-                    ['type' => 'cancel_tasks', 'payload' => ['task_type' => 'evento']],
-                    ['type' => 'open_window', 'payload' => ['window' => 'evento']],
+                    ['type' => 'assert_no_future_task', 'payload' => ['task_type' => 'evento']],
+                    ['type' => 'complete_tasks',         'payload' => ['task_type' => 'evento']],
+                    ['type' => 'open_window',            'payload' => ['window' => 'evento']],
                 ],
             ],
             [
@@ -338,6 +347,15 @@ class OutcomeSeeder extends Seeder
                 'actions' => [
                     ['type' => 'move_status', 'payload' => ['status' => 'visita']],
                     ['type' => 'create_task', 'payload' => ['task_type' => 'provavel_matricula']],
+                ],
+            ],
+            [
+                'slug' => 'reagendamento_evento_novo_reagendamento',
+                'name' => 'Novo Reagendamento de Evento',
+                'task_type' => 'reagendamento_evento',
+                'opens_window' => 'reagendamento_evento',
+                'actions' => [
+                    ['type' => 'open_window', 'payload' => ['window' => 'reagendamento_evento']],
                 ],
             ],
             [
@@ -370,8 +388,17 @@ class OutcomeSeeder extends Seeder
                 'task_type' => 'double_check_evento',
                 'opens_window' => 'evento',
                 'actions' => [
-                    ['type' => 'cancel_tasks', 'payload' => ['task_type' => 'evento']],
-                    ['type' => 'open_window', 'payload' => ['window' => 'evento']],
+                    ['type' => 'complete_tasks', 'payload' => ['task_type' => 'evento']],
+                    ['type' => 'open_window',    'payload' => ['window' => 'evento']],
+                ],
+            ],
+            [
+                'slug' => 'double_check_evento_novo',
+                'name' => 'Novo Double Check de Evento',
+                'task_type' => 'double_check_evento',
+                'opens_window' => 'double_check_evento',
+                'actions' => [
+                    ['type' => 'open_window', 'payload' => ['window' => 'double_check_evento']],
                 ],
             ],
             [
